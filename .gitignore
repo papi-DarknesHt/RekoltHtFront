@@ -141,3 +141,19 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# IDE / Editeurs
+# ===============================
+.vscode/
+
+# JetBrains (PyCharm, IntelliJ, WebStorm, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Visual Studio / autres
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
