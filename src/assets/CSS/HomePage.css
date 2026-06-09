@@ -1,0 +1,418 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/*inter et Merriweather */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
+/*source sans 3*/
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
+
+ /* Reset global */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Variables de couleur du projet */
+  :root {
+    --brown:      #b85c1a;   /* couleur principale orange-brun */
+    --brown-dark: #8f4412;   /* variante sombre */
+    --green:      #1a3d1a;   /* vert foncé logo */
+    --gold:       #c8a830;   /* doré accent */
+    --cream:      #f5f0e0;   /* fond clair */
+    --text:       #1a1a1a;
+    --muted:      #666;
+  }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
+
+  /* ── NAVBAR ── */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 5%;
+    background: var(--brown);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  /* Logo texte dans la navbar */
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: #fff;
+    cursor: pointer;
+  }
+  /* "HT" en doré dans le logo */
+  .nav-logo span { color: var(--gold); }
+
+  /* Liens de navigation centraux */
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links li a {
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    padding-bottom: 3px;
+    border-bottom: 2px solid var(--gold); /* soulignement doré caractéristique */
+    transition: color 0.2s;
+  }
+  .nav-links li a:hover { color: #fff; }
+
+  /* Bouton "Konekte" vert foncé dans la navbar */
+  .nav-btn {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 11px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover { background: #0f2810; }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--brown);
+    text-align: center;
+    padding: 3.5rem 5% 4rem;
+  }
+
+  /* Titre principal en blanc */
+  .hero-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.5;
+    margin-bottom: 0.6rem;
+  }
+
+  /* "direkteman" en doré dans le titre */
+  .hero-title .accent { color: var(--gold); }
+
+  /* Sous-titre en italique */
+  .hero-sub {
+    font-style: italic;
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+    margin-bottom: 2.5rem;
+  }
+
+  /* Barre de recherche */
+  .hero-search {
+    max-width: 520px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.25);
+    border-radius: 40px;
+    padding: 14px 24px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    cursor: text;
+  }
+  .hero-search::placeholder { color: rgba(255,255,255,0.6); }
+
+  /* ── SECTION PWODI RESAN ── */
+  .section {
+    padding: 3rem 5%;
+    background: var(--cream);
+  }
+
+  /* Titre de section centré */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    margin-bottom: 2rem;
+  }
+
+  /* Grille des cartes produits */
+  .produits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Carte individuelle d'un produit */
+  .produit-card {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: transform 0.2s;
+  }
+  .produit-card:hover { transform: translateY(-3px); }
+
+  /* Zone image/emoji du produit */
+  .produit-img {
+    background: #e8f0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    font-size: 52px;
+  }
+
+  /* Infos du produit (nom, lieu, prix) */
+  .produit-info { padding: 14px; }
+  .produit-nom  { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+  .produit-lieu { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .produit-prix { font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+
+  /* Boutons "Detay" et "Kontakte" dans chaque carte */
+  .produit-btns { display: flex; gap: 8px; }
+
+  .btn-detay {
+    padding: 7px 16px;
+    border-radius: 7px;
+    border: none;
+    background: #444;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .btn-detay:hover { background: #222; }
+
+  .btn-kontakte {
+    padding: 7px 16px;
+    border-radius: 7px;
+    border: none;
+    background: var(--gold);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .btn-kontakte:hover { background: #a88420; }
+
+  /*bouton precedent*/
+.rk-btn-pre{
+   width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+  /* ── SECTION PROSESIS ── */
+  .section-brown {
+    background: var(--brown);
+    padding: 3rem 5%;
+    text-align: center;
+  }
+
+  /* Titre de section en blanc */
+  .section-brown .section-title { color: #fff; }
+
+  /* Conteneur des étapes avec flèches */
+  .etapes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+
+  /* Boîte d'une étape */
+  .etape-box {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 18px 20px;
+    min-width: 130px;
+    text-align: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* Flèche entre les étapes */
+  .etape-arrow {
+    color: rgba(255,255,255,0.7);
+    font-size: 22px;
+    padding: 0 12px;
+  }
+
+  /* Bouton CTA doré */
+  .btn-cta {
+    background: var(--gold);
+    color: #fff;
+    border: none;
+    padding: 13px 36px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s, transform 0.2s;
+    box-shadow: 0 4px 16px rgba(200,168,48,0.35);
+  }
+  .btn-cta:hover { background: #a88420; transform: translateY(-2px); }
+
+  /* ── SECTION KAT + SANT ED ── */
+  .section-map-help {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    background: var(--cream);
+    padding: 3rem 5%;
+    gap: 2rem;
+  }
+
+  /* Titre de sous-section */
+  .subsection-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+
+  /* Placeholder de la carte Google Maps */
+  .map-placeholder {
+    background: #2d6b2d;
+    border-radius: 14px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.8);
+    font-size: 18px;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Grille simulant les lignes de la carte */
+  .map-placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Badge "5 pwodikte aktif" en bas de la carte */
+  .map-badge {
+    position: absolute;
+    bottom: 12px; right: 12px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* Légende Lwen/Pre sous la carte */
+  .map-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+  }
+
+  /* Boutons de la section Sant Ed */
+  .sant-ed-btn {
+    display: block;
+    width: 100%;
+    padding: 16px 20px;
+    background: #d4d0c8;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    margin-bottom: 12px;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .sant-ed-btn:hover { background: #c4c0b4; }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--brown);
+    padding: 3rem 5%;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 3rem;
+  }
+
+  /* Logo dans le footer */
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 0.8rem;
+  }
+  .footer-logo span { color: var(--gold); }
+
+  /* Description sous le logo footer */
+  .footer-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.6;
+  }
+
+  /* Titre de colonne footer */
+  .footer-col-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 1rem;
+    font-weight: 700;
+  }
+
+  /* Liens dans le footer */
+  .footer-links { list-style: none; }
+  .footer-links li {
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .footer-links li:hover { color: #fff; }
+
+  /* Responsive mobile */
+  @media (max-width: 768px) {
+    .produits-grid       { grid-template-columns: 1fr; }
+    .etapes              { flex-direction: column; gap: 8px; }
+    .etape-arrow         { transform: rotate(90deg); }
+    .section-map-help    { grid-template-columns: 1fr; }
+    .footer              { grid-template-columns: 1fr; gap: 2rem; }
+    .nav-links           { display: none; }
+  }
