@@ -1,0 +1,45 @@
+.lang-switcher {
+  position: relative;
+}
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px;
+  padding: 6px 12px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.lang-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+  min-width: 160px;
+  overflow: hidden;
+  z-index: 50;
+}
+
+.lang-item {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lang-item:hover {
+  background: #f5f5f5;
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}

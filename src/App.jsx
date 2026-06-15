@@ -1,21 +1,30 @@
-// import React, {useEffect, useState} from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from './assets/vite.svg'
-// import heroImg from './assets/hero.png'
-// import './App.css'
+
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useGlobalSocket } from "./api/useGlobalSocket.js";
 import TestPage from "./testpage.jsx";
+import RekoltHtAuth from "./Registration/Authentification.jsx";
+import HomePage from "./Acceuil/HomePage.jsx";
+import RoutePrivee from "./components/RoutePrivee";
+import NavBar from "./components/NavBar";
+import ProfilAcheteur from "./Profil/ProfilAcheteur.jsx";
+import { TranslationProvider } from "./assets/Translate/i18n.jsx";
+import ModifierProfil from "./Profil/ModifierProfil.jsx";
 
 function AppContent() {
-useGlobalSocket();
+  useGlobalSocket();
 
   return (
-    <Routes>
-        <Route path="/"     element={<TestPage />} />
-      <Route path="api/test" element={<TestPage />} />
-    </Routes>
+    <>
+      {/* <NavBar /> */}
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        {/* <Route path="/test" element={<TestPage />} /> */}
+        <Route path="/auth" element={<RekoltHtAuth />} />
+        <Route path="/profil" element={<ProfilAcheteur />} />
+        <Route path="/update_profil" element={<ModifierProfil/>}/>
+      </Routes>
+    </>
   );
 
 }
@@ -24,7 +33,9 @@ useGlobalSocket();
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <TranslationProvider>
+        <AppContent />
+      </TranslationProvider>
     </BrowserRouter>
   );
 }

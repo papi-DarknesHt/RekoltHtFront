@@ -1,0 +1,732 @@
+/* =============================================================
+   RekoltHT — Page "Mon Profil" (Acheteur)
+   ============================================================= */
+
+:root {
+  --rk-terracotta: #c1693f;
+  --rk-terracotta-dark: #a85a35;
+  --rk-green: #2f4a3c;
+  --rk-green-light: #e3f3e8;
+  --rk-bg: #f6f4f1;
+  --rk-card: #ffffff;
+  --rk-border: #e7e2dc;
+  --rk-text: #2b2622;
+  --rk-text-muted: #8a8178;
+  --rk-text-light: #6f675f;
+  --rk-danger: #c0392b;
+  --rk-radius: 12px;
+  --rk-radius-sm: 8px;
+  --rk-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.profil-page {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--rk-bg);
+  color: var(--rk-text);
+  min-height: 100vh;
+}
+
+/* ===================== Navbar ===================== */
+
+.profil-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--rk-terracotta);
+  color: #fff;
+  padding: 16px 32px;
+}
+
+
+/* 
+.profil-navbar__links {
+  display: flex;
+  gap: 24px;
+} */
+
+.profil-navbar__link {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  opacity: 0.95;
+}
+
+.profil-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profil-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.profil-navbar .profil-icon-btn {
+  color: #fff;
+}
+
+.profil-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.profil-avatar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ===================== Layout ===================== */
+
+.profil-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+
+/* ===================== Sidebar ===================== */
+
+.profil-sidebar {
+  background: var(--rk-bg);
+  border-right: 1px solid var(--rk-border);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 68px);
+}
+
+.profil-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 24px;
+  border-bottom: 1px solid var(--rk-border);
+  margin-bottom: 16px;
+}
+
+.profil-sidebar__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--rk-green);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profil-sidebar__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.profil-sidebar__role {
+  font-size: 0.78rem;
+  color: var(--rk-text-muted);
+  margin: 2px 0 0;
+}
+
+.profil-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profil-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--rk-radius-sm);
+  color: var(--rk-text-light);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.profil-sidebar__item:hover {
+  background: var(--rk-border);
+}
+
+.profil-sidebar__item--active {
+  background: var(--rk-green-light);
+  color: var(--rk-green);
+}
+
+.profil-sidebar__footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--rk-border);
+}
+
+.profil-sidebar__logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  color: var(--rk-danger);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  border-radius: var(--rk-radius-sm);
+}
+
+.profil-sidebar__logout:hover {
+  background: rgba(192, 57, 43, 0.08);
+}
+
+/* ===================== Main content ===================== */
+
+.profil-main {
+  padding: 28px 36px 48px;
+}
+
+.profil-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.profil-title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.profil-subtitle {
+  color: var(--rk-text-muted);
+  margin: 0;
+}
+
+.profil-section-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 32px 0 16px;
+}
+
+/* ===================== Buttons ===================== */
+
+.profil-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--rk-radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.profil-btn:hover {
+  opacity: 0.9;
+}
+
+.profil-btn--primary {
+  background: var(--rk-green);
+  color: #fff;
+}
+
+.profil-btn--secondary {
+  background: var(--rk-green);
+  color: #fff;
+}
+
+/* ===================== Cards / grid ===================== */
+
+.profil-cards {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+
+.profil-cards--bottom {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 20px;
+}
+
+.profil-card {
+  background: var(--rk-card);
+  border: 1px solid var(--rk-border);
+  border-radius: var(--rk-radius);
+  box-shadow: var(--rk-shadow);
+  padding: 24px;
+}
+
+.profil-card__title {
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0 0 18px;
+}
+
+.profil-card__title--accent {
+  color: var(--rk-terracotta-dark);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
+/* ----- Identity card ----- */
+
+.profil-card--identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.profil-avatar-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 16px;
+}
+
+.profil-avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--rk-radius);
+  object-fit: cover;
+  background: var(--rk-border);
+}
+
+/* repli affiché quand le profil n'a pas encore de photo (photo_profil est null) */
+.profil-avatar-image--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rk-text-muted, #8a8178);
+}
+
+.profil-avatar-edit {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--rk-terracotta);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.profil-identity__name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 4px 0 8px;
+}
+
+.profil-badge {
+  display: inline-block;
+  background: var(--rk-green-light);
+  color: var(--rk-green);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.profil-identity__location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rk-text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ----- Contact card ----- */
+
+.profil-contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.profil-contact-grid--bottom {
+  align-items: center;
+}
+
+.profil-field-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--rk-text);
+  margin: 0 0 6px;
+}
+
+.profil-field-value {
+  font-size: 0.92rem;
+  color: var(--rk-text-light);
+  margin: 0;
+}
+
+.profil-divider {
+  border: none;
+  border-top: 1px solid var(--rk-border);
+  margin: 20px 0;
+}
+
+.profil-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.profil-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.profil-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.profil-switch__slider {
+  position: absolute;
+  inset: 0;
+  background: var(--rk-border);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.profil-switch__slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.profil-switch input:checked + .profil-switch__slider {
+  background: var(--rk-green);
+}
+
+.profil-switch input:checked + .profil-switch__slider::before {
+  transform: translateX(20px);
+}
+
+/* ===================== Recent products ===================== */
+
+.profil-recent {
+  margin-top: 0;
+}
+
+.profil-recent__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.profil-recent__header .profil-card__title {
+  margin: 0;
+}
+
+.profil-link {
+  color: var(--rk-terracotta-dark);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.profil-recent__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 18px;
+}
+
+.profil-product__image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--rk-radius-sm);
+  overflow: hidden;
+  background: var(--rk-bg);
+  margin-bottom: 10px;
+}
+
+.profil-product__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profil-product__badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--rk-green);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.profil-product__name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin: 0 0 4px;
+}
+
+.profil-product__price {
+  font-weight: 800;
+  font-size: 0.95rem;
+  margin: 0;
+  color: var(--rk-text);
+}
+
+.profil-product__unit {
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--rk-text-muted);
+}
+
+/* ===================== Sellers / reviews ===================== */
+
+.profil-seller-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profil-seller {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rk-border);
+}
+
+.profil-seller:last-child {
+  border-bottom: none;
+}
+
+.profil-seller__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--rk-bg);
+  border: 1px solid var(--rk-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--rk-text);
+  flex-shrink: 0;
+}
+
+.profil-seller__info {
+  flex: 1;
+}
+
+.profil-seller__name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.profil-seller__contact {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--rk-text-muted);
+  margin: 2px 0 0;
+}
+
+.profil-card--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profil-empty {
+  text-align: center;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.profil-empty__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--rk-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rk-text-muted);
+}
+
+.profil-empty__title {
+  font-weight: 800;
+  font-size: 1rem;
+  margin: 0 0 6px;
+}
+
+.profil-empty__text {
+  color: var(--rk-text-muted);
+  font-size: 0.88rem;
+  margin: 0 0 18px;
+}
+
+/* ===================== Gestion du compte ===================== */
+
+.profil-account {
+  padding: 0;
+  overflow: hidden;
+}
+
+.profil-account__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--rk-border);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.profil-account__item:last-child {
+  border-bottom: none;
+}
+
+.profil-account__item:hover {
+  background: var(--rk-bg);
+}
+
+.profil-account__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--rk-bg);
+  color: var(--rk-terracotta-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profil-account__icon--danger {
+  color: var(--rk-danger);
+}
+
+.profil-account__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profil-account__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.profil-account__title--danger {
+  color: var(--rk-danger);
+}
+
+.profil-account__description {
+  font-size: 0.82rem;
+  color: var(--rk-text-muted);
+}
+
+.profil-account__chevron {
+  color: var(--rk-text-muted);
+  flex-shrink: 0;
+}
+
+.profil-account__item--danger {
+  background: var(--rk-bg);
+}
+
+/* ===================== Footer ===================== */
+
+
+/* ===================== Responsive ===================== */
+
+@media (max-width: 1024px) {
+  .profil-cards,
+  .profil-cards--bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .profil-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profil-sidebar {
+    display: none;
+  }
+
+  .profil-footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .profil-main {
+    padding: 20px 16px 40px;
+  }
+
+  .profil-navbar {
+    padding: 12px 16px;
+  }
+
+  .profil-contact-grid {
+    grid-template-columns: 1fr;
+  }
+}

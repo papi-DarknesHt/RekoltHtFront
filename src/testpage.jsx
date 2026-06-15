@@ -21,7 +21,7 @@ function TestPage() {
   return (
     <div>
       <p>WebSocket : {connected ? "connecté" : "déconnecté"}</p>
-
+      <input type="textet" placeholder="Test input" />
       {error && <p>Erreur : {error.message}</p>}
 
       {data && (

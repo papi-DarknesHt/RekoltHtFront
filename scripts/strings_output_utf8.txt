@@ -1,0 +1,1220 @@
+#2d6b2d
+#e23
+#f5f0c0
+#fff
+&& (
+              <>
+                {/* reCAPTCHA — juste avant le bouton */}
+                <div style={{ margin:
+),
+  });
+  return (
+    <>
+      <div className=
+), 1000);
+        }
+      }
+    }
+    catch (error) {
+      console.error(
+), 1000);
+        }
+      } catch (err) {
+        console.error(
+), 500);
+        }
+      } else {
+        // -------------------------------------------- INSCRIPTION ---- ------------------------------------
+        const res = await inscription({
+          // ----------------------Les champs n'ecessaires pour l'inscription----------------------
+          nom: form.nom,
+          prenom: form.prenom,
+          email: form.email,
+          mot_de_passe: form.mot_de_passe,
+          telephone: form.telephone,
+          // -------------------------Champ optionnel pour l'inscription-------------------------
+          role: form.role,
+          bio: form.bio,
+          adresse: form.adresse,
+          commune: form.commune,
+          ville: form.ville,
+          pays: form.pays,
+          latitude: form.latitude,
+          longitude: form.longitude,
+
+          // ----------------------envoie le token reCAPTCHA au backend----------------------
+          recaptcha: recaptchaToken,
+        });
+        if (res) {
+          setSuccess(
+);
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        <User size={16} />
+                                        Mon Profil
+                                    </button>
+
+                                    <div className=
+);
+          recaptchaRef.current?.reset();  // remet le reCAPTCHA à zéro
+          setRecaptchaToken(null);  // efface le token du state
+          setTimeout(() => navigate(
+);
+          setTimeout(() => navigate(
+);
+    };
+
+    return (
+        <>
+            <nav className=
+);
+  const [index, setIndex] = useState(0);
+  const VISIBLE = 4;
+
+  // calcule les produits visibles selon l'index actuel
+  const produitsVisibles = PRODUITS.slice(index, index + VISIBLE);
+
+  // avancer — empêche de dépasser la fin
+  const next = () => {
+    if (index + VISIBLE < PRODUITS.length) setIndex(index + 1);
+  };
+
+  // reculer — empêche de dépasser le début
+  const prev = () => {
+    if (index > 0) setIndex(index - 1);
+  };
+  const navigate = useNavigate();
+  return (
+      <>
+
+        {/* ── NAVBAR ── */}
+        <NavBar/>
+
+        {/* ── HERO — Section principale avec titre et recherche ── */}
+        <section className=
+)}>
+                Enskri
+              </button>
+            </div>
+
+            {success && (
+              <div className=
+)}>
+                Konekte
+              </button>
+              <button className={`rk-tab ${tab ===
+)}>Enskri gratis</a></>
+              ) : (
+                <>Deja gen kont? <a onClick={() => setTab(
++509 37XX-XXXX
+,
+                      background: i === index ?
+,
+                      borderRadius:
+,
+                      cursor:
+,
+                      fontSize:
+,
+                      height:
+,
+                      marginTop:
+,
+                      transition:
+,
+                  background: index + VISIBLE >= PRODUITS.length ?
+,
+                  border:
+,
+                  borderRadius:
+,
+                  cursor: index + VISIBLE >= PRODUITS.length ?
+,
+                  cursor: index === 0 ?
+,
+                  display:
+,
+                  flexShrink: 0,
+                  transition:
+,
+                  fontSize:
+,
+                alignItems:
+,
+                background:
+,
+                border:
+,
+                borderRadius:
+,
+                color:
+,
+                cursor:
+,
+                desc:
+,
+                display:
+,
+                fontSize:
+,
+                fontWeight:
+,
+                gap:
+,
+                justifyContent:
+,
+                marginBottom:
+,
+                padding:
+,
+                titre:
+,
+                transition:
+,
+                }}
+            >
+              ‹
+            </button>
+
+            {/* Zone des cartes visibles */}
+            <div style={{
+              display:
+,
+              flex: 1,
+              overflow:
+,
+              gap:
+,
+              gridTemplateColumns:
+,
+              }}
+            >
+              {/* Logo Google SVG */}
+              <svg width=
+, alignItems:
+, background:
+, color:
+, err.message);
+      }
+    },
+    onError: () => console.error(
+, error.message);
+    }
+    //------------------------------------ fin fonction handlesubmit ------------------------------------
+  };
+
+  //------------------------------------ authentification avec google --------------------------------------
+  // déclenche le login Google
+  const loginGoogle = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        const res = tab ===
+, fontSize:
+, gap:
+, height:
+, justifyContent:
+, margin:
+, marginTop:
+, maxWidth:
+../Registration/AuthentificationStore
+../api/auth
+../api/auth.js
+../api/client
+../assets/CSS/Authentification.css
+../assets/CSS/Footer.css
+../assets/CSS/NavBar.css
+../assets/CSS/ProfilAcheteur.css
+../assets/CSS/langue.css
+../assets/Images/Asset5.svg
+../components/NavBar.jsx
+./Acceuil/HomePage.jsx
+./App.jsx
+./AuthentificationStore
+./Profil/ProfilAcheteur.jsx
+./ProfilStore.js
+./Registration/Authentification.jsx
+./api/client
+./api/globalStore.js
+./api/useGlobalSocket.js
+./client
+./components/NavBar
+./components/RoutePrivee
+./globalStore.js
+./index.css
+./language
+./testpage.jsx
+/ kg
+/ sac
+/>
+
+                                    <button
+                                        className=
+/>
+
+              <div className=
+/>
+                <button className=
+/>
+                <path fill=
+/>
+              </svg>
+              Kontinye ak Google
+            </button>
+
+            <button className=
+/>
+          </div>
+
+
+          <div style={{ width:
+/></div>
+
+                {/* Liens de navigation */}
+                <ul className=
+/Registration/connexion/
+/Registration/deconnexion/
+/Registration/google/connexion/
+/Registration/google/inscription/
+/Registration/inscription/
+/Registration/profil
+/auth
+/images/citron.jpg
+/images/engrais-npk.jpg
+/images/semences-riz.jpg
+/images/zaboka.jpg
+/test/
+11px
+12px
+14px
+2,200 HTG
+20 HTG
+20px
+260px
+2rem
+30 HTG
+4,500 HTG
+4px 10px
+: form.mot_de_passe_confirmation && !mdpError ?
+: tab ===
+>
+
+                                    <div className=
+>
+
+          {/* Colonne gauche : carte de localisation */}
+          <div>
+            <p className=
+>
+
+        {/* LEFT */}
+        <div className=
+>
+                                        <p>{utilisateur?.prenom} {utilisateur?.nom}</p>
+                                        <span>{utilisateur?.email}</span>
+                                    </div>
+
+                                    <button
+                                        className=
+>
+                        <Bell size={20} />
+                    </button>
+                    <button className=
+>
+                        <Bell size={20} color={
+>
+                        <ShoppingCart size={20} />
+                    </button>
+                    <button className=
+>
+                        <User size={18} />
+                    </button>
+                </div>
+
+                {isConnecte ? (
+                    <>
+                        <span className=
+>
+                        <button className=
+>
+                      <p className=
+>
+                    <Icon size={20} />
+                  </span>
+                  <span className=
+>
+                    <button className=
+>
+                    <h4 className=
+>
+                    <label className=
+>
+                    <li>
+                        <Link to=
+>
+                    <span className=
+>
+                    {/* ajout du composant pour la gestion des langues */}
+                    <Language/>
+                    <button className=
+>
+                    {LANGUAGES.map((lang) => (
+                        <button
+                            key={lang.code}
+                            className=
+>
+                  <Camera size={14} />
+                </button>
+              </div>
+              <h2 className=
+>
+                  <ClipboardEdit size={28} />
+                </div>
+                <h3 className=
+>
+                  <div className=
+>
+                  <label className=
+>
+                  <strong>{f.titre}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT */}
+        <div className=
+>
+                  Rechercher des produits
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* ----- Gestion du compte ----- */}
+          <h2 className=
+>
+                  Vous n'avez pas encore laissé d'avis sur vos produits.
+                </p>
+                <button className=
+>
+                <MapPin size={14} />
+                {user.location}
+              </p>
+            </div>
+
+            <div className=
+>
+                <div className=
+>
+                <div>
+                  <p className=
+>
+                <img
+                  src=
+>
+                <path fill=
+>
+                <span>
+                  <span className=
+>
+                Gérez vos informations personnelles et vos préférences.
+              </p>
+            </div>
+            <button className=
+>
+                Vendeurs contactés
+              </h3>
+
+              <ul className=
+>
+                {/* Logo cliquable */}
+                <div className=
+>
+                {contactedSellers.map((seller) => (
+                  <li className=
+>
+                ✓ {success}
+              </div>
+            )}
+
+            {tab ===
+>
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
+        </aside>
+
+        {/* ===== Contenu principal ===== */}
+        <main className=
+>
+              <Pencil size={16} />
+              Modifier le profil
+            </button>
+          </div>
+
+          {/* ----- Carte profil + Informations de contact ----- */}
+          <section className=
+>
+              <User size={18} />
+              Personal Info
+            </a>
+          </nav>
+
+          <div className=
+>
+              <button className={`rk-tab ${tab ===
+>
+              <div className=
+>
+              <h3 className=
+>
+              Nou konekte vandè ak achtè nan tout peyi a.
+            </p>
+
+            {[
+              {
+                num:
+>
+              {tab ===
+>
+            <button onClick={handleDeconnexion2} className=
+>
+            <div className=
+>
+            <div>
+              <h1 className=
+>
+            <img className=
+>
+            <p className=
+>
+            RekolHT konekte achte ak vande nan tout Ayiti<br/>
+            Achte ak vann pwodi agrikol{
+>
+            {ETAPES.map((e, i) => (
+                <>
+                  {/* Boîte de l'étape */}
+                  <div className=
+>
+            {accountActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <button className=
+>
+          <div className=
+>
+          <h1 className=
+>
+          <h2 className=
+>
+          {/*logo*/}
+          <div className=
+><img style={{ width:
+>Adresse de livraison</p>
+                  <p className=
+>Adrès Imèl*</label>
+                  <input className=
+>Adrès Imèl</label>
+                  <input className=
+>Akey</Link>
+                    </li>
+                    <li><a href=
+>Akey</Link>
+                    <a href=
+>Atik</a>
+                    <a href=
+>Atik</a></li>
+                    <li><a href=
+>Avantaj</p>
+            <p className=
+>Avis et Commentaires</h3>
+                <p className=
+>Bonjou, {utilisateur?.prenom}</span>
+                        <button className=
+>Commune</label>
+                    <input className=
+>Detay</button>
+                        <button className=
+>Ed</a></li>
+                    <li><Link to=
+>Ed</a></li>
+                </ul>
+
+                <div className=
+>Email Professionnel</p>
+                  <p className=
+>Enfòmasyon</h4>
+                    <a href=
+>Gestion du Compte</h2>
+
+          <section className=
+>Gid</a></li>
+                    <li><a href=
+>Informations de contact</h3>
+
+              <div className=
+>Kat lokalizasyon</p>
+
+            {/* Placeholder de Google Maps (à remplacer par un vrai composant Map) */}
+            <div>
+              {/* Google Maps réel */}
+              <MapHaiti/>
+              {/* Légende */}
+              <div className=
+>Ki sa nou ye</a>
+                    <a href=
+>Kijan prosesis la ye?</h2>
+
+          {/* Étapes avec flèches entre chaque */}
+          <div className=
+>Kontakte</button>
+                      </div>
+                    </div>
+                  </div>
+              ))}
+            </div>
+
+            {/* Bouton suivant — grisé si on est à la fin */}
+            <button
+                onClick={next}
+                disabled={index + VISIBLE >= PRODUITS.length}
+                style={{
+                  width:
+>Kreye kont mwen!</button>
+        </section>
+
+        {/* ── KAT + SANT ED — Carte & Aide côte à côte ── */}
+        <div className=
+>Lye: {p.lieu}</p>
+                      <p className=
+>Modpas*</label>
+                  <input className=
+>Modpas</label>
+                  <input className=
+>Mon Profil</h1>
+              <p className=
+>Non*</label>
+                    <input className=
+>Pa bezwen entemedye -- Konekre direk ak kliyan w</p>
+
+          {/* Barre de recherche */}
+          <input
+              className=
+>Politik itilizasyon</a>
+                    <a href=
+>Pwodi resan</h2>
+
+          {/* Conteneur du carousel avec boutons précédent/suivant */}
+          <div style={{display:
+>Sant Ed</p>
+
+            {/* On itère sur les articles d'aide */}
+            {SANT_ED.map((item) => (
+                <button className=
+>Sante èd</a>
+                    <a href=
+>Siyati*</label>
+                    <input className=
+>Telefonn*</label>
+                  <input className=
+>Téléphone</p>
+                  <p className=
+>Ville</label>
+                    <input className=
+>Voir mon profil</Link></li>
+                </ul>
+
+                <div className=
+>direkteman</span>{
+>konfime Modpas la*</label>
+                  <input
+                    className={`rk-input ${mdpError ?
+>{action.description}</span>
+                  </span>
+                  <ChevronRight size={18} className=
+>{action.title}</span>
+                    <span className=
+>{f.num}</div>
+                <div className=
+>{p.emoji}</div>
+                    <div className=
+>{p.nom}</p>
+                      <p className=
+>{p.prix} HTG/U</p>
+                      <div className=
+>{seller.initials}</div>
+                    <div className=
+>{seller.lastContact}</p>
+                    </div>
+                    <button className=
+>{seller.name}</p>
+                      <p className=
+>{utilisateur.date_inscription}</p>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+
+
+          {/* ----- Vendeurs contactés + Avis ----- */}
+          <section className=
+>{utilisateur.email}</p>
+                </div>
+                <div>
+                  <p className=
+>{utilisateur.est_actif ?
+>{utilisateur.nom} {utilisateur.prenom}</h2>
+              <span className=
+>{utilisateur.telephone}</p>
+                </div>
+              </div>
+
+              <hr className=
+>Èd</a>
+                </div>
+
+                <div className=
+? (
+                <>Pa gen kont? <a onClick={() => setTab(
+? (
+              <>
+                <div className=
+? await googleConnexion(response.access_token)
+          : await googleInscription(response.access_token);
+
+        if (res && res.token) {
+          setSuccess(tab ===
+@react-google-maps/api
+@react-oauth/google
+AS
+Acheteur
+Achteur
+Agricultural Producer
+Agro-Supply Haiti
+Artibonite, HT
+Authorization
+Bannann
+Changer l'adresse e-mail
+Citron
+Content-Type
+DELETE
+DERNIER CONTACT: 3 J.
+DERNIER CONTACT: HIER
+Données envoyées :
+EN
+En Stock
+English
+Engrais Organique NPK
+FR
+Français
+GET
+Gid pwodikte
+HT
+Invalid WS message:
+Jean Samantha
+Kalalou
+Kijan cheche pwodi
+Koneksyon reyisi!
+Kreyòl Ayisyen
+Logo
+Mango
+Modpas yo pa menm
+POST
+PUT
+Route Nationale #1, Gonaïves, Artibonite, Haïti
+SV
+Sant Ed
+Sekirite ak konfyans
+Semences de Riz TCS-10
+Semences de la Vallée
+Sitwon
+Test input
+Zaboka
+absolute
+accueil RekoltHT
+ * Sections : Navbar, Hero, Pwodi resan, Prosesis, Kat + Sant Ed, Footer
+ */
+
+import { useState } from "react";
+import "../assets/CSS/HomePage.css"
+import "../assets/CSS/Authentification.css"
+import logo from "../assets/Images/Asset5.svg";
+import {useNavigate} from "react-router-dom";
+import MapHaiti from "../components/MapHaiti";
+import NavBar from "../components/NavBar.jsx";
+import Footer from "../components/Footer.jsx"
+
+// Liste des produits récents affichés dans la section "Pwodi resan"
+const PRODUITS = [
+  { id: 1, nom: "Zaboka",  lieu: "Hinche, Centre",  prix: 25, emoji: "🥑" },
+  { id: 2, nom: "Sitwon",  lieu: "Mayisad, Centre", prix: 15, emoji: "🍋" },
+  { id: 3, nom: "Kalalou", lieu: "Hinche, Centre",  prix: 5,  emoji: "🫑" },
+  { id: 4, nom: "Bannann",  lieu: "Jacmel, Sud-Est",  prix: 10, emoji: "🍌" },
+  { id: 5, nom: "Mango",    lieu: "Gonaïves, Artib.", prix: 8,  emoji: "🥭" },
+  { id: 6, nom: "Pistach",  lieu: "Cap-Haïtien, Nord",prix: 20, emoji: "🥜" },
+];
+
+// Étapes du processus affichées dans la section "Kijan prosesis la ye?"
+const ETAPES = [
+  { n: "1", texte: "Kreye yon kont" },
+  { n: "2", texte: "Cheche pwodwi" },
+  { n: "3", texte: "Kontakte vande" },
+  { n: "4", texte: "Fe afè" },
+];
+
+// Articles d
+acheteur
+alt={utilisateur.nom}
+                  className=
+application/json
+aria-label=
+aria-label={`Message à ${seller.name}`}>
+                      <MessageSquare size={18} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className=
+center
+className=
+connecté
+d=
+déconnecté
+e-mail actuel est ${user.email}`,
+  },
+  {
+    id: "security",
+    icon: Lock,
+    title: "Mot de passe et Sécurité",
+    description: "Dernière modification il y a 3 mois",
+  },
+  {
+    id: "notifications",
+    icon: BellRing,
+    title: "Préférences de notification",
+    description: "Gérer les alertes SMS et e-mail",
+  },
+];
+
+
+
+export default function ProfilAcheteur() {
+  const navigate = useNavigate();
+  const utilisateur = useAuthStore((s) => s.utilisateur);
+  const deconnexion = useAuthStore((s) => s.deconnexion);
+  // const profil = useProfilStore((s) => s.profil);
+  // constante pour deconnexion
+
+  const handleDeconnexion2 = async () => {
+    await deconnexion();
+    // window.location.href = "/";
+    navigate("/");
+  };
+
+  // Si l
+element={<HomePage />} />
+        {/* <Route path=
+element={<RekoltHtAuth />} />
+        <Route path=
+element={<TestPage />} /> */}
+        <Route path=
+email
+en
+erreur
+      }
+    }
+
+  };
+
+  // ---------------------------------- GPS ---------------------------------------------------  
+  useEffect(() => {
+    if (tab !== "register") return;
+
+    if (!navigator.geolocation) {
+      setGpsStatus("non supporté");
+      return;
+    }
+
+    setGpsStatus("chargement");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setForm((prev) => ({
+          ...prev,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }));
+        setGpsStatus("ok");
+      },
+      (error) => {
+        console.warn("GPS refusé :", error.message);
+        setGpsStatus("refusé");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }, [tab]);
+  // -------------Fin Gps ----------------------------------
+
+  const handleSubmit = async () => {
+    clearError();
+
+    // vérifie que le reCAPTCHA est coché avant de soumettre
+    if (tab === "register" && !recaptchaToken) {
+      setRecaptchaError(true);  // affiche le message d
+error:
+est pas encore chargé, on évite d
+flex
+fr
+height=
+hidden
+ht
+include
+inscription----------------
+  const [form, setForm] = useState({
+    nom: "", prenom: "", email: "", mot_de_passe: "", telephone: "", role: "acheteur",
+    bio: "", adresse: "", commune: "", ville: "", pays: "Haiti", latitude: "", longitude: "",
+    mot_de_passe_confirmation: "",
+  });
+
+  //  -------------------UseState pour soumission----------------
+  const [submitted, setSubmitted] = useState(false);
+
+  // -------------------------------state pour la géolocalisation------------------------------
+  const [gpsStatus, setGpsStatus] = useState("en attente"); // statut GPS
+
+  // ------------------------------------reCAPTCHA------------------------------------
+  // ref pour accéder au widget reCAPTCHA
+  const recaptchaRef = useRef(null);
+
+  // stocke le token reCAPTCHA après validation
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+
+  // stocke l
+j.dupont@rekoltht.com
+key={`arrow-${i}`}>→</span>
+                  )}
+                </>
+            ))}
+          </div>
+
+          {/* Bouton d'appel à l'action */}
+          <button className=
+key={action.id}>
+                  <span className=
+key={e.n}>
+                    {e.n}. {e.texte}
+                  </div>
+
+                  {/* Flèche entre les étapes (pas après la dernière) */}
+                  {i < ETAPES.length - 1 && (
+                      <span className=
+key={p.id}>
+                    <div className=
+key={seller.id}>
+                    <div className=
+lang
+lang-btn
+lang-switcher
+login
+lucide-react
+mot_de_passe
+mot_de_passe_confirmation
+mousedown
+name=
+onClick={() => navigate(
+onClick={() => setMenuOpen(!menuOpen)}
+                            >
+                                <User size={16} />
+                                {utilisateur?.prenom ||
+onClick={() => {
+                                            navigate(
+onClick={handleDeconnexion}
+                                    >
+                                        <LogOut size={16} />
+                                        Dekonekte
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    <button className=
+onClick={handleDeconnexion}>Dekonekte</button>
+                    </>
+                ) : (
+                    <button className=
+onClick={handleSubmit} disabled={loading}>
+              {loading ?
+onClick={prev}
+                disabled={index === 0}
+                style={{
+                  background: index === 0 ?
+placeholder=
+profil
+profil-footer
+profil-footer__brand
+profil-footer__column
+profil-footer__logo
+profil-footer__tagline
+profil-footer__title
+profil-layout
+profil-page
+profil-sidebar
+profil-sidebar__avatar
+profil-sidebar__name
+profil-sidebar__nav
+profil-sidebar__role
+profil-sidebar__user
+react
+react-dom/client
+react-google-recaptcha
+react-router-dom
+react-use-websocket
+ref={menuRef}>
+
+                            {/* Bouton */}
+                            <button
+                                className=
+relative
+rgba(0,0,0,0.5)
+rgba(255,255,255,0.7)
+root
+rotate
+src={logo} alt=
+style={{background:
+textet
+token
+type=
+utilisateur
+utilisateur est deja connecté
+    utilisateur: AuthentificationApi.getUtilisateur(),
+    profil:      JSON.parse(localStorage.getItem("profil")) || null,
+    isConnected: !!AuthentificationApi.isConnected(),
+    loading: false,
+    error: null,
+    // inscription — enregistre l
+utilisateur n
+value={form.commune} onChange={handleChange} />
+                  </div>
+                  <div className=
+value={form.email} onChange={handleChange} />
+                </div>
+                <div className=
+value={form.mot_de_passe_confirmation}
+                    onChange={handleChange}
+                    style={{
+                      borderColor: mdpError ?
+value={form.mot_de_passe} onChange={handleChange} />
+                </div>
+                <div className=
+value={form.mot_de_passe} onChange={handleChange} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className=
+value={form.nom} onChange={handleChange} />
+                  </div>
+                  <div className=
+value={form.prenom} onChange={handleChange} />
+                  </div>
+                </div>
+                <div className=
+value={form.telephone} onChange={handleChange} />
+                </div>
+
+
+                <div className=
+value={form.ville} onChange={handleChange} />
+                  </div>
+                </div>
+              </>
+            )}
+            {tab ===
+value={search}
+              onChange={(e) => setSearch(e.target.value)}
+          />
+        </section>
+
+        {/* ── PWODI RESAN — Grille des produits récents ── */}
+        <section className=
+viewBox=
+ws://127.0.0.1:8000/ws/global/
+zustand
+}
+                                />
+                            </button>
+
+                            {/* Menu déroulant */}
+                            {menuOpen && (
+                                <div className=
+}
+                                <ChevronDown
+                                    size={14}
+                                    className={menuOpen ?
+}
+            </button>
+
+            <div className=
+}
+            </p>
+
+            <div className=
+}
+            </p>
+            <p className=
+}
+            <span className=
+}
+            nan tout peyi a!
+          </h1>
+          <p className=
+} />
+            </button>
+
+            {open && (
+                <div className=
+},
+              {
+                num:
+},
+            ].map((f) => (
+              <div key={f.num} className=
+}/>
+                    </button>              
+
+                {isConnecte ? (
+                    <>
+                        <div className=
+}</span>
+              <p className=
+}`}
+                    name=
+}`} onClick={() => setTab(
+}}
+                  />
+                  {/* message d'erreur en temps réel */}
+                  {mdpError && (
+                    <p style={{ color:
+}}
+                />
+            ))}
+          </div>
+        </section>
+
+        {/* ── PROSESIS — Comment ça marche ── */}
+        <section className=
+}}
+            >
+              ›
+            </button>
+
+          </div>
+
+          {/* Indicateurs de position (points) */}
+          <div style={{display:
+}} />
+              <span style={{ fontSize:
+}} />
+            </div>
+            {/* Bouton Google */}
+            <button
+              onClick={() => loginGoogle()}
+              style={{
+                width:
+}} src={logo} alt=
+}}>
+
+            {/* Bouton précédent — grisé si on est au début */}
+            <button className=
+}}>
+                      Tanpri konfime ou pa yon robot
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+            {error && (
+              <div style={{
+                background:
+}}>
+                      ✓ Modpas yo menm
+                    </p>
+                  )}
+                </div>
+
+                <div className=
+}}>
+                      ✗ {mdpError}
+                    </p>
+                  )}
+
+                  {/* message de succès quand les mots de passe correspondent */}
+                  {form.mot_de_passe_confirmation && !mdpError && (
+                    <p style={{ color:
+}}>
+                  <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey={import.meta.env.VITE_RECAPTCHA_KEY}
+
+                    // appelé quand l'utilisateur coche la case
+                    onChange={(token) => {
+                      setRecaptchaToken(token);  // sauvegarde le token
+                      setRecaptchaError(false);  // efface l'erreur
+                    }}
+
+                    // appelé si le token expire (après 2 minutes)
+                    onExpired={() => {
+                      setRecaptchaToken(null);
+                      setRecaptchaError(true);
+                    }}
+                  />
+                  {/* Message d'erreur si pas coché */}
+                  {recaptchaError && (
+                    <p style={{
+                      color:
+}}>
+                ✗ {error}
+              </div>
+            )}
+
+            {/* Séparateur */}
+            <div style={{
+              display:
+}}>
+              <div style={{ flex: 1, height:
+}}>
+              {produitsVisibles.map((p) => (
+                  <div className=
+}}>
+            <p className=
+}}>
+            {Array.from({length: PRODUITS.length - VISIBLE + 1}).map((_, i) => (
+                <div
+                    key={i}
+                    onClick={() => setIndex(i)}
+                    style={{
+                      width: i === index ?
+}}></span>
+                  Lwen
+                </span>
+                            <span>
+                  <span className=
+}}></span>
+                  Pre
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Colonne droite : articles d'aide */}
+          <div>
+            <p className=
+}}>oswa</span>
+              <div style={{ flex: 1, height:
