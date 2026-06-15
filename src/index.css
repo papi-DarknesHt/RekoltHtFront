@@ -1,3 +1,34 @@
+/*inter et Merriweather */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
+/*source sans 3*/
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
+
+:root {
+    --brown: #b85c1a;
+    /* couleur principale orange-brun */
+    --brown-dark: #8f4412;
+    /* variante sombre */
+    --green: #1a3d1a;
+    /* vert foncé logo */
+    --gold: #c8a830;
+    /* doré accent */
+    --cream: #f5f0e0;
+    /* fond clair */
+    --text: #1a1a1a;
+    --muted: #666;
+    --textTitre: "Merriweather", 'Playfair Display';
+    --text: "Inter", "Source Sans 3";
+    --couleurPrincipale: rgb(40, 54, 27);
+    --couleurSecondaire: rgb(181, 98, 40);
+    --couleurFond: rgb(253, 250, 224);
+    --couleurComp: #3A4F63;
+    --white: #FFF;
+    --rk-bg: #f6f4f1;
+}
+
+
+
+
 /*:root {*/
 /*  --text: #6b6375;*/
 /*  --text-h: #08060d;*/

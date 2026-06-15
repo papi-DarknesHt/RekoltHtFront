@@ -5,23 +5,30 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { api } from "../api/client";
 import { useAuthStore } from "./AuthentificationStore";
 import { useNavigate } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
 
 export default function RekoltHtAuth() {
+
   // state pour gérer les données du formulaire, les erreurs, le succès, et le type de tab (login/register)
   const navigate = useNavigate();
   const { inscription, connexion, loading, error, clearError } = useAuthStore();
   const [success, setSuccess] = useState(null);
   const [tab, setTab] = useState("login");
+  const googleConnexion   = useAuthStore((s) => s.googleConnexion);
+const googleInscription = useAuthStore((s) => s.googleInscription);
+
   // --------------constant pour naviguer entre les types de comptes dans le formulaire d'inscription----------------
   const [form, setForm] = useState({
     nom: "", prenom: "", email: "", mot_de_passe: "", telephone: "", role: "acheteur",
     bio: "", adresse: "", commune: "", ville: "", pays: "Haiti", latitude: "", longitude: "",
     mot_de_passe_confirmation: "",
   });
+
+  //  -------------------UseState pour soumission----------------
   const [submitted, setSubmitted] = useState(false);
+
   // -------------------------------state pour la géolocalisation------------------------------
   const [gpsStatus, setGpsStatus] = useState("en attente"); // statut GPS
-
 
   // ------------------------------------reCAPTCHA------------------------------------
   // ref pour accéder au widget reCAPTCHA
@@ -32,6 +39,7 @@ export default function RekoltHtAuth() {
 
   // stocke l'erreur si l'utilisateur n'a pas coché
   const [recaptchaError, setRecaptchaError] = useState(false);
+
   // ------------------------------------validation du mot de passe------------------------------------
   const [mdpError, setMdpError] = useState(null);
 
@@ -55,7 +63,7 @@ export default function RekoltHtAuth() {
 
   };
 
-  // ── GPS  ──────────────────────────────────────────────────
+  // ---------------------------------- GPS ---------------------------------------------------  
   useEffect(() => {
     if (tab !== "register") return;
 
@@ -81,8 +89,11 @@ export default function RekoltHtAuth() {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, [tab]);
+  // -------------Fin Gps ----------------------------------
+
   const handleSubmit = async () => {
     clearError();
+
     // vérifie que le reCAPTCHA est coché avant de soumettre
     if (tab === "register" && !recaptchaToken) {
       setRecaptchaError(true);  // affiche le message d'erreur
@@ -92,10 +103,10 @@ export default function RekoltHtAuth() {
       // -------------------------------------------- CONNEXION ------------------------------------
       if (tab === "login") {
 
-        console.log("Données envoyées :", {
-          email: form.email,
-          mot_de_passe: form.mot_de_passe,
-        });
+        // console.log("Données envoyées :", {
+        //   email: form.email,
+        //   mot_de_passe: form.mot_de_passe,
+        // });
 
         const res = await connexion({
           email: form.email,
@@ -106,7 +117,6 @@ export default function RekoltHtAuth() {
           setSuccess("Koneksyon reyisi!");
           setTimeout(() => navigate("/"), 500);
         }
-        // -----------------------------Fin connexion------------------------------------
       } else {
         // -------------------------------------------- INSCRIPTION ---- ------------------------------------
         const res = await inscription({
@@ -140,7 +150,28 @@ export default function RekoltHtAuth() {
     catch (error) {
       console.error("Erreur connexion :", error.message);
     }
+    //------------------------------------ fin fonction handlesubmit ------------------------------------
   };
+
+  //------------------------------------ authentification avec google --------------------------------------
+  // déclenche le login Google
+  const loginGoogle = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        const res = tab === "login"
+          ? await googleConnexion(response.access_token)
+          : await googleInscription(response.access_token);
+
+        if (res && res.token) {
+          setSuccess(tab === "login" ? "Koneksyon reyisi!" : "Enskripsyon reyisi!");
+          setTimeout(() => navigate("/"), 1000);
+        }
+      } catch (err) {
+        console.error("Erreur Google :", err.message);
+      }
+    },
+    onError: () => console.error("Connexion Google annulée"),
+  });
   return (
     <>
       <div className="rk-root">
@@ -346,6 +377,45 @@ export default function RekoltHtAuth() {
                 ✗ {error}
               </div>
             )}
+
+            {/* Séparateur */}
+            <div style={{
+              display: "flex", alignItems: "center",
+              gap: "12px", margin: "1rem 0"
+            }}>
+              <div style={{ flex: 1, height: "1px", background: "#eee" }} />
+              <span style={{ fontSize: "12px", color: "#888" }}>oswa</span>
+              <div style={{ flex: 1, height: "1px", background: "#eee" }} />
+            </div>
+            {/* Bouton Google */}
+            <button
+              onClick={() => loginGoogle()}
+              style={{
+                width: "100%",
+                padding: "11px",
+                borderRadius: "10px",
+                border: "1.5px solid #e8e8e8",
+                background: "#fff",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "500",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+                transition: "all 0.2s",
+              }}
+            >
+              {/* Logo Google SVG */}
+              <svg width="18" height="18" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+              </svg>
+              Kontinye ak Google
+            </button>
+
             <button className="rk-btn" onClick={handleSubmit} disabled={loading}>
               {loading ? "Chargement..." : tab === "login" ? "Konekte" : "Kreye kont mwen"}
             </button>

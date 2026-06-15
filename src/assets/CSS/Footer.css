@@ -1,0 +1,38 @@
+
+.profil-footer {
+  background: var(--couleurSecondaire);
+  color: #fdf6f0;
+  padding: 48px 48px 56px;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 32px;
+}
+
+.profil-footer__tagline {
+  max-width: 320px;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.profil-footer__title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.profil-footer__column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profil-footer__column a {
+  color: #fdf6f0;
+  text-decoration: none;
+  opacity: 0.95;
+}
+
+.profil-footer__column a:hover {
+  text-decoration: underline;
+}

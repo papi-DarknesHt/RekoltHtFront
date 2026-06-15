@@ -1,82 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-/*inter et Merriweather */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
-/*source sans 3*/
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
-
  /* Reset global */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Variables de couleur du projet */
-  :root {
-    --brown:      #b85c1a;   /* couleur principale orange-brun */
-    --brown-dark: #8f4412;   /* variante sombre */
-    --green:      #1a3d1a;   /* vert foncé logo */
-    --gold:       #c8a830;   /* doré accent */
-    --cream:      #f5f0e0;   /* fond clair */
-    --text:       #1a1a1a;
-    --muted:      #666;
-  }
-
   body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
-
-  /* ── NAVBAR ── */
-  .nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 5%;
-    background: var(--brown);
-    position: sticky; top: 0; z-index: 100;
-  }
-
-  /* Logo texte dans la navbar */
-  .nav-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px;
-    font-weight: 900;
-    color: #fff;
-    cursor: pointer;
-  }
-  /* "HT" en doré dans le logo */
-  .nav-logo span { color: var(--gold); }
-
-  /* Liens de navigation centraux */
-  .nav-links {
-    display: flex;
-    gap: 2.5rem;
-    list-style: none;
-  }
-  .nav-links li a {
-    color: rgba(255,255,255,0.9);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 500;
-    padding-bottom: 3px;
-    border-bottom: 2px solid var(--gold); /* soulignement doré caractéristique */
-    transition: color 0.2s;
-  }
-  .nav-links li a:hover { color: #fff; }
-
-  /* Bouton "Konekte" vert foncé dans la navbar */
-  .nav-btn {
-    background: var(--green);
-    color: #fff;
-    border: none;
-    padding: 11px 28px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: background 0.2s;
-  }
-  .nav-btn:hover { background: #0f2810; }
 
   /* ── HERO ── */
   .hero {
-    background: var(--brown);
+    background: var(--couleurSecondaire);
     text-align: center;
     padding: 3.5rem 5% 4rem;
   }
@@ -217,7 +148,7 @@
 }
   /* ── SECTION PROSESIS ── */
   .section-brown {
-    background: var(--brown);
+    background: var(--couleurSecondaire);
     padding: 3rem 5%;
     text-align: center;
   }
@@ -361,51 +292,6 @@
   }
   .sant-ed-btn:hover { background: #c4c0b4; }
 
-  /* ── FOOTER ── */
-  .footer {
-    background: var(--brown);
-    padding: 3rem 5%;
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr;
-    gap: 3rem;
-  }
-
-  /* Logo dans le footer */
-  .footer-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px;
-    font-weight: 900;
-    color: #fff;
-    margin-bottom: 0.8rem;
-  }
-  .footer-logo span { color: var(--gold); }
-
-  /* Description sous le logo footer */
-  .footer-desc {
-    font-size: 13px;
-    color: rgba(255,255,255,0.6);
-    line-height: 1.6;
-  }
-
-  /* Titre de colonne footer */
-  .footer-col-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    color: #fff;
-    margin-bottom: 1rem;
-    font-weight: 700;
-  }
-
-  /* Liens dans le footer */
-  .footer-links { list-style: none; }
-  .footer-links li {
-    margin-bottom: 8px;
-    font-size: 13px;
-    color: rgba(255,255,255,0.65);
-    cursor: pointer;
-    transition: color 0.15s;
-  }
-  .footer-links li:hover { color: #fff; }
 
   /* Responsive mobile */
   @media (max-width: 768px) {

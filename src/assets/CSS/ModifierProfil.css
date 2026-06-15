@@ -1,0 +1,547 @@
+/* =============================================================
+   RekoltHT — Page "Modifier le Profil"
+   ============================================================= */
+
+/* :root {
+  --rk-terracotta: #c1693f;
+  --rk-terracotta-dark: #a85a35;
+  --rk-green: #2f4a3c;
+  --rk-green-light: #e3f3e8;
+  --rk-bg: #f6f4f1;
+  --rk-card: #ffffff;
+  --rk-border: #e7e2dc;
+  --rk-text: #2b2622;
+  --rk-text-muted: #8a8178;
+  --rk-text-light: #6f675f;
+  --rk-danger: #c0392b;
+  --rk-radius: 12px;
+  --rk-radius-sm: 8px;
+  --rk-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+} */
+
+* {
+  box-sizing: border-box;
+}
+
+.edit-page {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--couleurFond);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+
+
+/* ===================== Layout ===================== */
+
+.edit-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+
+/* ===================== Sidebar ===================== */
+
+.edit-sidebar {
+  background: var(--rk-bg);
+  border-right: 1px solid var(--rk-border);
+  padding: 28px 16px;
+  min-height: calc(100vh - 68px);
+}
+
+.edit-sidebar__title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--rk-terracotta-dark);
+  margin: 0 0 4px;
+  padding: 0 8px;
+}
+
+.edit-sidebar__subtitle {
+  font-size: 0.8rem;
+  color: var(--rk-text-muted);
+  margin: 0 0 24px;
+  padding: 0 8px 20px;
+  border-bottom: 1px solid var(--rk-border);
+}
+
+.edit-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--rk-radius-sm);
+  color: var(--rk-text-light);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  border-left: 3px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.edit-sidebar__item:hover {
+  background: var(--rk-border);
+}
+
+.edit-sidebar__item--active {
+  background: rgba(193, 105, 63, 0.08);
+  color: var(--rk-terracotta-dark);
+  border-left-color: var(--rk-terracotta-dark);
+}
+
+/* ===================== Main content ===================== */
+
+.edit-main {
+  padding: 28px 36px 48px;
+}
+
+.edit-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.edit-title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.edit-subtitle {
+  color: var(--rk-text-muted);
+  margin: 0;
+}
+
+/* ===================== Buttons & links ===================== */
+
+.edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--rk-radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.edit-btn:hover {
+  opacity: 0.92;
+}
+
+.edit-btn--primary {
+  background: var(--rk-green);
+  color: #fff;
+}
+
+.edit-btn--outline {
+  background: #fff;
+  color: var(--rk-text);
+  border: 1px solid var(--rk-border);
+}
+
+.edit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--rk-terracotta-dark);
+  cursor: pointer;
+}
+
+.edit-link:hover {
+  text-decoration: underline;
+}
+
+.edit-link--danger {
+  color: var(--rk-danger);
+}
+
+.edit-link--add {
+  font-size: 0.85rem;
+}
+
+.edit-link--deactivate {
+  font-size: 0.9rem;
+}
+
+/* ===================== Cards & grid ===================== */
+
+.edit-grid {
+  display: grid;
+  /* grid-template-columns: 320px 1fr; */
+  gap: 20px;
+}
+
+.edit-card {
+  /* background: var(--rk-card); */
+  border: 1px solid var(--rk-border);
+  border-radius: var(--rk-radius);
+  box-shadow: var(--rk-shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+/* Place the "Photo de profil" card in the left column,
+   and stack the other cards in the right column. */
+.edit-card--photo {
+  grid-row: span 4;
+}
+
+.edit-card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--rk-terracotta-dark);
+  margin: 0 0 20px;
+}
+
+.edit-card__title--center {
+  justify-content: center;
+  color: var(--rk-text);
+}
+
+.edit-card__icon {
+  color: var(--rk-terracotta-dark);
+}
+
+.edit-card__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-card__header-row .edit-card__title {
+  margin: 0;
+}
+
+.edit-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* ----- Photo card ----- */
+
+.edit-card--photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.edit-photo-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 4px 0 16px;
+}
+
+.edit-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--rk-green-light);
+  color: var(--rk-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-photo-edit {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--rk-text);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.edit-photo-hint {
+  font-size: 0.8rem;
+  color: var(--rk-text-muted);
+  margin: 0 0 10px;
+}
+
+/* ===================== Form fields ===================== */
+
+.edit-field {
+  margin-bottom: 18px;
+}
+
+.edit-field:last-child {
+  margin-bottom: 0;
+}
+
+.edit-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.edit-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--rk-text);
+  margin-bottom: 8px;
+}
+
+.edit-input {
+  width: 100%;
+  border: 1px solid var(--rk-border);
+  border-radius: var(--rk-radius-sm);
+  background: var(--rk-bg);
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: var(--rk-text);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: var(--rk-terracotta);
+  background: #fff;
+}
+
+.edit-textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.edit-input--highlight {
+  border-color: rgba(193, 105, 63, 0.4);
+}
+
+.edit-input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.edit-input-with-icon .edit-input {
+  padding-left: 40px;
+}
+
+.edit-input-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--rk-text-muted);
+  pointer-events: none;
+}
+
+/* ===================== Social links ===================== */
+
+.edit-social-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-social-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--rk-bg);
+  border: 1px solid var(--rk-border);
+  border-radius: var(--rk-radius-sm);
+  padding: 14px 16px;
+}
+
+.edit-social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.edit-social-info {
+  flex: 1;
+}
+
+.edit-social-label {
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin: 0 0 2px;
+}
+
+.edit-social-value {
+  font-size: 0.85rem;
+  color: var(--rk-text-light);
+  margin: 0;
+}
+
+/* ===================== Final actions ===================== */
+
+.edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rk-border);
+}
+
+.edit-actions__buttons {
+  display: flex;
+  gap: 12px;
+}
+
+/* ===================== Footer ===================== */
+
+.edit-footer {
+  background: var(--rk-terracotta);
+  color: #fdf6f0;
+  padding: 48px 48px 56px;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 32px;
+}
+
+.edit-footer__logo {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 14px;
+  color: #fff;
+}
+
+.edit-footer__logo-accent {
+  color: var(--rk-green);
+}
+
+.edit-footer__tagline {
+  max-width: 320px;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.edit-footer__title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.edit-footer__column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-footer__column a {
+  color: #fdf6f0;
+  text-decoration: none;
+  opacity: 0.95;
+}
+
+.edit-footer__column a:hover {
+  text-decoration: underline;
+}
+
+/* ===================== Responsive ===================== */
+
+@media (max-width: 1024px) {
+  .edit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-card--photo {
+    grid-row: auto;
+  }
+
+  .edit-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-sidebar {
+    display: none;
+  }
+
+  .edit-footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .edit-main {
+    padding: 20px 16px 40px;
+  }
+
+  .edit-navbar {
+    padding: 12px 16px;
+  }
+
+  .edit-navbar__links {
+    gap: 16px;
+  }
+
+  .edit-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .edit-actions__buttons {
+    flex-direction: column;
+  }
+}
+
+
+
+.rk-tabs {
+  display: flex;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 2rem;
+  flex-direction: column;
+}
+
+.rk-tab {
+  flex: 1;
+  padding: 20px 10px 20px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}

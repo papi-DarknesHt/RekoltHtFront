@@ -14,8 +14,9 @@ async function request(path, options = {}) {
     body: options.body || undefined,
   });
   if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(data.error || `Erreur ${res.status}`);
+    const data = await res.json().catch(() => ({}));
+    const message = data?.error || data?.message || data?.detail || `Erreur ${res.status}`;
+    throw new Error(message);
   }
   // DELETE retourne souvent un body vide
   if (res.status === 204) return {};

@@ -7,6 +7,9 @@ import RekoltHtAuth from "./Registration/Authentification.jsx";
 import HomePage from "./Acceuil/HomePage.jsx";
 import RoutePrivee from "./components/RoutePrivee";
 import NavBar from "./components/NavBar";
+import ProfilAcheteur from "./Profil/ProfilAcheteur.jsx";
+import { TranslationProvider } from "./assets/Translate/i18n.jsx";
+import ModifierProfil from "./Profil/ModifierProfil.jsx";
 
 function AppContent() {
   useGlobalSocket();
@@ -18,6 +21,8 @@ function AppContent() {
         <Route path="/" element={<HomePage />} />
         {/* <Route path="/test" element={<TestPage />} /> */}
         <Route path="/auth" element={<RekoltHtAuth />} />
+        <Route path="/profil" element={<ProfilAcheteur />} />
+        <Route path="/update_profil" element={<ModifierProfil/>}/>
       </Routes>
     </>
   );
@@ -28,7 +33,9 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <TranslationProvider>
+        <AppContent />
+      </TranslationProvider>
     </BrowserRouter>
   );
 }

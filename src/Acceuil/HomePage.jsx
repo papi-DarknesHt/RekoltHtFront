@@ -4,12 +4,14 @@
  */
 
 import { useState } from "react";
-import "../assets/CSS/HomePage.css"
-import "../assets/CSS/Authentification.css"
+import "../assets/CSS/HomePage.css";
+import "../assets/CSS/Authentification.css";
 import logo from "../assets/Images/Asset5.svg";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import MapHaiti from "../components/MapHaiti";
 import NavBar from "../components/NavBar.jsx";
+import Footer from "../components/Footer.jsx";
+import { useTranslation } from "../assets/Translate/i18n.jsx";
 
 // Liste des produits récents affichés dans la section "Pwodi resan"
 const PRODUITS = [
@@ -58,27 +60,29 @@ export default function HomePage() {
     if (index > 0) setIndex(index - 1);
   };
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
   return (
       <>
 
         {/* ── NAVBAR ── */}
-        <NavBar/>
+        <NavBar />
 
         {/* ── HERO — Section principale avec titre et recherche ── */}
         <section className="hero">
           <h1 className="hero-title">
-            RekolHT konekte achte ak vande nan tout Ayiti<br/>
-            Achte ak vann pwodi agrikol{" "}
-            <span className="accent">direkteman</span>{" "}
-            nan tout peyi a!
+            {t("home.heroTitleLine1")}<br/>
+            {t("home.heroTitleLine2")} {" "}
+            <span className="accent">{t("home.heroTitleAccent")}</span>{" "}
+            {t("home.heroTitleLine3")}
           </h1>
-          <p className="hero-sub">Pa bezwen entemedye -- Konekre direk ak kliyan w</p>
+          <p className="hero-sub">{t("home.heroSubtitle")}</p>
 
           {/* Barre de recherche */}
           <input
               className="hero-search"
               type="text"
-              placeholder="Cheche pwodwi, cheche pwodikte"
+              placeholder={t("home.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
           />
@@ -86,7 +90,7 @@ export default function HomePage() {
 
         {/* ── PWODI RESAN — Grille des produits récents ── */}
         <section className="section">
-          <h2 className="section-title">Pwodi resan</h2>
+          <h2 className="section-title">{t("home.recentProducts")}</h2>
 
           {/* Conteneur du carousel avec boutons précédent/suivant */}
           <div style={{display: "flex", alignItems: "center", gap: "12px", maxWidth: "900px", margin: "0 auto"}}>
@@ -116,11 +120,11 @@ export default function HomePage() {
                     <div className="produit-img">{p.emoji}</div>
                     <div className="produit-info">
                       <p className="produit-nom">{p.nom}</p>
-                      <p className="produit-lieu">Lye: {p.lieu}</p>
-                      <p className="produit-prix">{p.prix} HTG/U</p>
+                      <p className="produit-lieu">{t("home.locationPrefix")}{p.lieu}</p>
+                      <p className="produit-prix">{p.prix}{t("home.priceSuffix")}</p>
                       <div className="produit-btns">
-                        <button className="btn-detay">Detay</button>
-                        <button className="btn-kontakte">Kontakte</button>
+                        <button className="btn-detay">{t("home.details")}</button>
+                        <button className="btn-kontakte">{t("home.contact")}</button>
                       </div>
                     </div>
                   </div>
@@ -169,7 +173,7 @@ export default function HomePage() {
 
         {/* ── PROSESIS — Comment ça marche ── */}
         <section className="section-brown">
-          <h2 className="section-title">Kijan prosesis la ye?</h2>
+          <h2 className="section-title">{t("home.processTitle")}</h2>
 
           {/* Étapes avec flèches entre chaque */}
           <div className="etapes">
@@ -197,7 +201,7 @@ export default function HomePage() {
 
           {/* Colonne gauche : carte de localisation */}
           <div>
-            <p className="subsection-title">Kat lokalizasyon</p>
+            <p className="subsection-title">{t("home.mapTitle")}</p>
 
             {/* Placeholder de Google Maps (à remplacer par un vrai composant Map) */}
             <div>
@@ -219,7 +223,7 @@ export default function HomePage() {
 
           {/* Colonne droite : articles d'aide */}
           <div>
-            <p className="subsection-title">Sant Ed</p>
+            <p className="subsection-title">{t("home.helpCenter")}</p>
 
             {/* On itère sur les articles d'aide */}
             {SANT_ED.map((item) => (
@@ -231,39 +235,7 @@ export default function HomePage() {
         </div>
 
         {/* ── FOOTER ── */}
-        <footer className="footer">
-
-          {/* Colonne 1 : Logo et description */}
-          <div>
-            <div className="footer-logo">Rekolt<span>HT</span></div>
-            <p className="footer-desc">
-              Platfom ki konekte pwodikte nan tout Ayiti,<br/>
-              gratis e san entemedye
-            </p>
-          </div>
-
-          {/* Colonne 2 : Navigation */}
-          <div>
-            <p className="footer-col-title">Navigasyon</p>
-            <ul className="footer-links">
-              <li>Akey</li>
-              <li>Ed</li>
-              <li>Gid</li>
-            </ul>
-          </div>
-
-          {/* Colonne 3 : Informations */}
-          <div>
-            <p className="footer-col-title">Enfomasyon</p>
-            <ul className="footer-links">
-              <li>Ki sa nou ye</li>
-              <li>Sant èd</li>
-              <li>Prosesis itilizasyon</li>
-              <li>Kontakte nou</li>
-              <li>Vinn yon vandè</li>
-            </ul>
-          </div>
-        </footer>
+        <Footer/>
       </>
   );
 }
