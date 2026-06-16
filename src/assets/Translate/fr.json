@@ -123,5 +123,31 @@
     "error": "Erreur : ",
     "message": "Message : ",
     "status": "Statut : "
+  },
+  "monprofil": {
+    "loading": "Mon profil",
+    "signIn": "Gérez vos informations personnelles et vos préférences.",
+    "personalInfoTab": "Informations personnelles",
+    "logout": "Se déconnecter",
+    "title": "Mon profil",
+    "subtitle": "Gérez vos informations personnelles et vos préférences.",
+    "editProfile": "Modifier le profil",
+    "contactInfo": "Informations de contact",
+    "workEmail": "Email professionnel",
+    "phone": "Téléphone",
+    "deliveryAddress": "Adresse de livraison",
+    "contactedSellers": "Vendeurs contactés",
+    "reviewsTitle": "Avis et commentaires",
+    "reviewsText": "Vous n’avez pas encore laissé d’avis sur vos produits.",
+    "searchProducts": "Rechercher des produits",
+    "accountManagement": "Gestion du compte",
+    "changeEmail": "Changer l’adresse e-mail",
+    "emailDescription": "L’e-mail actuel est {email}",
+    "passwordSecurity": "Mot de passe et sécurité",
+    "passwordSecurityDesc": "Dernière modification il y a 3 mois",
+    "notifications": "Préférences de notification",
+    "notificationsDesc": "Gérer les alertes SMS et e-mail",
+    "sellerLastContact1": "DERNIER CONTACT : HIER",
+    "sellerLastContact2": "DERNIER CONTACT : 3 J."
   }
 }

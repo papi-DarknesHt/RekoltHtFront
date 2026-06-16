@@ -123,5 +123,31 @@
     "error": "Erreur : ",
     "message": "Message : ",
     "status": "Statut  : "
+  },
+  "monprofil": {
+    "loading": "pwofil ou ap chaje oubyen kont ou an poko konekte.",
+    "signIn": "Konekte",
+    "personalInfoTab": "Infomasyon pèsonel",
+    "logout": "Dekonekte",
+    "title": "Pwofil mwen",
+    "subtitle": "jere infomasyon pèsonel ou ak saw prefere.",
+    "editProfile": "Modifye profil",
+    "contactInfo": "Infomasyon pou kontakte",
+    "workEmail": "Imel Pwofesyonel",
+    "phone": "Telefonn",
+    "deliveryAddress": "Adress livrezon",
+    "contactedSellers": "Vandè ke mw kontakte",
+    "reviewsTitle": "Avi ak komantè",
+    "reviewsText": "ou poko kite komante w sou pwodui a.",
+    "searchProducts": "cheche pwodui",
+    "accountManagement": "Jere kont mwen",
+    "changeEmail": "Chanje adrès imel mwen",
+    "emailDescription": "Imel la se ",
+    "passwordSecurity": "Modpas ak sekirite",
+    "passwordSecurityDesc": "Denye modifikasyonil depi 3 mwa",
+    "notifications": "notifikasyon prefere ",
+    "notificationsDesc": "Gérer les alertes SMS et e-mail",
+    "sellerLastContact1": "Denye kontak: ye",
+    "sellerLastContact2": "Denye kontak: 3 J."
   }
 }
