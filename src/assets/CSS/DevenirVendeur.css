@@ -1,0 +1,130 @@
+.dv-root {
+  min-height: 100vh;
+  background: #FDFAE0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 3rem 1.5rem 4rem;
+  font-family: var(--text), sans-serif;
+}
+
+.dv-container {
+  width: 100%;
+  max-width: 560px;
+}
+
+.dv-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.dv-title {
+  font-family: var(--textTitre), serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--couleurSecondaire, #1a3d1a);
+  margin-bottom: 0.4rem;
+}
+
+.dv-subtitle {
+  font-size: 14px;
+  color: #888;
+  line-height: 1.5;
+}
+
+/* Champs pré-remplis non modifiables */
+.dv-disabled {
+  background: #f5f5f5 !important;
+  color: #999 !important;
+  cursor: not-allowed !important;
+  border-color: #eee !important;
+}
+
+.dv-disabled:focus {
+  box-shadow: none !important;
+  border-color: #eee !important;
+}
+
+/* Textarea bio */
+.dv-textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.6;
+}
+
+/* Compteur de caractères */
+.dv-char-count {
+  font-size: 11px;
+  color: #bbb;
+  float: right;
+  margin-top: 3px;
+}
+
+/* Zone de dépôt de fichier */
+.dv-file-wrap {
+  position: relative;
+}
+
+.dv-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.dv-file-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px dashed #ccc;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #666;
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dv-file-label:hover {
+  border-color: #1a3d1a;
+  background: #f0f7f0;
+  color: #1a3d1a;
+}
+
+.dv-file-label.has-file {
+  border-color: #1D9E75;
+  color: #1a3d1a;
+  background: #f0faf5;
+}
+
+.dv-file-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Étiquette de section */
+.dv-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #bbb;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+@media (max-width: 600px) {
+  .dv-root {
+    padding: 1.5rem 1rem 3rem;
+  }
+  .dv-title {
+    font-size: 22px;
+  }
+}

@@ -1,128 +1,321 @@
- /* ── NAVBAR ── */
- .nav {
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   padding: 18px 5%;
-   background: var(--couleurSecondaire);
-   position: sticky;
-   top: 0;
-   z-index: 100;
- }
+/* ── NAV WRAPPER (conteneur sticky) ── */
+.nav-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--couleurSecondaire);
+  box-shadow: none;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
 
- /* Liens de navigation centraux */
- .nav-links {
-   display: flex;
-   gap: 2.5rem;
-   list-style: none;
- }
+.nav-wrapper.nav--scrolled {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  border-bottom-color: var(--couleurPrincipale);
+}
 
- .nav-links li a {
-   color: var(--white);
-   text-decoration: none;
-   font-size: 15px;
-   font-weight: 500;
-   padding-bottom: 3px;
-   padding-left: 10px;
-   padding-right: 10px;
- }
+/* ── NAVBAR ── */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 5%;
+}
 
- .nav-links li :hover {
-   color: var(--white);
-   padding: 1px 10px 1px 10px;
-   border-radius: 10px;
-   border-bottom: 2px solid var(--couleurFond);
-   transition: 0.2s;
- }
+/* Liens de navigation centraux */
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+}
 
- /* Bouton "Konekte" vert foncé dans la navbar */
- .nav-btn {
-   background: var(--couleurPrincipale);
-   color: var(--white);
-   border: none;
-   padding: 11px 28px;
-   border-radius: 10px;
-   font-size: 15px;
-   font-weight: 600;
-   cursor: pointer;
-   font-family: var(--textTitre), sans-serif;
-   transition: background 0.2s;
- }
+.nav-links li a {
+  color: var(--white);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  padding-bottom: 3px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
 
- .nav-btn:hover {
-   background: #0f2810;
- }
+.nav-links li :hover {
+  color: var(--white);
+  padding: 1px 10px 1px 10px;
+  border-radius: 10px;
+  border-bottom: 2px solid var(--couleurFond);
+  transition: 0.2s;
+}
 
- .profil-navbar__brand {
-   font-size: 1.4rem;
-   font-weight: 800;
-   letter-spacing: 0.02em;
- }
+/* Bouton "Konekte" */
+.nav-btn {
+  background: var(--couleurPrincipale);
+  color: var(--white);
+  border: none;
+  padding: 11px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--textTitre), sans-serif;
+  transition: background 0.2s;
+}
 
- /* css pour bouton deroulante */
- .user-menu {
-   position: relative;
- }
+.nav-btn:hover {
+  background: #0f2810;
+}
 
- .user-btn {
-   display: flex;
-   align-items: center;
-   gap: 8px;
-   background: rgba(255, 255, 255, 0.15);
-   border: 1px solid rgba(255, 255, 255, 0.3);
-   border-radius: 30px;
-   padding: 8px 14px;
-   color: #fff;
-   cursor: pointer;
- }
+.profil-navbar__brand {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
 
- .user-btn .rotate {
-   transform: rotate(180deg);
-   transition: transform 0.2s;
- }
+/* Photo de profil dans le bouton de compte */
+.nav-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
 
- .dropdown-menu {
-   position: absolute;
-   right: 0;
-   top: calc(100% + 10px);
-   background: var(--couleurFond);
-   border-radius: 12px;
-   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-   min-width: 200px;
-   overflow: hidden;
-   z-index: 50;
- }
+/* Menu déroulant utilisateur */
+.user-menu {
+  position: relative;
+}
 
- .dropdown-header {
-   padding: 14px;
-   background: #f5f0e0;
-   border-bottom: 1px solid #eee;
- }
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  padding: 8px 14px;
+  color: #fff;
+  cursor: pointer;
+}
 
- .dropdown-header span {
-   font-size: 12px;
-   color: #888;
- }
+.user-btn .rotate {
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}
 
- .dropdown-item {
-   width: 100%;
-   padding: 12px 16px;
-   border: none;
-   background: transparent;
-   display: flex;
-   gap: 10px;
-   cursor: pointer;
- }
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  background: var(--couleurFond);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  overflow: hidden;
+  z-index: 50;
+}
 
- .dropdown-item:hover {
-   background: #f5f5f5;
- }
+.dropdown-header {
+  padding: 14px;
+  background: #f5f0e0;
+  border-bottom: 1px solid #eee;
+}
 
- .logout {
-   color: #e24b4a;
- }
+.dropdown-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
- .divider {
-   height: 1px;
-   background: #eee;
- }
+.dropdown-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
+  flex-shrink: 0;
+}
+
+.dropdown-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e0ddd0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.dropdown-header p {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1a3d1a;
+  margin-bottom: 2px;
+}
+
+.dropdown-header span {
+  font-size: 12px;
+  color: #888;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.logout {
+  color: #e24b4a;
+}
+
+.divider {
+  height: 1px;
+  background: #eee;
+}
+
+/* ── HAMBURGER — masqué sur desktop ── */
+.nav-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ── PANNEAU MOBILE ── */
+.nav-mobile-panel {
+  background: var(--couleurSecondaire);
+  padding: 0.5rem 5% 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  animation: mobileSlideDown 0.2s ease;
+}
+
+@keyframes mobileSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.nav-mobile-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.nav-mobile-links li a {
+  display: block;
+  color: var(--white);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nav-mobile-links li a:hover {
+  opacity: 0.8;
+}
+
+.nav-mobile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.nav-mobile-user {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  color: var(--white);
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.25rem;
+}
+
+.nav-mobile-avatar {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.nav-mobile-link-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--white);
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-mobile-link-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-mobile-link-btn.logout {
+  color: #ff8080;
+  border-color: rgba(226, 75, 74, 0.3);
+  background: rgba(226, 75, 74, 0.08);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+
+  /* Spécificité augmentée pour surcharger ProfilAcheteur.css */
+  .nav-wrapper .profil-navbar__actions {
+    display: none;
+  }
+
+  .nav-hamburger {
+    display: flex;
+  }
+}
+
+/* ── TABS (composants auth) ── */
+.rk-tabs {
+  display: flex;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 2px;
+  margin-bottom: 2rem;
+}
+
+.rk-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}

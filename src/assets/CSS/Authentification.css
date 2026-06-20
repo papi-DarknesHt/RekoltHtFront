@@ -20,22 +20,21 @@
   display: flex;
   font-family: var(--text), sans-serif;
   background: #FDFAE0;
-  position: relative;
-  overflow: hidden;
-
 }
 
-/* LEFT PANEL */
+/* LEFT PANEL — fixe, ne défile pas */
 .rk-left {
   width: 50%;
-  /*background: linear-gradient(160deg, #1a3d1a 0%, #0f2810 60%, #0a1f0a 100%);*/
   background: RGB(182, 98, 40);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 3rem 3.5rem;
-  position: relative;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
   overflow: hidden;
 }
 
@@ -75,32 +74,7 @@
   margin-bottom: 3.5rem;
 }
 
-/*a suprimer*/
-.rk-logo-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #c8a830, #e8c840);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  box-shadow: 0 4px 16px rgba(200, 168, 48, 0.3);
-}
 
-/*a suprimer*/
-.rk-logo-text {
-  font-family: 'Playfair Display', serif;
-  font-size: 26px;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: -0.5px;
-}
-
-/*a suprimer*/
-.rk-logo-text span {
-  color: #c8a830;
-}
 
 .rk-tagline {
   font-size: 13px;
@@ -164,15 +138,16 @@
   line-height: 1.5;
 }
 
-/* RIGHT PANEL */
+/* RIGHT PANEL — défile normalement */
 .rk-right {
-  flex: 1;
+  margin-left: 50%;
+  width: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2.5rem 3rem;
-  position: relative;
+  min-height: 100vh;
 }
 
 /*a suprimer*/
@@ -231,20 +206,22 @@
   border-radius: 10px;
   padding: 4px;
   margin-bottom: 2rem;
+  gap: 2px;
 }
 
 .rk-tab {
   flex: 1;
-  padding: 8px;
+  padding: 8px 4px;
   border: none;
   background: transparent;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: #888;
   cursor: pointer;
   transition: all 0.2s;
   font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
 }
 
 .rk-tab.active {
@@ -265,6 +242,77 @@
   color: #444;
   margin-bottom: 6px;
   letter-spacing: 0.02em;
+}
+
+.rk-hint {
+  font-weight: 400;
+  color: #aaa;
+  font-size: 11px;
+}
+
+.rk-error {
+  color: #e24b4a;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* label + lien "Modpas bliye?" sur la même ligne */
+.rk-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.rk-label-row .rk-label {
+  margin-bottom: 0;
+}
+
+.rk-forgot-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: var(--couleurSecondaire, #1a3d1a);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.rk-forgot-link:hover {
+  opacity: 0.75;
+}
+
+/* bloc "mot de passe oublié" */
+.rk-forgot-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.rk-forgot-desc {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 0.25rem;
+}
+
+.rk-back-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: #888;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-align: left;
+  margin-top: 0.25rem;
+}
+
+.rk-back-link:hover {
+  color: #444;
 }
 
 .rk-input {
@@ -403,16 +451,51 @@
   margin-bottom: 1.2rem;
 }
 
+/* Champ mot de passe avec bouton visibilité */
+.rk-pw-wrap {
+  position: relative;
+}
+
+.rk-pw-wrap .rk-input {
+  padding-right: 42px;
+}
+
+.rk-pw-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.rk-pw-toggle:hover {
+  color: #555;
+}
+
 @media (max-width: 768px) {
   .rk-left {
     display: none;
   }
 
   .rk-right {
+    margin-left: 0;
+    width: 100%;
     padding: 2rem 1.5rem;
   }
 
   .rk-card {
     padding: 2rem 1.8rem;
   }
+}
+
+.red{
+  color: red;
 }
