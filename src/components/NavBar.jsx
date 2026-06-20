@@ -4,33 +4,27 @@ import Language from "./language";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import {
     Bell,
-    ShoppingCart,
     User,
-    Camera,
-    MessageSquare,
-    ChevronRight,
-    Mail,
-    Lock,
-    BellRing,
-    LogOut,
-    MapPin,
-    Pencil,
-    History,
-    Shield,
-    ClipboardEdit,
     ChevronDown,
+    LogOut,
+    Menu,
+    X,
 } from "lucide-react";
 import { useAuthStore } from "../Registration/AuthentificationStore";
+import { useProfilStore } from "../Profil/ProfilStore";
 import logo from "../assets/Images/Asset5.svg";
 import "../assets/CSS/NavBar.css";
 
 
 export default function Navbar() {
     const navigate = useNavigate();
-    const isConnecte = useAuthStore((s) => s.isConnected);
+    const isConnecte  = useAuthStore((s) => s.isConnected);
     const utilisateur = useAuthStore((s) => s.utilisateur);
     const deconnexion = useAuthStore((s) => s.deconnexion);
+    const profil      = useProfilStore((s) => s.profil);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
     const menuRef = useRef(null);
 
     useEffect(() => {
@@ -43,91 +37,187 @@ export default function Navbar() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 10);
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth > 768) setMobileOpen(false);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     const handleDeconnexion = async () => {
         await deconnexion();
         setMenuOpen(false);
+        setMobileOpen(false);
         navigate("/");
     };
 
     const { t } = useTranslation();
+    const closeMobile = () => setMobileOpen(false);
 
     return (
-        <>
+        <div className={`nav-wrapper${scrolled ? " nav--scrolled" : ""}`}>
             <nav className="nav">
-                {/* Logo cliquable */}
-                <div className="nav-logo"><img style={{ width: "50%" }} src={logo} alt="Logo" /></div>
+                {/* Logo */}
+                <div className="nav-logo">
+                    <img style={{ width: "50%" }} src={logo} alt="Logo" />
+                </div>
 
-                {/* Liens de navigation */}
+                {/* Liens de navigation — desktop */}
                 <ul className="nav-links">
-                    <li>
-                        <Link to="/">{t("nav.home")}</Link>
-                    </li>
+                    <li><Link to="/">{t("nav.home")}</Link></li>
                     <li><a href="#">{t("nav.products")}</a></li>
                     <li><a href="#">{t("nav.help")}</a></li>
                 </ul>
 
+                {/* Actions — desktop */}
                 <div className="profil-navbar__actions">
-                    {/* ajout du composant pour la gestion des langues */}
-                    <Language/>
-                    <button className="profil-icon-btn" aria-label="Notifications">
-                        <Bell size={20} color={"var(--white)"}/>
-                    </button>              
-
-                {isConnecte ? (
-                    <>
-                        <div className="user-menu" ref={menuRef}>
-
-                            {/* Bouton */}
-                            <button
-                                className="user-btn"
-                                onClick={() => setMenuOpen(!menuOpen)}
-                            >
-                                <User size={16} />
-                                {utilisateur?.prenom || "Mon compte"}
-                                <ChevronDown
-                                    size={14}
-                                    className={menuOpen ? "rotate" : ""}
-                                />
+                    <Language />
+                    {isConnecte ? (
+                        <>
+                            <button className="profil-icon-btn" aria-label="Notifications">
+                                <Bell size={20} color={"var(--white)"} />
                             </button>
-
-                            {/* Menu déroulant */}
-                            {menuOpen && (
-                                <div className="dropdown-menu">
-
-                                    <div className="dropdown-header">
-                                        <p>{utilisateur?.prenom} {utilisateur?.nom}</p>
-                                        <span>{utilisateur?.email}</span>
-                                    </div>
-
-                                    <button
-                                        className="dropdown-item"
-                                        onClick={() => {
-                                            navigate("/profil");
-                                            setMenuOpen(false);
-                                        }}
-                                    >
+                            <div className="user-menu" ref={menuRef}>
+                                <button
+                                    className="user-btn"
+                                    onClick={() => setMenuOpen(!menuOpen)}
+                                >
+                                    {profil?.photo_profil ? (
+                                        <img
+                                            src={profil.photo_profil}
+                                            alt="Photo profil"
+                                            className="nav-avatar"
+                                        />
+                                    ) : (
                                         <User size={16} />
-                                        {t("nav.myProfile")}
-                                    </button>
-
-                                    <div className="divider" />
-
-                                    <button
-                                        className="dropdown-item logout"
-                                        onClick={handleDeconnexion}
-                                    >
-                                        <LogOut size={16} />
-                                        {t("nav.logout")}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <button className="nav-btn" onClick={() => navigate("/auth")}>{t("nav.login")}</button>
-                )}
+                                    )}
+                                    {utilisateur?.prenom || "Mon compte"}
+                                    <ChevronDown
+                                        size={14}
+                                        className={menuOpen ? "rotate" : ""}
+                                    />
+                                </button>
+                                {menuOpen && (
+                                    <div className="dropdown-menu">
+                                        <div className="dropdown-header">
+                                            <div className="dropdown-avatar-row">
+                                                {profil?.photo_profil ? (
+                                                    <img
+                                                        src={profil.photo_profil}
+                                                        alt="Photo profil"
+                                                        className="dropdown-avatar"
+                                                    />
+                                                ) : (
+                                                    <div className="dropdown-avatar-placeholder">
+                                                        <User size={20} />
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p>{utilisateur?.prenom} {utilisateur?.nom}</p>
+                                                    <span>{utilisateur?.email}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            className="dropdown-item"
+                                            onClick={() => { navigate("/profil"); setMenuOpen(false); }}
+                                        >
+                                            <User size={16} />
+                                            {t("nav.myProfile")}
+                                        </button>
+                                        <div className="divider" />
+                                        <button
+                                            className="dropdown-item logout"
+                                            onClick={handleDeconnexion}
+                                        >
+                                            <LogOut size={16} />
+                                            {t("nav.logout")}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <button className="nav-btn" onClick={() => navigate("/auth")}>
+                            {t("nav.login")}
+                        </button>
+                    )}
                 </div>
+
+                {/* Hamburger — mobile uniquement */}
+                <button
+                    className="nav-hamburger"
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    aria-label="Menu"
+                >
+                    {mobileOpen
+                        ? <X size={24} color="var(--white)" />
+                        : <Menu size={24} color="var(--white)" />
+                    }
+                </button>
             </nav>
-        </>
+
+            {/* Panneau mobile */}
+            {mobileOpen && (
+                <div className="nav-mobile-panel">
+                    <ul className="nav-mobile-links">
+                        <li><Link to="/" onClick={closeMobile}>{t("nav.home")}</Link></li>
+                        <li><a href="#" onClick={closeMobile}>{t("nav.products")}</a></li>
+                        <li><a href="#" onClick={closeMobile}>{t("nav.help")}</a></li>
+                    </ul>
+
+                    <div className="nav-mobile-actions">
+                        <Language />
+
+                        {isConnecte ? (
+                            <div className="nav-mobile-user">
+                                <div className="nav-mobile-user-info">
+                                    {profil?.photo_profil ? (
+                                        <img
+                                            src={profil.photo_profil}
+                                            alt="Photo profil"
+                                            className="nav-avatar"
+                                        />
+                                    ) : (
+                                        <div className="dropdown-avatar-placeholder nav-mobile-avatar">
+                                            <User size={16} />
+                                        </div>
+                                    )}
+                                    <span>{utilisateur?.prenom} {utilisateur?.nom}</span>
+                                </div>
+                                <button
+                                    className="nav-mobile-link-btn"
+                                    onClick={() => { navigate("/profil"); closeMobile(); }}
+                                >
+                                    <User size={16} />
+                                    {t("nav.myProfile")}
+                                </button>
+                                <button
+                                    className="nav-mobile-link-btn logout"
+                                    onClick={handleDeconnexion}
+                                >
+                                    <LogOut size={16} />
+                                    {t("nav.logout")}
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                className="nav-btn"
+                                onClick={() => { navigate("/auth"); closeMobile(); }}
+                            >
+                                {t("nav.login")}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

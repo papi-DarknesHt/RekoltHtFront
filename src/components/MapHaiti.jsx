@@ -44,7 +44,7 @@ export default function MapHaiti() {
       <GoogleMap
         mapContainerStyle={MAP_SIZE}
         center={CENTRE_HAITI}
-        zoom={8}
+        zoom={9}
         options={{
           disableDefaultUI: false,  // garde les contrôles +/-
           zoomControl: true,

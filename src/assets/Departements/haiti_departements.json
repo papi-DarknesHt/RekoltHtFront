@@ -1,0 +1,1349 @@
+[
+  {
+    "departement": "OUEST",
+    "communes": [
+      {
+        "commune": "Arcahaie",
+        "sections_communales": [
+          "1re Section Boucassin",
+          "2e Section Fonds Baptiste",
+          "3e Section des Vases",
+          "4e Section Délices",
+          "5e Section Matheux"
+        ]
+      },
+      {
+        "commune": "Cabaret",
+        "sections_communales": [
+          "1re Section Boucassin",
+          "2e Section Boucassin",
+          "3e Section Source Matelas",
+          "4e Section Fonds des Blancs (Casale)"
+        ]
+      },
+      {
+        "commune": "Croix des Bouquets",
+        "sections_communales": [
+          "10e Section des Orangers",
+          "1e Section des Varreux",
+          "2e Section des Varreux",
+          "3e Section Petit Bois",
+          "4e Section Petit Bois",
+          "5e Section Petit Bois",
+          "6e Section Belle Fontaine",
+          "7e Section Belle Fontaine",
+          "8e Section Belle Fontaine",
+          "9e Section des Crochus"
+        ]
+      },
+      {
+        "commune": "Thomazeau",
+        "sections_communales": [
+          "1re Section Grande Plaine",
+          "2e Section Grande Plaine",
+          "3e Section Trou d'Eau",
+          "4e Section des Crochus"
+        ]
+      },
+      {
+        "commune": "Fonds-Verrettes",
+        "sections_communales": [
+          "1re Section Fonds-Verrettes"
+        ]
+      },
+      {
+        "commune": "Ganthier",
+        "sections_communales": [
+          "1re Section Galette Chambon",
+          "2e Section Balan",
+          "3e Section Fond Parisien",
+          "4e Section Mare Roseaux",
+          "5e Section Pays Pourri"
+        ]
+      },
+      {
+        "commune": "Cornillon",
+        "sections_communales": [
+          "1re Section Plaine Céleste",
+          "2e Section Plaine Céleste",
+          "3e Section Boucan Bois Pin",
+          "4e Section Boucan Bois Pin",
+          "5e Section Génipailler"
+        ]
+      },
+      {
+        "commune": "Anse à Galets",
+        "sections_communales": [
+          "1re Section Palma",
+          "2e Section Petite Source",
+          "3e Section Grande Source",
+          "4e Section Grand Lagon",
+          "5e Section Picmy",
+          "6e Section Petite Anse"
+        ]
+      },
+      {
+        "commune": "Pointe à Raquette",
+        "sections_communales": [
+          "1re Section la Source",
+          "2e Section Grand Vide",
+          "3e Section Trou Louis",
+          "4e Section Pointe à Raquette",
+          "5e Section Gros Mangle"
+        ]
+      },
+      {
+        "commune": "Léôgane",
+        "sections_communales": [
+          "10e Section Fond d'Oie",
+          "11e Section Gros Morne",
+          "12e Section Cormiers",
+          "13e Section Petit Harpon",
+          "1re Section Dessources",
+          "2e Section Petite Rivière",
+          "3e Section Grande Rivère",
+          "4e Section Fond de Boudin",
+          "5e Section Palmiste à Vin",
+          "6e Section Orangers",
+          "7e Section Parques",
+          "8e Section Beauséjour",
+          "9e Section Citronniers"
+        ]
+      },
+      {
+        "commune": "Petit Gôave",
+        "sections_communales": [
+          "10e Section des Palmes",
+          "11e Section Ravine Sèche",
+          "12e Section des Fourques",
+          "1re Section Bino",
+          "2e Section Delatre",
+          "3e Section Trou Chouchou",
+          "4e Section Fond Arabie",
+          "5e Section Trou Canari",
+          "6e Section Trou Canari",
+          "7e Section des Platons",
+          "8e Section des Platons",
+          "9e Section des Palmes"
+        ]
+      },
+      {
+        "commune": "Grand Gôave",
+        "sections_communales": [
+          "1re Section Tête-à-Boeuf",
+          "2e Section Tête-à-Boeuf",
+          "3e Section Moussambé",
+          "4e Section Moussambé",
+          "5e Section Grande Colline",
+          "6e Section Grande Colline",
+          "7e Section Gérard"
+        ]
+      },
+      {
+        "commune": "Port-au-Prince",
+        "sections_communales": [
+          "1re Section Turgeau",
+          "2e Section Morne l'Hopital",
+          "3e Section Martissant"
+        ]
+      },
+      {
+        "commune": "Pétion Ville",
+        "sections_communales": [
+          "1re Section Montagne Noire",
+          "2e Section Aux Cadets",
+          "3e Section Etang du Jonc",
+          "4e Section Bellevue la Montagne",
+          "5e Section Bellevue Chardonnière"
+        ]
+      },
+      {
+        "commune": "Kenscoff",
+        "sections_communales": [
+          "1re Section Nouvelle Touraine",
+          "2e  Section Bongars",
+          "3e Section Sourcailles",
+          "4e Section Belle Fontaine",
+          "5e Section Grand Fond"
+        ]
+      },
+      {
+        "commune": "Delmas",
+        "sections_communales": [
+          "1re Section St Martin"
+        ]
+      },
+      {
+        "commune": "Tabarre",
+        "sections_communales": [
+          "3e Section Bellevue",
+          "4e Section Bellevue"
+        ]
+      },
+      {
+        "commune": "Cité Soleil",
+        "sections_communales": [
+          "1re Section des Varreux",
+          "2e Section des Varreux"
+        ]
+      },
+      {
+        "commune": "Carrefour",
+        "sections_communales": [
+          "10e Section Thor",
+          "11e Section Rivière Froide",
+          "12e Section Malanga",
+          "13e Section Corail Thor",
+          "1re Section Morne Chandelle",
+          "2e Section Platon Dufréné",
+          "3e Section Taïfer",
+          "4e Section Procy",
+          "5e Section Coupeau",
+          "6e Section Bouvier",
+          "7e Section Lavalle",
+          "8e Section Berly",
+          "9e Section Bizoton"
+        ]
+      },
+      {
+        "commune": "Gressier",
+        "sections_communales": [
+          "1re Section Morne à Bateau",
+          "2e Section Morne Chandelle",
+          "3e Section Petit Boucan"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "SUD-EST",
+    "communes": [
+      {
+        "commune": "Bainet",
+        "sections_communales": [
+          "1re Section Brésilienne",
+          "2e Section Trou Mahot",
+          "3e Section La Vallée de Bainet",
+          "4e Section Haut Grandou",
+          "5e Section Bas de Grandou",
+          "6e Section Bas de Lacroix",
+          "7e Section Bras Gauche",
+          "8e Section Oranger",
+          "9e Section Bas des Gris Gris"
+        ]
+      },
+      {
+        "commune": "Côte de Fer",
+        "sections_communales": [
+          "1re Section Gris Gris",
+          "2e Section Labiche",
+          "3e  Section Bras Gauche",
+          "4e  Section Amazone",
+          "5e Section Boucan Bélier",
+          "6e Section Jamais Vu"
+        ]
+      },
+      {
+        "commune": "Belle Anse",
+        "sections_communales": [
+          "1re Section Bais d'Orange",
+          "2e Section Mabriole",
+          "3e Section Callumette",
+          "4e Section Corail Lamothe",
+          "5e Section Bel Air",
+          "6e Section Pichon",
+          "7e Section Mapou"
+        ]
+      },
+      {
+        "commune": "Thiotte",
+        "sections_communales": [
+          "1re Section Thiotte",
+          "2e Section Pot de Chambre"
+        ]
+      },
+      {
+        "commune": "Grand Gosier",
+        "sections_communales": [
+          "1re Section Colline des Chênes ou Bodarie"
+        ]
+      },
+      {
+        "commune": "Anse à Pitre",
+        "sections_communales": [
+          "1re Section Boucan Guillaume",
+          "2e Section Bois d'Orme"
+        ]
+      },
+      {
+        "commune": "Jacmel",
+        "sections_communales": [
+          "10e Section La Vanneau",
+          "11e Section La Montagne",
+          "1re Section Bas Cap Rouge",
+          "2e Section Fond Melon (Selles)",
+          "3e Section Cochon Gras",
+          "4e Section La Gosseline",
+          "5e Section Marbial",
+          "6e Section Montagne La Voute",
+          "7e Section Grande Rivière de Jacmel",
+          "8e Section Bas Coq Chante",
+          "9e Section Haut Coq Chante"
+        ]
+      },
+      {
+        "commune": "La Vallée",
+        "sections_communales": [
+          "1re Section  La Vallée de Jacmel ou Muzac",
+          "2e Section La Vallée de Bainet ou Ternier",
+          "3e Section Morne à Bruler"
+        ]
+      },
+      {
+        "commune": "Cayes Jacmel",
+        "sections_communales": [
+          "1re Section Ravine Normande",
+          "2e Section Fond Melon Michineau",
+          "2e Section Gaillard",
+          "3e Section Haut Cap Rouge"
+        ]
+      },
+      {
+        "commune": "Marigot",
+        "sections_communales": [
+          "1re Section Corail Soult",
+          "2e Section Grande Rivière Fesles",
+          "3e Section Macary",
+          "4e Section Fond Jean Noël",
+          "5e Section Savane Dubois"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "NORD",
+    "communes": [
+      {
+        "commune": "Acul du Nord",
+        "sections_communales": [
+          "1re Section Camp-Louise",
+          "2e  Section Bas de l'Acul (Basse Plaine)",
+          "3e Section Mornet",
+          "4e Section Grande Ravine",
+          "5e Section Coupe à David",
+          "6e Section Soufrière"
+        ]
+      },
+      {
+        "commune": "Milot",
+        "sections_communales": [
+          "1re Section Perches-de-Bonnet",
+          "2e Section Bonnet à l'Evèque",
+          "3e Section Genipailler"
+        ]
+      },
+      {
+        "commune": "Plaine du Nord",
+        "sections_communales": [
+          "1re Section Morne Rouge",
+          "2e Section Basse Plaine",
+          "3e Section Grand Boucan",
+          "4e Section Bassin Diamant"
+        ]
+      },
+      {
+        "commune": "Borgne",
+        "sections_communales": [
+          "1re Section Margot",
+          "2e Section Boucan Michel",
+          "3e Section Petit Bourg de Borgne",
+          "4e Section Trou d'Enfer",
+          "5e Section Champagne",
+          "6e Section Molas",
+          "7e Section Côte de Fer et Fond Lagrange"
+        ]
+      },
+      {
+        "commune": "Port Margot",
+        "sections_communales": [
+          "1re Section de Grande Plaine",
+          "2e Section Bas Petit Borgne",
+          "3e Section de Corail",
+          "4e Section Haut Petit Borgne",
+          "5e Section Bas Quartier",
+          "6e Section Bras Gauche"
+        ]
+      },
+      {
+        "commune": "Cap-Haïtien",
+        "sections_communales": [
+          "1re Section Bande du Nord",
+          "2e Section Haut du Cap",
+          "3e Section Petit Anse"
+        ]
+      },
+      {
+        "commune": "Limonade",
+        "sections_communales": [
+          "1re Section Basse Plaine",
+          "2e Section Bois de Lance",
+          "3e Section Roucou"
+        ]
+      },
+      {
+        "commune": "Quartier Morin",
+        "sections_communales": [
+          "1re Section Basse Plaine",
+          "2e Section Morne Pelé"
+        ]
+      },
+      {
+        "commune": "Bahon",
+        "sections_communales": [
+          "1re Section Bois Pin",
+          "2e Section Bailly ou Bailla",
+          "3e Section Montagne Noire",
+          "Baie de Henne"
+        ]
+      },
+      {
+        "commune": "Grande Rivière du Nord",
+        "sections_communales": [
+          "1re Section Grand Gilles",
+          "2e Section Solon",
+          "3e Section Caracol",
+          "4e Section Gambade",
+          "5e Section Jolitrou",
+          "6e Section Cormiers"
+        ]
+      },
+      {
+        "commune": "Bas-Limbé",
+        "sections_communales": [
+          "1re Section Garde Champètre",
+          "2e Section Petit Howars (la Fange)"
+        ]
+      },
+      {
+        "commune": "Limbé",
+        "sections_communales": [
+          "1re Section Haut Limbé ou Acul Jeanot",
+          "2e Section Chabotte",
+          "3e Section Camp Coq",
+          "4e Section Soufrière",
+          "5e Section Ravine Desroches",
+          "6e Section Ilot-à-Corne"
+        ]
+      },
+      {
+        "commune": "Plaisance",
+        "sections_communales": [
+          "1re Section Gobert ou Colline Gobert",
+          "2e Section Champagne",
+          "3e Section Haut Martineau",
+          "4e Section Mapou",
+          "5e Section la Trouble",
+          "6e Section la Ville",
+          "7e Section Bassin",
+          "8e Section Grande Rivière"
+        ]
+      },
+      {
+        "commune": "Pilate",
+        "sections_communales": [
+          "1re Section Ballon",
+          "2e Section Baudin",
+          "3e Section Ravine Trompette",
+          "4e Section Joly",
+          "5e Section Dubourg",
+          "6e Section Piment",
+          "7e Section Rivière Laporte",
+          "8e Section Margot"
+        ]
+      },
+      {
+        "commune": "Saint Raphaël",
+        "sections_communales": [
+          "1re Section Bois Neuf",
+          "2e Section Mathurin",
+          "3e Section Bouyaha",
+          "4e Section San-Yago"
+        ]
+      },
+      {
+        "commune": "Dondon",
+        "sections_communales": [
+          "1re Section Brostage",
+          "2e Section Bassin Caïman",
+          "3e Section Matador",
+          "4e Section Laguille",
+          "5e Section Haut du Trou"
+        ]
+      },
+      {
+        "commune": "La Victoire",
+        "sections_communales": [
+          "1re Section de la Victoire"
+        ]
+      },
+      {
+        "commune": "Pignon",
+        "sections_communales": [
+          "1re Section Savannette",
+          "2e Section la Belle Mère"
+        ]
+      },
+      {
+        "commune": "Ranquite",
+        "sections_communales": [
+          "1re Section Bac à Soude",
+          "2e Section Bois de Lance",
+          "3e Section Cracaraille"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "NORD-EST",
+    "communes": [
+      {
+        "commune": "Fort-Liberté",
+        "sections_communales": [
+          "1re Section Dumas",
+          "2e Section Bayaha",
+          "3e Section Loiseau",
+          "4e Section Haut Madeleine"
+        ]
+      },
+      {
+        "commune": "Ferrier",
+        "sections_communales": [
+          "1re Section Bas Maribahoux"
+        ]
+      },
+      {
+        "commune": "Perches",
+        "sections_communales": [
+          "1re Section Haut des Perches",
+          "2e Section Bas des Perches"
+        ]
+      },
+      {
+        "commune": "Ouanaminthe",
+        "sections_communales": [
+          "1re Section Haut Maribahoux",
+          "2e Section Acul des Pins",
+          "3e Section Savane Longue",
+          "4e Section Savane au Lait",
+          "5e Section Gens de Nantes"
+        ]
+      },
+      {
+        "commune": "Capotille",
+        "sections_communales": [
+          "1re Section Capotille",
+          "2e Section Lamine"
+        ]
+      },
+      {
+        "commune": "Mont-Organisé",
+        "sections_communales": [
+          "1re Section Savanette",
+          "2e Section Bois Poux"
+        ]
+      },
+      {
+        "commune": "Caracol",
+        "sections_communales": [
+          "1re Section Champin",
+          "2e Section Glaudine ou Jacquesil"
+        ]
+      },
+      {
+        "commune": "Trou du Nord",
+        "sections_communales": [
+          "1re Section Garcin",
+          "2e Section Roucou",
+          "3e Section Roche Plate"
+        ]
+      },
+      {
+        "commune": "Sainte Suzanne",
+        "sections_communales": [
+          "1re Section Foulon",
+          "2e Section Bois Blanc",
+          "3e Section Cotelette",
+          "4e Section Sarazin",
+          "5e Section Moka Neuf",
+          "6e Section Fond Bleu"
+        ]
+      },
+      {
+        "commune": "Terrier Rouge",
+        "sections_communales": [
+          "1re Section Fond Blanc",
+          "2e  Section Grand Bassin"
+        ]
+      },
+      {
+        "commune": "Carice",
+        "sections_communales": [
+          "1re Section Bois Camelle",
+          "2e Section Rose Bonite"
+        ]
+      },
+      {
+        "commune": "Vallières",
+        "sections_communales": [
+          "1re Section Trois Palmistes",
+          "2e Section Ecrevisse ou Grosse Roche",
+          "3e Section Corosse"
+        ]
+      },
+      {
+        "commune": "Mombin Crochu",
+        "sections_communales": [
+          "1re Section Sans Souci",
+          "2e Section Bois Laurence"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "ARTIBONITE",
+    "communes": [
+      {
+        "commune": "Dessalines",
+        "sections_communales": [
+          "1re Section Villars",
+          "2e Section Fosse Naboth ou Duvallon",
+          "3e Section Ogé",
+          "4e Section Poste Pierrot",
+          "5e Section Fiéfé ou Petit Cahos",
+          "6e Section la Croix ou Grand Cahos"
+        ]
+      },
+      {
+        "commune": "Petite Rivière de l'Artibonite",
+        "sections_communales": [
+          "1re Section Bas Coursin I",
+          "2e Section Bas Coursin II",
+          "3e Section Labady",
+          "4e Section Savane à Roche",
+          "5e Section Pérodin",
+          "6e Section Médor"
+        ]
+      },
+      {
+        "commune": "Grande Saline",
+        "sections_communales": [
+          "1re Section Poteneau"
+        ]
+      },
+      {
+        "commune": "Desdunes",
+        "sections_communales": [
+          "1re Section de Desdunes"
+        ]
+      },
+      {
+        "commune": "Gonaïves",
+        "sections_communales": [
+          "1re Section Pont Tamarin",
+          "2e Section Bassin",
+          "3e Section Petite Rivière de Bayonnais",
+          "4e Section Poteaux",
+          "5e Section Labranle"
+        ]
+      },
+      {
+        "commune": "L'Estère",
+        "sections_communales": [
+          "1re Section La Croix Perisse",
+          "2e Section Petite Desdunes"
+        ]
+      },
+      {
+        "commune": "Ennery",
+        "sections_communales": [
+          "1re Section Savane Carrée",
+          "2e Section Passe-Reine ou Bas d'Ennery",
+          "3e Section Chemin Neuf",
+          "4e Section Puilboreau"
+        ]
+      },
+      {
+        "commune": "Gros Morne",
+        "sections_communales": [
+          "1re Section Boucan Richard",
+          "2e Section Rivière Mancelle",
+          "3e Section Rivière Blanche",
+          "4e Section l'Acul",
+          "5e Section Pendu",
+          "6e Section Savane Carrée",
+          "7e Section Moulin",
+          "8e Section Ravine Gros Morne"
+        ]
+      },
+      {
+        "commune": "Terre Neuve",
+        "sections_communales": [
+          "1re Section Doland",
+          "2e Section Bois Neuf",
+          "3e Section Lagon"
+        ]
+      },
+      {
+        "commune": "Anse Rouge",
+        "sections_communales": [
+          "1re Section l'Arbre",
+          "2e Section Sources Chaudes"
+        ]
+      },
+      {
+        "commune": "Marmelade",
+        "sections_communales": [
+          "1re Section Crête à Pins",
+          "2e Section Bassin ou Billier",
+          "3e Section Platon"
+        ]
+      },
+      {
+        "commune": "Saint Michel de l'Attalaye",
+        "sections_communales": [
+          "1re Section Platana",
+          "2e Section Camathe",
+          "3e Section Bas de Sault",
+          "4e Section Lalomas",
+          "5e Section l'Ermite",
+          "6e Section Lacedras",
+          "7e Section Marmont",
+          "8e Section l'Attalaye"
+        ]
+      },
+      {
+        "commune": "Montrouis",
+        "sections_communales": [
+          "1e Section Montrouis",
+          "2e Section Délugé"
+        ]
+      },
+      {
+        "commune": "Saint Marc",
+        "sections_communales": [
+          "1e Section Bois Neuf",
+          "2e Section Goyavier",
+          "3e Section Lalouère",
+          "4e Section Bocozelle",
+          "5e Section Charrette"
+        ]
+      },
+      {
+        "commune": "Liancourt",
+        "sections_communales": [
+          "1re Section Liancourt"
+        ]
+      },
+      {
+        "commune": "Verrettes",
+        "sections_communales": [
+          "1e Section Belanger",
+          "2e Section Guillaume Mogé",
+          "3e Section Desarmes",
+          "4e Section Bastien",
+          "5e Section Terre Natte"
+        ]
+      },
+      {
+        "commune": "La Chapelle",
+        "sections_communales": [
+          "1re Section Martineau",
+          "2e Section Bossous"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "CENTRE",
+    "communes": [
+      {
+        "commune": "Cerca la Source",
+        "sections_communales": [
+          "1re Section Acajou Brûlé No.1",
+          "2e  Section Acajou Brûlé No.1",
+          "2e  Section Acajou Brûlé No.2",
+          "3e Section Lamielle"
+        ]
+      },
+      {
+        "commune": "Thomassique",
+        "sections_communales": [
+          "1re Section Matelgate",
+          "2e Section Lociane"
+        ]
+      },
+      {
+        "commune": "Hinche",
+        "sections_communales": [
+          "1re Section Juanaria",
+          "2e Section Marmont",
+          "3e Section Aguahédionde (Rive Droite)",
+          "4e Section Aguahédionde (Rive Gauche)"
+        ]
+      },
+      {
+        "commune": "Thomonde",
+        "sections_communales": [
+          "1re Section Cabral",
+          "2e Section Tierra Muscady",
+          "3e Section Baille Tourrible",
+          "4e Section La Hoye"
+        ]
+      },
+      {
+        "commune": "Maissade",
+        "sections_communales": [
+          "1re Section Savane Grande",
+          "2e Section Narang",
+          "3e Section Hatty"
+        ]
+      },
+      {
+        "commune": "Cerca Cavajal",
+        "sections_communales": [
+          "1re Section Rang"
+        ]
+      },
+      {
+        "commune": "Baptiste",
+        "sections_communales": [
+          "1e Section Riaribes"
+        ]
+      },
+      {
+        "commune": "Lascahobas",
+        "sections_communales": [
+          "1re Section Petit Fond",
+          "2e Section Juampas"
+        ]
+      },
+      {
+        "commune": "Belladère",
+        "sections_communales": [
+          "1re Section Renthe Mathe",
+          "2e Section Roye-Sec"
+        ]
+      },
+      {
+        "commune": "Savanette",
+        "sections_communales": [
+          "1re Section de Savanette (Colombier)",
+          "2e Section la Haye"
+        ]
+      },
+      {
+        "commune": "Mirebalais",
+        "sections_communales": [
+          "1re Section Gascogne",
+          "2e Section Sarazin",
+          "3e Section Grand Boucan",
+          "4e Section Crête Brûlée"
+        ]
+      },
+      {
+        "commune": "Saut d'Eau",
+        "sections_communales": [
+          "1re Section Canot ou Rivière Canot",
+          "2e Section la Selle",
+          "3e Section Coupe Mardi Gras",
+          "4e Section Montagne Terrible"
+        ]
+      },
+      {
+        "commune": "Boucan Carré",
+        "sections_communales": [
+          "1re Section Petite Montagne",
+          "2e Section Boucan Carré",
+          "3e Section des Bayes"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "SUD",
+    "communes": [
+      {
+        "commune": "Aquin",
+        "sections_communales": [
+          "10e Section Guirand",
+          "1re Section Macéan",
+          "2e Section Bellevue",
+          "3e Section Brodequin",
+          "4e Section Flamands",
+          "5e Section Mare à Coiffe",
+          "6e Section La Colline",
+          "8e Section Colline à Mongons"
+        ]
+      },
+      {
+        "commune": "Fond des Blancs",
+        "sections_communales": [
+          "7e Section Frangipane",
+          "9e Section Fond des Blancs"
+        ]
+      },
+      {
+        "commune": "Cavaillon",
+        "sections_communales": [
+          "1re Section Boileau",
+          "2e Section Martineau",
+          "3e Section Gros Marin",
+          "4e Section Mare Henri",
+          "5e Section Laroque"
+        ]
+      },
+      {
+        "commune": "Saint Louis du Sud",
+        "sections_communales": [
+          "1re Section Grand Fonds",
+          "2e Section Baie Dumesle",
+          "3e Section Grenodière",
+          "4e Section Zanglais",
+          "5e Section Sucrerie Henri",
+          "6e Section Solon",
+          "7e Section Cherette",
+          "8e Section Corail-Henri"
+        ]
+      },
+      {
+        "commune": "Cayes",
+        "sections_communales": [
+          "1re Section Bourdet",
+          "2e Section Fonfrède",
+          "3e  Section Laborde",
+          "4e Section Laurent",
+          "5e Section Mercy",
+          "6e Section Boulmier"
+        ]
+      },
+      {
+        "commune": "Ile à Vache",
+        "sections_communales": [
+          "1re Section Ile à Vache"
+        ]
+      },
+      {
+        "commune": "Chantal",
+        "sections_communales": [
+          "1re Section Fonds Palmiste",
+          "2e Section Melonière",
+          "3e Section Carrefour Canon"
+        ]
+      },
+      {
+        "commune": "Torbeck",
+        "sections_communales": [
+          "1re Section Boury",
+          "2e Section Bérault",
+          "3e Section Solon",
+          "4e Section Moreau"
+        ]
+      },
+      {
+        "commune": "Camp-Perrin",
+        "sections_communales": [
+          "1re Section Levy Mersan",
+          "2e Section Champlois",
+          "3e Section Tibi Davezac"
+        ]
+      },
+      {
+        "commune": "Maniche",
+        "sections_communales": [
+          "1re Section Maniche",
+          "2e Section Dory",
+          "3e Section Melon"
+        ]
+      },
+      {
+        "commune": "Chardonnières",
+        "sections_communales": [
+          "1re Section Randel",
+          "2e Section Dejoie",
+          "3e Section Bony"
+        ]
+      },
+      {
+        "commune": "Les Anglais",
+        "sections_communales": [
+          "1re Section Verone",
+          "2e Section Edelin",
+          "3e Section Cosse"
+        ]
+      },
+      {
+        "commune": "Tiburon",
+        "sections_communales": [
+          "1re Section Blactote",
+          "2e Section Nan Sevre",
+          "3e Section Loby",
+          "4e Section Dalmette"
+        ]
+      },
+      {
+        "commune": "Côteaux",
+        "sections_communales": [
+          "1re Section Condé",
+          "2e Section Despas",
+          "3e Section Quentin"
+        ]
+      },
+      {
+        "commune": "Roche à Bateau",
+        "sections_communales": [
+          "1re Section Beaulieu",
+          "2e Section Renaudin",
+          "3e Section Beauclos"
+        ]
+      },
+      {
+        "commune": "Port à Piment",
+        "sections_communales": [
+          "1re Section Paricot",
+          "2e Section Balais"
+        ]
+      },
+      {
+        "commune": "Port Salut",
+        "sections_communales": [
+          "1re Section Barbois",
+          "2e Section Dumont"
+        ]
+      },
+      {
+        "commune": "Arniquet",
+        "sections_communales": [
+          "1re Section Lazarre",
+          "2e Section Anse à Drick",
+          "3e Section d'Arniquet"
+        ]
+      },
+      {
+        "commune": "Saint Jean du Sud",
+        "sections_communales": [
+          "1re Section Tapion",
+          "2e Section Débouchette",
+          "3e Section Trichet"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "GRANDE-ANSE",
+    "communes": [
+      {
+        "commune": "Anse d'Hainault",
+        "sections_communales": [
+          "1re Section Grandoit",
+          "2e Section Boudon",
+          "3e Section Ilet à Pierre Joseph",
+          "4e Section Mandou"
+        ]
+      },
+      {
+        "commune": "Irois",
+        "sections_communales": [
+          "1re Section Matador (Jorgue)",
+          "2e Section Belair",
+          "3e Section Garcasse"
+        ]
+      },
+      {
+        "commune": "Dame Marie",
+        "sections_communales": [
+          "1re Section Bariadelle",
+          "2e Section Dallier",
+          "3e Section Desormeau",
+          "4e Section Petite Rivière",
+          "5e Section Baliverne"
+        ]
+      },
+      {
+        "commune": "Corail",
+        "sections_communales": [
+          "1re Section Duquillon",
+          "2e Section Fond d'Icaque",
+          "3e Section Champy (Nan Campêche)"
+        ]
+      },
+      {
+        "commune": "Roseaux",
+        "sections_communales": [
+          "1re Section Carrefour Charles ou Jacqui",
+          "2e Section Fond Cochon ou Lopineau",
+          "3e Section Grand Vincent",
+          "4e Section les Gommiers"
+        ]
+      },
+      {
+        "commune": "Pestel",
+        "sections_communales": [
+          "6e Section Les Iles Cayemittes",
+          "1re Section Bernagousse",
+          "2e Section Espère",
+          "3e Section Jean Bellune",
+          "4e Section Tozia",
+          "5e Section Duchity"
+        ]
+      },
+      {
+        "commune": "Beaumont",
+        "sections_communales": [
+          "1re Section Beaumont",
+          "2e Section Chardonnette",
+          "3e Section Mouline"
+        ]
+      },
+      {
+        "commune": "Jérémie",
+        "sections_communales": [
+          "1re Section Basse Voldrogue",
+          "2e Section Haute Voldrogue",
+          "3e Section Haute Guinaudée",
+          "4e Section Basse Guinaudée",
+          "5e Section Fond Rouge Dahere",
+          "6e Section Fond Rouge Torbeck"
+        ]
+      },
+      {
+        "commune": "Marfranc",
+        "sections_communales": [
+          "1e Section Marfranc ou Grande Rivière",
+          "2e Section Ravine à Charles",
+          "3e Section Iles Blanches"
+        ]
+      },
+      {
+        "commune": "Abricots",
+        "sections_communales": [
+          "1re Section Anse du Clerc",
+          "2e Section Balisiers",
+          "3e Section Danglise",
+          "4e Section la Seringue"
+        ]
+      },
+      {
+        "commune": "Bonbon",
+        "sections_communales": [
+          "1re Section Desormeau ou Bonbon"
+        ]
+      },
+      {
+        "commune": "Chambellan",
+        "sections_communales": [
+          "1re Section Dejean",
+          "2e Section Boucan"
+        ]
+      },
+      {
+        "commune": "Moron",
+        "sections_communales": [
+          "1re Section Anote ou 1ère Tapion",
+          "2e Section Sources Chaudes",
+          "3e Section l'Assise ou Chameau"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "NORD-OUEST",
+    "communes": [
+      {
+        "commune": "Môle Saint Nicolas",
+        "sections_communales": [
+          "1re Section de Côtes de Fer",
+          "2e Section Mare-Rouge",
+          "3e Section Damé"
+        ]
+      },
+      {
+        "commune": "Baie de Henne",
+        "sections_communales": []
+      },
+      {
+        "commune": "Bombardopolis",
+        "sections_communales": [
+          "1re Section Plate Forme",
+          "2e Section des Forges",
+          "3e Section Plaine d'Orange"
+        ]
+      },
+      {
+        "commune": "Jean Rabel",
+        "sections_communales": [
+          "1re Section Lacoma",
+          "2e Section Guinaudée",
+          "3e Section Vieille Hatte",
+          "4e Section la Montagne",
+          "5e Section Dessources",
+          "6e Section Grande Source",
+          "7e Section Diondion"
+        ]
+      },
+      {
+        "commune": "Lapointe",
+        "sections_communales": [
+          "1e Section la Pointe",
+          "2e Section Rivière des Nègres"
+        ]
+      },
+      {
+        "commune": "Port-de-Paix",
+        "sections_communales": [
+          "1re Section Baudin",
+          "2e Section Aubert",
+          "3e Section Mahotière",
+          "4e Section Bas des Moustiques",
+          "5e Section la Corne"
+        ]
+      },
+      {
+        "commune": "Chansolme",
+        "sections_communales": [
+          "1re Section Chansolme",
+          "2e Source Beauvoir"
+        ]
+      },
+      {
+        "commune": "Bassin Bleu",
+        "sections_communales": [
+          "1re Section La Plate",
+          "2e Section Carreau Datty",
+          "3e Section Haut des Moustiques"
+        ]
+      },
+      {
+        "commune": "La Tortue",
+        "sections_communales": [
+          "1re Section Pointe des Oiseaux",
+          "2e Section Mare Rouge"
+        ]
+      },
+      {
+        "commune": "Saint Louis du Nord",
+        "sections_communales": [
+          "1e Section Derourvay",
+          "2e Section des Granges",
+          "3e Section Rivière de Barre",
+          "4e Section Bonneau",
+          "5e Section Lafague (Chamoise)"
+        ]
+      },
+      {
+        "commune": "Anse-à-Foleur",
+        "sections_communales": [
+          "1re Section Bas de Sainte Anne",
+          "2e Section Mayance",
+          "3e Section Côtes de Fer"
+        ]
+      }
+    ]
+  },
+  {
+    "departement": "NIPPES",
+    "communes": [
+      {
+        "commune": "Anse à Veau",
+        "sections_communales": [
+          "1re Section Baconnois-Grand-Fond",
+          "2e Section Grande-Rivière-Joly",
+          "3e Section Saut du Baril"
+        ]
+      },
+      {
+        "commune": "Arnaud",
+        "sections_communales": [
+          "1re Section Baconnois-Barreau",
+          "2e Section Baquet",
+          "3e Section Arnaud (Morcou)"
+        ]
+      },
+      {
+        "commune": "L'Asile",
+        "sections_communales": [
+          "1re Section l'Asile ou Nan Paul",
+          "2e Section Changeux",
+          "3e Section Tournade",
+          "4e Section Morisseau"
+        ]
+      },
+      {
+        "commune": "Petit Trou de Nippes",
+        "sections_communales": [
+          "1re Section Raymond",
+          "2e Section Tiby",
+          "3e Section Liève ou Vigny"
+        ]
+      },
+      {
+        "commune": "Plaisance du Sud",
+        "sections_communales": [
+          "1re Section Plaisance du Sud (ou ti François)",
+          "2e Section Anse aux Pins",
+          "3e Section Vassal Labiche"
+        ]
+      },
+      {
+        "commune": "Barradères",
+        "sections_communales": [
+          "1re Section Gérin ou Mouton",
+          "2e Section Tête d'Eau",
+          "3e Section Fond Tortue",
+          "4e Section la Plaine",
+          "5e Section Rivière Salée"
+        ]
+      },
+      {
+        "commune": "Grand Boucan",
+        "sections_communales": [
+          "1re Section Grand-Boucan",
+          "2e Section Eaux Basses"
+        ]
+      },
+      {
+        "commune": "Miragôane",
+        "sections_communales": [
+          "1re Section Chalon",
+          "2e Section Belle Rivière",
+          "3e Section Dessources",
+          "4e Section St-Michel"
+        ]
+      },
+      {
+        "commune": "Fonds des Nègres",
+        "sections_communales": [
+          "1re Section Bouzi",
+          "2e Section Fonds-des-Nègres ou Morne Brice",
+          "3e Section Pemerle",
+          "4e Section Cocoyers-Ducheine"
+        ]
+      },
+      {
+        "commune": "Paillant",
+        "sections_communales": [
+          "1re Section Salagnac",
+          "2e Section Bezin II"
+        ]
+      },
+      {
+        "commune": "Petite Rivière des Nippes",
+        "sections_communales": [
+          "1re Section Fond des Lianes",
+          "2e Section Cholette",
+          "3e Section Silègue",
+          "4e Section Bezin"
+        ]
+      }
+    ]
+  }
+]
