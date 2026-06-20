@@ -187,16 +187,6 @@
     "passwordSuccess": "Password changed successfully.",
     "passwordMismatch": "Passwords do not match."
   },
-<<<<<<< Updated upstream
-  "test": {
-    "websocket": "WebSocket : ",
-    "connected": "connected",
-    "disconnected": "disconnected",
-    "placeholder": "Test input",
-    "error": "Error : ",
-    "message": "Message : ",
-    "status": "Status : "
-=======
   "seller": {
     "pageTitle": "Become a Seller",
     "pageSubtitle": "Complete your profile to start selling your products on Rekolt Haïti",
@@ -230,6 +220,32 @@
     "validationSection": "Communal section required",
     "validationCategory": "Product category required",
     "validationDocument": "Document required"
->>>>>>> Stashed changes
+=======
+  },
+  "monprofil": {
+    "loading": "Loading profile or user not connected.",
+    "signIn": "Sign in",
+    "personalInfoTab": "Personal Info",
+    "logout": "Logout",
+    "title": "My Profile",
+    "subtitle": "Manage your personal information and preferences.",
+    "editProfile": "Edit profile",
+    "contactInfo": "Contact information",
+    "workEmail": "Work email",
+    "phone": "Phone",
+    "deliveryAddress": "Delivery address",
+    "contactedSellers": "Contacted sellers",
+    "reviewsTitle": "Reviews and comments",
+    "reviewsText": "You have not left any reviews about your products yet.",
+    "searchProducts": "Search products",
+    "accountManagement": "Account management",
+    "changeEmail": "Change email address",
+    "emailDescription": "The current email is {email}",
+    "passwordSecurity": "Password and security",
+    "passwordSecurityDesc": "Last changed 3 months ago",
+    "notifications": "Notification preferences",
+    "notificationsDesc": "Manage SMS and email alerts",
+    "sellerLastContact1": "LAST CONTACT: YESTERDAY",
+    "sellerLastContact2": "LAST CONTACT: 3 DAYS"
   }
 }

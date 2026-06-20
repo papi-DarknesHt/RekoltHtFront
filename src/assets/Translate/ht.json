@@ -150,28 +150,6 @@
     "deliveryAddress": "Adrèss livrezon",
     "contactedSellers": "Vandè ke mw kontakte",
     "reviewsTitle": "Avi ak komantè",
-<<<<<<< Updated upstream
-    "reviewsText": "Vous n'avez pas encore laissé d'avis sur vos produits.",
-    "searchProducts": "Rechercher des produits",
-    "accountManagement": "Gestion du Compte",
-    "changeEmail": "Changer l'adresse e-mail",
-    "emailDescription": "L'e-mail actuel est {email}",
-    "passwordSecurity": "Mot de passe et Sécurité",
-    "passwordSecurityDesc": "Dernière modification il y a 3 mois",
-    "notifications": "Préférences de notification",
-    "notificationsDesc": "Gérer les alertes SMS et e-mail",
-    "sellerLastContact1": "DERNIER CONTACT: HIER",
-    "sellerLastContact2": "DERNIER CONTACT: 3 J."
-  },
-  "test": {
-    "websocket": "WebSocket : ",
-    "connected": "connecté",
-    "disconnected": "déconnecté",
-    "placeholder": "Test input",
-    "error": "Erreur : ",
-    "message": "Message : ",
-    "status": "Statut  : "
-=======
     "reviewsText": "Ou poko kite komantè sou pwodui a.",
     "searchProducts": "Chèche pwodui",
     "accountManagement": "Jere kont mwen",
@@ -242,6 +220,31 @@
     "validationSection": "Seksyon kominal obligatwa",
     "validationCategory": "Kategori pwodui obligatwa",
     "validationDocument": "Dokiman obligatwa"
->>>>>>> Stashed changes
+  },
+  "monprofil": {
+    "loading": "pwofil ou ap chaje oubyen kont ou an poko konekte.",
+    "signIn": "Konekte",
+    "personalInfoTab": "Infomasyon pèsonel",
+    "logout": "Dekonekte",
+    "title": "Pwofil mwen",
+    "subtitle": "jere infomasyon pèsonel ou ak saw prefere.",
+    "editProfile": "Modifye profil",
+    "contactInfo": "Infomasyon pou kontakte",
+    "workEmail": "Imel Pwofesyonel",
+    "phone": "Telefonn",
+    "deliveryAddress": "Adress livrezon",
+    "contactedSellers": "Vandè ke mw kontakte",
+    "reviewsTitle": "Avi ak komantè",
+    "reviewsText": "ou poko kite komante w sou pwodui a.",
+    "searchProducts": "cheche pwodui",
+    "accountManagement": "Jere kont mwen",
+    "changeEmail": "Chanje adrès imel mwen",
+    "emailDescription": "Imel la se ",
+    "passwordSecurity": "Modpas ak sekirite",
+    "passwordSecurityDesc": "Denye modifikasyonil depi 3 mwa",
+    "notifications": "notifikasyon prefere ",
+    "notificationsDesc": "Gérer les alertes SMS et e-mail",
+    "sellerLastContact1": "Denye kontak: ye",
+    "sellerLastContact2": "Denye kontak: 3 J."
   }
 }
