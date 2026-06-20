@@ -220,7 +220,6 @@
     "validationSection": "Communal section required",
     "validationCategory": "Product category required",
     "validationDocument": "Document required"
-=======
   },
   "monprofil": {
     "loading": "Loading profile or user not connected.",
