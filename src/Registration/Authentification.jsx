@@ -7,13 +7,13 @@ import { useAuthStore } from "./AuthentificationStore";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Camera } from 'lucide-react';
 import departementsData from "../assets/Departements/haiti_departements.json";
 
 export default function RekoltHtAuth() {
 
   const navigate = useNavigate();
-  const { inscription, connexion, loading, error, clearError } = useAuthStore();
+  const { inscription, connexion, creerEntreprise, verifierEntreprise, loading, error, clearError } = useAuthStore();
   const [success, setSuccess] = useState(null);
   const [tab, setTab] = useState("login");
   const googleConnexion = useAuthStore((s) => s.googleConnexion);
@@ -21,9 +21,11 @@ export default function RekoltHtAuth() {
 
   const [form, setForm] = useState({
     nom: "", prenom: "", email: "", mot_de_passe: "", telephone: "", role: "acheteur",
-    bio: "", adresse: "", commune: "", ville: "", pays: "Haiti", latitude: "", longitude: "",
-    mot_de_passe_confirmation: "", entreprise_nom: "", entreprise_type: "", departement: "", section_communale: "",
+    bio: "", adresse: "", pays: "Haiti", latitude: "", longitude: "",
+    mot_de_passe_confirmation: "", entreprise_nom: "", entreprise_type: "", entreprise_num: "",
+    departement: "", commune: "", section_communale: "", entreprise_logo: null,
   });
+  const [logoPreview, setLogoPreview] = useState(null);
 
   const { t } = useTranslation();
 
@@ -54,6 +56,15 @@ export default function RekoltHtAuth() {
     setShowMdp(false);
     setShowMdpConfirm(false);
     clearError();
+  };
+
+  // Convertit le type d'entreprise du formulaire vers les secteurs reconnus par le backend
+  const secteurParType = {
+    Agriculture: "agriculture",
+    Commerce: "distribution",
+    Industrie: "transformation",
+    touriste: "autre",
+    Autre: "autre",
   };
 
   // Normalise le numéro de téléphone en +509XXXXXXXX avant envoi
@@ -98,6 +109,23 @@ export default function RekoltHtAuth() {
     }
   };
 
+  // Sélection du logo de l'entreprise : converti en base64 pour l'envoi en JSON
+  const handleLogoChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLogoPreview(reader.result);
+      setForm((prev) => ({ ...prev, entreprise_logo: { filename: file.name, content: reader.result } }));
+    };
+    reader.readAsDataURL(file);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.entreprise_logo;
+      return next;
+    });
+  };
+
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isValidName = (n) => /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[ -][A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(n.trim());
   const isValidTelephone = (tel) => {
@@ -116,6 +144,10 @@ export default function RekoltHtAuth() {
       if (tab === "entreprise") {
         if (!form.entreprise_nom.trim()) errors.entreprise_nom = t("auth.messageNameEntrepriseRequired");
         if (!form.entreprise_type) errors.entreprise_type = t("auth.messageTypeEntrepriseRequired");
+        if (!form.entreprise_num.trim()) errors.entreprise_num = t("auth.messageNumEntrepriseRequired");
+        if (!form.departement) errors.departement = t("auth.messageDepartementRequired");
+        if (!form.commune) errors.commune = t("auth.messageCommuneRequired");
+        if (!form.section_communale && sectionsDisponibles.length > 0) errors.section_communale = t("auth.messageSectionRequired");
       }
       if (!form.nom.trim()) errors.nom = t("auth.messageNameRequired");
       else if (!isValidName(form.nom)) errors.nom = t("auth.messageNamePattern");
@@ -130,9 +162,6 @@ export default function RekoltHtAuth() {
       if (form.mot_de_passe && form.mot_de_passe_confirmation && form.mot_de_passe !== form.mot_de_passe_confirmation) {
         errors.mot_de_passe_confirmation = t("auth.passwordMismatch");
       }
-      if (!form.departement) errors.departement = t("auth.messageDepartementRequired");
-      if (!form.commune) errors.commune = t("auth.messageCommuneRequired");
-      if (!form.section_communale && sectionsDisponibles.length > 0) errors.section_communale = t("auth.messageSectionRequired");
       if (!recaptchaToken) {
         setRecaptchaError(true);
         errors.recaptcha = t("auth.recaptchaError");
@@ -175,30 +204,49 @@ export default function RekoltHtAuth() {
           setTimeout(() => navigate("/"), 500);
         }
       } else {
+        // Vérifie avant de créer le compte qu'aucune entreprise avec ce nom/numéro n'existe déjà
+        if (tab === "entreprise") {
+          const verif = await verifierEntreprise(form.entreprise_nom, form.entreprise_num);
+          if (verif?.existe) {
+            setFieldErrors((prev) => ({ ...prev, entreprise_nom: verif.message, entreprise_num: verif.message }));
+            return;
+          }
+        }
+
         const payload = {
           nom: form.nom,
           prenom: form.prenom,
           email: form.email,
           mot_de_passe: form.mot_de_passe,
           telephone: formatTelephone(form.telephone),
-          role: tab === "entreprise" ? "vendeur" : form.role,
+          role: tab === "entreprise" ? "acheteur" : form.role,
           bio: form.bio,
           adresse: form.adresse,
-          departement: form.departement,
-          commune: form.commune,
-          section_communale: form.section_communale,
           ville: form.ville,
           pays: form.pays,
           latitude: form.latitude,
           longitude: form.longitude,
           recaptcha: recaptchaToken,
         };
-        if (tab === "entreprise") {
-          payload.entreprise_nom = form.entreprise_nom;
-          payload.entreprise_type = form.entreprise_type;
-        }
         const res = await inscription(payload);
         if (res) {
+          if (tab === "entreprise") {
+            await creerEntreprise({
+              nom_Entreprise: form.entreprise_nom,
+              num_Enregistrement: form.entreprise_num,
+              secteur: secteurParType[form.entreprise_type] || "autre",
+              email: form.email,
+              telephone: formatTelephone(form.telephone),
+              adresse: form.adresse,
+              departement: form.departement,
+              commune: form.commune,
+              section_communale: form.section_communale,
+              pays: form.pays,
+              latitude: form.latitude,
+              longitude: form.longitude,
+              ...(form.entreprise_logo ? { logo: form.entreprise_logo } : {}),
+            });
+          }
           setSuccess(t("auth.messageCreateCompteSuccess"));
           recaptchaRef.current?.reset();
           setRecaptchaToken(null);
@@ -252,6 +300,7 @@ export default function RekoltHtAuth() {
   const sectionsDisponibles = form.commune
     ? (communesDisponibles.find(c => c.commune === form.commune)?.sections_communales || [])
     : [];
+
   const googleSVG = (
     <svg width="18" height="18" viewBox="0 0 48 48">
       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -384,37 +433,8 @@ export default function RekoltHtAuth() {
           {/* ——— INSCRIPTION (individuel & entreprise) ——— */}
           {isRegisterTab && (
             <>
-              {/* Champs exclusifs Antrepriz */}
               {tab === "entreprise" && (
-                <>
-                  <div className="rk-field">
-                    <label className="rk-label">{t("auth.entrepriseName")}<span className="red">*</span></label>
-                    <input
-                      className="rk-input" name="entreprise_nom"
-                      placeholder="Eg. Rekolt Haiti S.A."
-                      onChange={handleChange}
-                      required maxLength={120} autoComplete="organization"
-                    />
-                    {fieldErrors.entreprise_nom && <p className="rk-error">X {fieldErrors.entreprise_nom}</p>}
-                  </div>
-                  <div className="rk-field">
-                    <label className="rk-label">{t("auth.entrepriseType")}<span className="red">*</span></label>
-                    <div className="rk-select-wrap">
-                      <select
-                        className="rk-select" name="entreprise_type"
-                        onChange={handleChange} required
-                      >
-                        <option value="">— {t("auth.chooseAType")} —</option>
-                        <option value="Agriculture">{t("auth.agriculture")}</option>
-                        <option value="Commerce">{t("auth.trade")}</option>
-                        <option value="Industrie">{t("auth.industry")}</option>
-                        <option value="touriste">{t("auth.tourism")}</option>
-                        <option value="Autre">{t("auth.other")}</option>
-                      </select>
-                    </div>
-                    {fieldErrors.entreprise_type && <p className="rk-error">X {fieldErrors.entreprise_type}</p>}
-                  </div>
-                </>
+                <p className="rk-section-title">{t("auth.personalInfoSection")}</p>
               )}
 
               <div className="rk-row">
@@ -497,55 +517,129 @@ export default function RekoltHtAuth() {
                   <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}>✓ {t("auth.passwordMatch")}</p>
                 )}
               </div>
-              <div className="rk-field">
-                <label className="rk-label">{t("auth.departement")}<span className="red">*</span></label>
-                <div className="rk-select-wrap">
-                  <select
-                    className="rk-select" name="departement"
-                    value={form.departement} onChange={handleChange} required
-                  >
-                    <option value="">— {t("auth.chooseADepartement")} —</option>
-                    {departementsData.map(d => (
-                      <option key={d.departement} value={d.departement}>{d.departement}</option>
-                    ))}
-                  </select>
-                </div>
-                {fieldErrors.departement && <p className="rk-error">✗ {fieldErrors.departement}</p>}
-              </div>
 
-              <div className="rk-field">
-                <label className="rk-label">{t("auth.commune")}<span className="red">*</span></label>
-                <div className="rk-select-wrap">
-                  <select
-                    className="rk-select" name="commune"
-                    value={form.commune} onChange={handleChange} required
-                    disabled={!form.departement}
-                  >
-                    <option value="">— {t("auth.chooseCommune")} —</option>
-                    {communesDisponibles.map(c => (
-                      <option key={c.commune} value={c.commune}>{c.commune}</option>
-                    ))}
-                  </select>
-                </div>
-                {fieldErrors.commune && <p className="rk-error">✗ {fieldErrors.commune}</p>}
-              </div>
+              {/* Champs exclusifs Antrepriz */}
+              {tab === "entreprise" && (
+                <>
+                  <p className="rk-section-title">{t("auth.companyInfoSection")}</p>
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.entrepriseName")}<span className="red">*</span></label>
+                    <input
+                      className="rk-input" name="entreprise_nom"
+                      placeholder="Eg. Rekolt Haiti S.A."
+                      onChange={handleChange}
+                      required maxLength={120} autoComplete="organization"
+                    />
+                    {fieldErrors.entreprise_nom && <p className="rk-error">X {fieldErrors.entreprise_nom}</p>}
+                  </div>
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.entrepriseType")}<span className="red">*</span></label>
+                    <div className="rk-select-wrap">
+                      <select
+                        className="rk-select" name="entreprise_type"
+                        onChange={handleChange} required
+                      >
+                        <option value="">— {t("auth.chooseAType")} —</option>
+                        <option value="Agriculture">{t("auth.agriculture")}</option>
+                        <option value="Commerce">{t("auth.trade")}</option>
+                        <option value="Industrie">{t("auth.industry")}</option>
+                        <option value="touriste">{t("auth.tourism")}</option>
+                        <option value="Autre">{t("auth.other")}</option>
+                      </select>
+                    </div>
+                    {fieldErrors.entreprise_type && <p className="rk-error">X {fieldErrors.entreprise_type}</p>}
+                  </div>
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.entrepriseNum")}<span className="red">*</span></label>
+                    <input
+                      className="rk-input" name="entreprise_num"
+                      placeholder="Eg. 123456789"
+                      value={form.entreprise_num} onChange={handleChange}
+                      required maxLength={100} autoComplete="off"
+                    />
+                    {fieldErrors.entreprise_num && <p className="rk-error">X {fieldErrors.entreprise_num}</p>}
+                  </div>
 
-              <div className="rk-field">
-                <label className="rk-label">{t("auth.sectionCommunale")}<span className="red">*</span></label>
-                <div className="rk-select-wrap">
-                  <select
-                    className="rk-select" name="section_communale"
-                    value={form.section_communale} onChange={handleChange} required
-                    disabled={!form.commune || sectionsDisponibles.length === 0}
-                  >
-                    <option value="">— {t("auth.chooseSection")} —</option>
-                    {sectionsDisponibles.map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-                {fieldErrors.section_communale && <p className="rk-error">✗ {fieldErrors.section_communale}</p>}
-              </div>
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.entrepriseLogo")}</label>
+                    <div className="rk-file-wrap">
+                      <label className={`rk-file-label ${form.entreprise_logo ? "has-file" : ""}`} htmlFor="rk-logo-input">
+                        {logoPreview ? (
+                          <img className="rk-logo-preview" src={logoPreview} alt="logo" />
+                        ) : (
+                          <Camera className="rk-file-icon" size={18} />
+                        )}
+                        {form.entreprise_logo ? t("auth.entrepriseLogoChanged") : t("auth.chooseLogoFile")}
+                      </label>
+                      <input
+                        id="rk-logo-input" type="file" className="rk-file-input"
+                        accept=".jpg,.jpeg,.png" onChange={handleLogoChange}
+                      />
+                    </div>
+                    <span className="rk-hint">{t("auth.entrepriseLogoHint")}</span>
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.departement")}<span className="red">*</span></label>
+                    <div className="rk-select-wrap">
+                      <select
+                        className="rk-select" name="departement"
+                        value={form.departement} onChange={handleChange} required
+                      >
+                        <option value="">— {t("auth.chooseADepartement")} —</option>
+                        {departementsData.map(d => (
+                          <option key={d.departement} value={d.departement}>{d.departement}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {fieldErrors.departement && <p className="rk-error">✗ {fieldErrors.departement}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.commune")}<span className="red">*</span></label>
+                    <div className="rk-select-wrap">
+                      <select
+                        className="rk-select" name="commune"
+                        value={form.commune} onChange={handleChange} required
+                        disabled={!form.departement}
+                      >
+                        <option value="">— {t("auth.chooseCommune")} —</option>
+                        {communesDisponibles.map(c => (
+                          <option key={c.commune} value={c.commune}>{c.commune}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {fieldErrors.commune && <p className="rk-error">✗ {fieldErrors.commune}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.sectionCommunale")}<span className="red">*</span></label>
+                    <div className="rk-select-wrap">
+                      <select
+                        className="rk-select" name="section_communale"
+                        value={form.section_communale} onChange={handleChange} required
+                        disabled={!form.commune || sectionsDisponibles.length === 0}
+                      >
+                        <option value="">— {t("auth.chooseSection")} —</option>
+                        {sectionsDisponibles.map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {fieldErrors.section_communale && <p className="rk-error">✗ {fieldErrors.section_communale}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.city")}</label>
+                    <input
+                      className="rk-input" name="adresse"
+                      placeholder={t("auth.city")}
+                      value={form.adresse} onChange={handleChange}
+                      maxLength={100} autoComplete="address-level2"
+                    />
+                  </div>
+                </>
+              )}
 
               {/* reCAPTCHA */}
               <div style={{ margin: "1rem 0 0.5rem" }}>
