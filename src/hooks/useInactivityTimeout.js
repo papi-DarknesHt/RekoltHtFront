@@ -4,6 +4,8 @@ import { useAuthStore } from "../Registration/AuthentificationStore";
 
 // Durée d'inactivité avant déconnexion automatique : 30 minutes
 const INACTIVITY_MS = 30 * 60 * 1000;
+// const INACTIVITY_MS = 0.1 * 60 * 1000;
+
 
 // Événements considérés comme une activité utilisateur
 const EVENTS = ["mousemove", "keydown", "click", "scroll", "touchstart", "pointerdown"];

@@ -42,6 +42,23 @@ export const useProfilStore = create((set) => ({
         }
     },
 
+    // suppression de la photo de profil déjà enregistrée côté serveur
+    // appelle /Registration/supprimer-photo-profil/ et met à jour le store + localStorage
+    supprimerPhotoProfil: async () => {
+        set({ loading: true, error: null });
+        try {
+            const res = await AuthentificationApi.supprimerPhotoProfil();
+            set({ profil: res.profil });
+            localStorage.setItem("profil", JSON.stringify(res.profil));
+            return res;
+        } catch (error) {
+            set({ error: error.message });
+            throw error;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
     // effacer les erreurs
     clearError: () => set({ error: null }),
 }));

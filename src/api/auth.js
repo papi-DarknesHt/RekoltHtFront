@@ -23,9 +23,26 @@ export const AuthentificationApi = {
 
   // mise à jour des informations du profil (bio, adresse, photo, role, ...)
   modifierProfil: (data) => api.put("/Registration/modifier-profil/", data),
-  
+
+  // suppression de la photo de profil déjà enregistrée
+  supprimerPhotoProfil: () => api.delete("/Registration/supprimer-photo-profil/"),
+
   // changement de mot de passe
   modifierMotDePasse: (data) => api.put("/Registration/modifier-mdp/", data),
+
+  // entreprise — création (compte vendeur/Antrepriz)
+  creerEntreprise: (data) => api.post("/Registration/entreprise/creer/", data),
+
+  // entreprise(s) appartenant à l'utilisateur connecté (toutes les entreprises si admin)
+  listerEntreprises: () => api.get("/Registration/entreprise/lister/"),
+
+  // tous les utilisateurs — réservé aux admins
+  listerUtilisateursAdmin: () => api.get("/Registration/admin/utilisateurs/"),
+
+  // vérifie si une entreprise (nom + numéro d'enregistrement) existe déjà — sans authentification
+  verifierEntreprise: (nom_Entreprise, num_Enregistrement) => api.get(
+    `/Registration/entreprise/verifier/?nom_Entreprise=${encodeURIComponent(nom_Entreprise)}&num_Enregistrement=${encodeURIComponent(num_Enregistrement)}`
+  ),
 
   isConnected: () => !!localStorage.getItem("token"),
   googleConnexion:   (data) => api.post("/Registration/google/connexion/",   data),

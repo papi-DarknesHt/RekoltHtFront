@@ -20,8 +20,35 @@ export default function Navbar() {
     const navigate = useNavigate();
     const isConnecte  = useAuthStore((s) => s.isConnected);
     const utilisateur = useAuthStore((s) => s.utilisateur);
+    const entreprise  = useAuthStore((s) => s.entreprise);
     const deconnexion = useAuthStore((s) => s.deconnexion);
+    const chargerEntreprise = useAuthStore((s) => s.chargerEntreprise);
     const profil      = useProfilStore((s) => s.profil);
+    const afficherProfil = useProfilStore((s) => s.afficherProfil);
+
+    // S'assure que le logo de l'entreprise et la photo de profil sont à jour
+    // même si la session était déjà ouverte avant le rechargement de la page
+    // (token persistant) — pas seulement juste après un connexion() de la session.
+    useEffect(() => {
+        if (isConnecte) {
+            chargerEntreprise();
+            afficherProfil().catch(() => {});
+        }
+    }, [isConnecte, chargerEntreprise, afficherProfil]);
+
+    // Un compte "Antrepriz" affiche le nom/logo de l'entreprise à la place
+    // de l'identité personnelle de l'utilisateur connecté : l'entreprise
+    // doit appartenir à l'utilisateur connecté (proprietaire_id === utilisateur.id).
+    const isEntreprise = !!(entreprise && entreprise.proprietaire_id === utilisateur?.id);
+    const nomAffiche = isEntreprise
+        ? entreprise.nom_Entreprise
+        : `${utilisateur?.prenom || ""} ${utilisateur?.nom || ""}`.trim();
+    const prenomAffiche = isEntreprise
+        ? entreprise.nom_Entreprise
+        : (utilisateur?.prenom || "Mon compte");
+    const avatarAffiche = isEntreprise
+        ? entreprise.logo
+        : profil?.photo_profil;
     const [menuOpen, setMenuOpen] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -89,16 +116,16 @@ export default function Navbar() {
                                     className="user-btn"
                                     onClick={() => setMenuOpen(!menuOpen)}
                                 >
-                                    {profil?.photo_profil ? (
+                                    {avatarAffiche ? (
                                         <img
-                                            src={profil.photo_profil}
-                                            alt="Photo profil"
+                                            src={avatarAffiche}
+                                            alt={isEntreprise ? "Logo entreprise" : "Photo profil"}
                                             className="nav-avatar"
                                         />
                                     ) : (
                                         <User size={16} />
                                     )}
-                                    {utilisateur?.prenom || "Mon compte"}
+                                    {prenomAffiche}
                                     <ChevronDown
                                         size={14}
                                         className={menuOpen ? "rotate" : ""}
@@ -108,10 +135,10 @@ export default function Navbar() {
                                     <div className="dropdown-menu">
                                         <div className="dropdown-header">
                                             <div className="dropdown-avatar-row">
-                                                {profil?.photo_profil ? (
+                                                {avatarAffiche ? (
                                                     <img
-                                                        src={profil.photo_profil}
-                                                        alt="Photo profil"
+                                                        src={avatarAffiche}
+                                                        alt={isEntreprise ? "Logo entreprise" : "Photo profil"}
                                                         className="dropdown-avatar"
                                                     />
                                                 ) : (
@@ -120,7 +147,7 @@ export default function Navbar() {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <p>{utilisateur?.prenom} {utilisateur?.nom}</p>
+                                                    <p>{nomAffiche}</p>
                                                     <span>{utilisateur?.email}</span>
                                                 </div>
                                             </div>
@@ -179,10 +206,10 @@ export default function Navbar() {
                         {isConnecte ? (
                             <div className="nav-mobile-user">
                                 <div className="nav-mobile-user-info">
-                                    {profil?.photo_profil ? (
+                                    {avatarAffiche ? (
                                         <img
-                                            src={profil.photo_profil}
-                                            alt="Photo profil"
+                                            src={avatarAffiche}
+                                            alt={isEntreprise ? "Logo entreprise" : "Photo profil"}
                                             className="nav-avatar"
                                         />
                                     ) : (
@@ -190,7 +217,7 @@ export default function Navbar() {
                                             <User size={16} />
                                         </div>
                                     )}
-                                    <span>{utilisateur?.prenom} {utilisateur?.nom}</span>
+                                    <span>{nomAffiche}</span>
                                 </div>
                                 <button
                                     className="nav-mobile-link-btn"

@@ -65,6 +65,7 @@ export default function ModifierProfil() {
   const profil = useProfilStore((s) => s.profil);
   const afficherProfil = useProfilStore((s) => s.afficherProfil);
   const modifierProfil = useProfilStore((s) => s.modifierProfil);
+  const supprimerPhotoProfil = useProfilStore((s) => s.supprimerPhotoProfil);
 
   // ── état du formulaire "Informations personnelles"
   const [form, setForm] = useState({
@@ -137,10 +138,22 @@ export default function ModifierProfil() {
     reader.readAsDataURL(file);
   };
 
-  const handleRemovePhoto = () => {
+  // ── supprime l'aperçu local non sauvegardé, et si une photo est déjà
+  // enregistrée côté serveur, la supprime aussi via l'API
+  const handleRemovePhoto = async () => {
     setPhotoPreview(null);
     setPhotoData(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    if (profil?.photo_profil) {
+      setMessage(null);
+      try {
+        await supprimerPhotoProfil();
+        setMessage({ type: "success", text: t("profile.removePhotoSuccess") });
+      } catch (error) {
+        setMessage({ type: "error", text: error.message });
+      }
+    }
   };
 
   // ── enregistre les informations personnelles + le profil (et la photo si modifiée)
