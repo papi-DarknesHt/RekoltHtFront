@@ -36,6 +36,12 @@ export const AuthentificationApi = {
   // entreprise(s) appartenant à l'utilisateur connecté (toutes les entreprises si admin)
   listerEntreprises: () => api.get("/Registration/entreprise/lister/"),
 
+  // mise à jour des informations d'une entreprise (nom, secteur, coordonnées, logo, ...)
+  modifierEntreprise: (data) => api.put("/Registration/entreprise/modifier/", data),
+
+  // suppression du logo d'une entreprise déjà enregistré
+  supprimerLogoEntreprise: (id) => api.delete("/Registration/entreprise/supprimer-logo/", { id }),
+
   // tous les utilisateurs — réservé aux admins
   listerUtilisateursAdmin: () => api.get("/Registration/admin/utilisateurs/"),
 
@@ -43,6 +49,10 @@ export const AuthentificationApi = {
   verifierEntreprise: (nom_Entreprise, num_Enregistrement) => api.get(
     `/Registration/entreprise/verifier/?nom_Entreprise=${encodeURIComponent(nom_Entreprise)}&num_Enregistrement=${encodeURIComponent(num_Enregistrement)}`
   ),
+
+  demanderReinitialisation:      (data) => api.post("/Registration/reinitialisation/demander/",      data),
+  verifierCodeReinitialisation:  (data) => api.post("/Registration/reinitialisation/verifier-code/", data),
+  reinitialiserMotDePasse:       (data) => api.post("/Registration/reinitialisation/valider/",       data),
 
   isConnected: () => !!localStorage.getItem("token"),
   googleConnexion:   (data) => api.post("/Registration/google/connexion/",   data),

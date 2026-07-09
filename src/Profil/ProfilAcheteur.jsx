@@ -28,91 +28,12 @@ import Footer from "../components/Footer.jsx"
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { AuthentificationApi } from "../api/auth";
 
-// Données statiques de démonstration — à remplacer par les données réelles
-// venant de votre API / store (utilisateur, produits consultés, vendeurs...).
-const user = {
-  name: "Jean Samantha",
-  role: "Agricultural Producer",
-  badge: "Achteur", // "Acheteur" dans la maquette
-  location: "Artibonite, HT",
-  email: "j.dupont@rekoltht.com",
-  phone: "+509 37XX-XXXX",
-  address: "Route Nationale #1, Gonaïves, Artibonite, Haïti",
-};
-
-const recentProducts = [
-  {
-    id: 1,
-    name: "Engrais Organique NPK",
-    price: "4,500 HTG",
-    unit: "/ sac",
-    image: "/images/engrais-npk.jpg",
-    badge: "En Stock",
-  },
-  {
-    id: 2,
-    name: "Semences de Riz TCS-10",
-    price: "2,200 HTG",
-    unit: "/ kg",
-    image: "/images/semences-riz.jpg",
-  },
-  {
-    id: 3,
-    name: "Citron",
-    price: "20 HTG",
-    image: "/images/citron.jpg",
-  },
-  {
-    id: 4,
-    name: "Zaboka",
-    price: "30 HTG",
-    image: "/images/zaboka.jpg",
-  },
-];
-
-const contactedSellers = [
-  {
-    id: 1,
-    initials: "AS",
-    name: "Agro-Supply Haiti",
-    lastContact: "DERNIER CONTACT: HIER",
-  },
-  {
-    id: 2,
-    initials: "SV",
-    name: "Semences de la Vallée",
-    lastContact: "DERNIER CONTACT: 3 J.",
-  },
-];
-
-const accountActions = [
-  {
-    id: "email",
-    icon: Mail,
-    title: "Changer l'adresse e-mail",
-    description: `L'e-mail actuel est ${user.email}`,
-  },
-  {
-    id: "security",
-    icon: Lock,
-    title: "Mot de passe et Sécurité",
-    description: "Dernière modification il y a 3 mois",
-  },
-  {
-    id: "notifications",
-    icon: BellRing,
-    title: "Préférences de notification",
-    description: "Gérer les alertes SMS et e-mail",
-  },
-];
-
-
 
 export default function ProfilAcheteur() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const utilisateur = useAuthStore((s) => s.utilisateur);
-  const entreprise  = useAuthStore((s) => s.entreprise);
+  const entreprise = useAuthStore((s) => s.entreprise);
   const deconnexion = useAuthStore((s) => s.deconnexion);
 
   // ── profil réel (bio, adresse, photo, ...) venant de /Registration/profil/
@@ -130,11 +51,22 @@ export default function ProfilAcheteur() {
     ? entreprise.logo
     : profil?.photo_profil;
 
-  const [activeTab, setActiveTab] = useState("personal");
-
   // Un admin (profil.role === 'admin') voit deux onglets supplémentaires :
   // la liste de tous les utilisateurs et celle de toutes les entreprises créées.
-  const isAdmin = profil?.role === "admin" || "Admin";
+  const isAdmin = profil?.role === "admin";
+
+  // L'onglet par défaut dépend du type de compte : un compte entreprise/admin
+  // n'a pas d'onglet "personal" dans la sidebar, donc on ne peut pas démarrer
+  // sur "personal" pour eux (initialisation paresseuse : entreprise/profil
+  // viennent du localStorage donc déjà connus dès le premier rendu).
+  const [activeTab, setActiveTab] = useState(() => {
+    if (isEntreprise) return "entreprise";
+    if (isAdmin) return "admin_users";
+    return "personal";
+  });
+
+  // TODO: brancher sur une vraie liste de vendeurs contactés quand l'API existera
+  const contactedSellers = [];
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminEntreprises, setAdminEntreprises] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
@@ -146,6 +78,18 @@ export default function ProfilAcheteur() {
       // l'erreur est déjà stockée dans le store, rien d'autre à faire ici
     });
   }, [afficherProfil]);
+
+  // La sidebar n'offre pas le même onglet "personal" à tous les types de
+  // compte (entreprise → "entreprise", admin → "admin_users") : on aligne
+  // l'onglet actif dès que le type de compte est connu, plutôt que de
+  // rester bloqué sur "personal" par défaut.
+  useEffect(() => {
+    if (isEntreprise) {
+      setActiveTab("entreprise");
+    } else if (isAdmin) {
+      setActiveTab((prev) => (prev === "admin_users" || prev === "admin_entreprises" ? prev : "admin_users"));
+    }
+  }, [isEntreprise, isAdmin]);
 
   useEffect(() => {
     if (activeTab === "admin_users" && isAdmin) {
@@ -207,15 +151,8 @@ export default function ProfilAcheteur() {
           </div>
 
           <nav className="profil-sidebar__nav">
-            <a
-              href="#"
-              className={`profil-sidebar__item ${activeTab === "personal" ? "profil-sidebar__item--active" : ""}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab("personal"); }}
-            >
-              <User size={18} />
-              {t("profile.personalInfoTab")}
-            </a>
-            {isEntreprise && (
+
+            {isEntreprise ? (
               <a
                 href="#"
                 className={`profil-sidebar__item ${activeTab === "entreprise" ? "profil-sidebar__item--active" : ""}`}
@@ -224,8 +161,7 @@ export default function ProfilAcheteur() {
                 <Building2 size={18} />
                 {t("profile.companyTab")}
               </a>
-            )}
-            {isAdmin && (
+            ) : isAdmin ? (
               <>
                 <a
                   href="#"
@@ -242,6 +178,17 @@ export default function ProfilAcheteur() {
                 >
                   <Building2 size={18} />
                   {t("profile.adminCompaniesTab")}
+                </a>
+              </>
+            ) : (
+              <>
+                <a
+                  href="#"
+                  className={`profil-sidebar__item ${activeTab === "personal" ? "profil-sidebar__item--active" : ""}`}
+                  onClick={(e) => { e.preventDefault(); setActiveTab("personal"); }}
+                >
+                  <User size={18} />
+                  {t("profile.personalInfoTab")}
                 </a>
               </>
             )}
@@ -291,10 +238,10 @@ export default function ProfilAcheteur() {
 
                   </div>
                   <h2 className="profil-identity__name">{nomAffiche}</h2>
-                  <span className="profil-badge">{profil.role}</span>
+                  <span className="profil-badge">{profil?.role}</span>
                   <p className="profil-identity__location">
                     <MapPin size={14} />
-                    {profil?.adresse || user.location}
+                    {profil?.adresse || t("profile.notSpecified")}
                   </p>
                 </div>
 
@@ -374,6 +321,10 @@ export default function ProfilAcheteur() {
                     {t("profile.companySubtitle")}
                   </p>
                 </div>
+                <button className="profil-btn profil-btn--primary" onClick={() => navigate("/update_profil")}>
+                  <Pencil size={16} />
+                  {t("profile.editProfile")}
+                </button>
               </div>
 
               {/* ----- Carte entreprise + Informations de contact ----- */}
@@ -401,7 +352,7 @@ export default function ProfilAcheteur() {
                 </div>
 
                 <div className="profil-card profil-card--contact">
-                   <h3 className="profil-card__title profil-card__title--accent">
+                  <h3 className="profil-card__title profil-card__title--accent">
                     {t("profile.companyDetailsTitle")}
                   </h3>
 

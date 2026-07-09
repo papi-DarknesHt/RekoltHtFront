@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../Registration/AuthentificationStore";
+import { AuthentificationApi } from "../api/auth";
 
 // Durée d'inactivité avant déconnexion automatique : 30 minutes
 const INACTIVITY_MS = 30 * 60 * 1000;
@@ -46,10 +47,20 @@ export function useInactivityTimeout() {
     // Démarre le minuteur immédiatement à la connexion
     reset();
 
+    // Vérifie la validité du token dès que l'onglet redevient visible
+    // (détecte la révocation par une connexion sur un autre navigateur)
+    const verifierSession = () => {
+      if (document.visibilityState === "visible") {
+        AuthentificationApi.getprofil().catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", verifierSession);
+
     // Nettoyage : retire les écouteurs et annule le timer à la déconnexion
     return () => {
       clearTimeout(timerRef.current);
       EVENTS.forEach((e) => window.removeEventListener(e, reset));
+      document.removeEventListener("visibilitychange", verifierSession);
     };
   }, [isConnected]); // Se réexécute uniquement si l'état de connexion change
 }

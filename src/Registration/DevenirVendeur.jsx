@@ -32,7 +32,7 @@ export default function DevenirVendeur() {
 
     useEffect(() => {
         afficherProfil().catch(() => { });
-    }, []);
+    }, [afficherProfil]);
 
     const isEntreprise = !!(
         profil?.role === "entreprise" ||
@@ -121,9 +121,7 @@ export default function DevenirVendeur() {
                 formData.append("entreprise_nom", form.entreprise_nom);
                 if (form.document) formData.append("document", form.document);
             }
-            await api.post("/auth/devenir-vendeur", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
+            await api.post("/auth/devenir-vendeur", formData);
             setSuccess(true);
             setTimeout(() => navigate("/"), 2500);
         } catch (err) {

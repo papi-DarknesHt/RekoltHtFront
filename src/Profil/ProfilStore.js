@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { AuthentificationApi } from "../api/auth";
 
 export const useProfilStore = create((set) => ({
-    profil: JSON.parse(localStorage.getItem("profil")) || null,
+    profil: (() => { try { return JSON.parse(localStorage.getItem("profil")); } catch { return null; } })() || null,
     utilisateur: AuthentificationApi.getUtilisateur(),
     isConnected: !!AuthentificationApi.isConnected(),
     loading: false,
@@ -12,7 +12,6 @@ export const useProfilStore = create((set) => ({
         set({ loading: true, error: null });
         try {
             const res = await AuthentificationApi.getprofil();
-            console.log(res);
             set({ profil: res.profil });
             localStorage.setItem("profil", JSON.stringify(res.profil));
             return res;

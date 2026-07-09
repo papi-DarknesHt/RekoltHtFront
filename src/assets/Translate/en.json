@@ -108,6 +108,9 @@
     "entrepriseLogo": "Business logo",
     "entrepriseLogoChanged": "Logo selected",
     "entrepriseLogoHint": "Square format recommended (JPG, PNG) — max 2 MB",
+    "entrepriseEmail": "Business email address",
+    "entreprisePassword": "Business password",
+    "entreprisePasswordConfirm": "Confirm business password",
     "chooseLogoFile": "Choose a logo",
     "chooseAType": "Choose a type",
     "agriculture": "Agriculture",
@@ -208,7 +211,14 @@
     "changePassword": "Change password",
     "saveSuccess": "Profile updated successfully.",
     "passwordSuccess": "Password changed successfully.",
-    "passwordMismatch": "Passwords do not match."
+    "passwordMismatch": "Passwords do not match.",
+    "companyNameLabel": "Business name",
+    "companyDescriptionLabel": "Description",
+    "companyCommuneLabel": "Commune",
+    "companyPaysLabel": "Country",
+    "logoTitle": "Business Logo",
+    "removeLogo": "Remove logo",
+    "removeLogoSuccess": "Logo removed successfully"
   },
   "seller": {
     "pageTitle": "Become a Seller",

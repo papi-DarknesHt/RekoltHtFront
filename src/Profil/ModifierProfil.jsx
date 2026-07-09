@@ -21,6 +21,7 @@ import {
   Image,
   Truck,
   Shield,
+  Building2,
 } from "lucide-react";
 import "../assets/CSS/ModifierProfil.css";
 import NavBar from "../components/NavBar.jsx";
@@ -32,22 +33,6 @@ import Footer from "../components/Footer.jsx"
 import MapHaiti from "../components/MapHaiti.jsx";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 
-const socialLinks = [
-  {
-    id: "whatsapp",
-    icon: MessageCircle,
-    iconColor: "#25d366",
-    label: "WhatsApp",
-    value: "+509 3744-5566",
-  },
-  {
-    id: "facebook",
-    icon: Globe,
-    iconColor: "#1877f2",
-    label: "Facebook",
-    value: "facebook.com/ferme.dupont",
-  },
-];
 
 
 export default function ModifierProfil() {
@@ -58,8 +43,15 @@ export default function ModifierProfil() {
 
   // ── données réelles de l'utilisateur connecté (store d'authentification)
   const utilisateur = useAuthStore((s) => s.utilisateur);
+  const entreprise = useAuthStore((s) => s.entreprise);
   const modifierUtilisateur = useAuthStore((s) => s.modifierUtilisateur);
   const modifierMotDePasse = useAuthStore((s) => s.modifierMotDePasse);
+  const modifierEntreprise = useAuthStore((s) => s.modifierEntreprise);
+  const supprimerLogoEntreprise = useAuthStore((s) => s.supprimerLogoEntreprise);
+
+  // Un compte "Antrepriz" modifie les informations de son entreprise plutôt
+  // que son identité personnelle — même logique que dans ProfilAcheteur.
+  const isEntreprise = !!(entreprise && entreprise.proprietaire_id === utilisateur?.id);
 
   // ── données réelles du profil (store profil)
   const profil = useProfilStore((s) => s.profil);
@@ -77,6 +69,19 @@ export default function ModifierProfil() {
     adresse: "",
     commune: "",
     ville: "",
+    pays: "",
+  });
+
+  // ── état du formulaire "Informations de l'entreprise" (compte Antrepriz)
+  const [entrepriseForm, setEntrepriseForm] = useState({
+    nom_Entreprise: "",
+    num_Enregistrement: "",
+    secteur: "",
+    description: "",
+    email: "",
+    telephone: "",
+    adresse: "",
+    commune: "",
     pays: "",
   });
 
@@ -117,8 +122,29 @@ export default function ModifierProfil() {
     }));
   }, [utilisateur, profil]);
 
+  // dès que l'entreprise est chargée/mise à jour, on synchronise son formulaire
+  useEffect(() => {
+    if (!entreprise) return;
+    setEntrepriseForm((prev) => ({
+      ...prev,
+      nom_Entreprise: entreprise.nom_Entreprise ?? prev.nom_Entreprise,
+      num_Enregistrement: entreprise.num_Enregistrement ?? prev.num_Enregistrement,
+      secteur: entreprise.secteur ?? prev.secteur,
+      description: entreprise.description ?? prev.description,
+      email: entreprise.email ?? prev.email,
+      telephone: entreprise.telephone ?? prev.telephone,
+      adresse: entreprise.adresse ?? prev.adresse,
+      commune: entreprise.commune ?? prev.commune,
+      pays: entreprise.pays ?? prev.pays,
+    }));
+  }, [entreprise]);
+
   const handleChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
+  };
+
+  const handleEntrepriseChange = (field) => (event) => {
+    setEntrepriseForm((prev) => ({ ...prev, [field]: event.target.value }));
   };
 
   const handlePasswordChange = (field) => (event) => {
@@ -138,12 +164,25 @@ export default function ModifierProfil() {
     reader.readAsDataURL(file);
   };
 
-  // ── supprime l'aperçu local non sauvegardé, et si une photo est déjà
-  // enregistrée côté serveur, la supprime aussi via l'API
+  // ── supprime l'aperçu local non sauvegardé, et si une photo/logo est déjà
+  // enregistré(e) côté serveur, la supprime aussi via l'API
   const handleRemovePhoto = async () => {
     setPhotoPreview(null);
     setPhotoData(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    if (isEntreprise) {
+      if (entreprise?.logo) {
+        setMessage(null);
+        try {
+          await supprimerLogoEntreprise(entreprise.id);
+          setMessage({ type: "success", text: t("profile.removeLogoSuccess") });
+        } catch (error) {
+          setMessage({ type: "error", text: error.message });
+        }
+      }
+      return;
+    }
 
     if (profil?.photo_profil) {
       setMessage(null);
@@ -161,20 +200,36 @@ export default function ModifierProfil() {
     setSaving(true);
     setMessage(null);
     try {
-      await modifierUtilisateur({
-        nom: form.nom,
-        prenom: form.prenom,
-        email: form.email,
-        telephone: form.telephone,
-      });
+      if (isEntreprise) {
+        await modifierEntreprise({
+          id: entreprise.id,
+          nom_Entreprise: entrepriseForm.nom_Entreprise,
+          num_Enregistrement: entrepriseForm.num_Enregistrement,
+          secteur: entrepriseForm.secteur,
+          description: entrepriseForm.description,
+          email: entrepriseForm.email,
+          telephone: entrepriseForm.telephone,
+          adresse: entrepriseForm.adresse,
+          commune: entrepriseForm.commune,
+          pays: entrepriseForm.pays,
+          ...(photoData ? { logo: photoData } : {}),
+        });
+      } else {
+        await modifierUtilisateur({
+          nom: form.nom,
+          prenom: form.prenom,
+          email: form.email,
+          telephone: form.telephone,
+        });
 
-      await modifierProfil({
-        adresse: form.adresse,
-        commune: form.commune,
-        ville: form.ville,
-        pays: form.pays,
-        ...(photoData ? { photo_profil: photoData } : {}),
-      });
+        await modifierProfil({
+          adresse: form.adresse,
+          commune: form.commune,
+          ville: form.ville,
+          pays: form.pays,
+          ...(photoData ? { photo_profil: photoData } : {}),
+        });
+      }
 
       setMessage({ type: "success", text: t("profile.saveSuccess") });
       setPhotoData(null);
@@ -206,8 +261,8 @@ export default function ModifierProfil() {
     }
   };
 
-  // photo affichée : aperçu local en priorité, sinon la photo déjà enregistrée
-  const photoAffichee = photoPreview || profil?.photo_profil || null;
+  // photo/logo affiché(e) : aperçu local en priorité, sinon celui déjà enregistré
+  const photoAffichee = photoPreview || (isEntreprise ? entreprise?.logo : profil?.photo_profil) || null;
 
   return (
     <div className="edit-page">
@@ -262,28 +317,32 @@ export default function ModifierProfil() {
           <div className="edit-grid">
 
             {/* -------------------------------------Tab information personel-------------- */}
-            {tab == "initialProfile" ? (
+            {tab === "initialProfile" ? (
               <>
 
                 {/* ----- Photo de profil ----- */}
                 <div className="edit-card edit-card--photo">
-                  <h3 className="edit-card__title edit-card__title--center">{t("profile.photoTitle")}</h3>
+                  <h3 className="edit-card__title edit-card__title--center">
+                    {isEntreprise ? t("profile.logoTitle") : t("profile.photoTitle")}
+                  </h3>
 
                   <div className="edit-photo-wrapper">
                     <div className="edit-photo">
                       {photoAffichee ? (
                         <img
                           src={photoAffichee}
-                          alt={t("profile.photoTitle")}
+                          alt={isEntreprise ? t("profile.logoTitle") : t("profile.photoTitle")}
                           style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
                         />
+                      ) : isEntreprise ? (
+                        <Building2 size={48} />
                       ) : (
                         <User size={48} />
                       )}
                     </div>
                     <button
                       className="edit-photo-edit"
-                      aria-label={t("profile.photoTitle")}
+                      aria-label={isEntreprise ? t("profile.logoTitle") : t("profile.photoTitle")}
                       onClick={() => fileInputRef.current?.click()}
                       type="button" >
                       <Camera size={16} />
@@ -300,108 +359,259 @@ export default function ModifierProfil() {
                   </div>
                   <p className="edit-photo-hint">{t("profile.photoHint")}</p>
                   <button type="button" className="edit-link edit-link--danger" onClick={handleRemovePhoto}>
-                    {t("profile.removePhoto")}
+                    {isEntreprise ? t("profile.removeLogo") : t("profile.removePhoto")}
                   </button>
                 </div>
 
-                {/* ----- Informations personnelles ----- */}
-                <div className="edit-card">
-                  <h3 className="edit-card__title">
-                    <Briefcase size={18} className="edit-card__icon" />
-                    {t("profile.personalInfoTitle")}
-                  </h3>
+                {isEntreprise ? (
+                  <>
+                    {/* ----- Informations de l'entreprise ----- */}
+                    <div className="edit-card">
+                      <h3 className="edit-card__title">
+                        <Building2 size={18} className="edit-card__icon" />
+                        {t("profile.personalInfoTitle")}
+                      </h3>
 
-                  <div className="edit-field-row">
-                    <div className="edit-field">
-                      <label className="edit-label" htmlFor="nom">
-                        {t("profile.lastName")}
-                      </label>
-                      <input
-                        id="nom"
-                        type="text"
-                        className="edit-input"
-                        value={form.nom}
-                        onChange={handleChange("nom")}
-                      />
-                    </div>
+                      <div className="edit-field-row">
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="nomEntreprise">
+                            {t("profile.companyNameLabel")}
+                          </label>
+                          <input
+                            id="nomEntreprise"
+                            type="text"
+                            className="edit-input"
+                            value={entrepriseForm.nom_Entreprise}
+                            onChange={handleEntrepriseChange("nom_Entreprise")}
+                          />
+                        </div>
 
-                    <div className="edit-field">
-                      <label className="edit-label" htmlFor="prenom">
-                        {t("profile.firstName")}
-                      </label>
-                      <input
-                        id="prenom"
-                        type="text"
-                        className="edit-input"
-                        value={form.prenom}
-                        onChange={handleChange("prenom")}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* ----- Contact & Localisation ----- */}
-                <div className="edit-card">
-                  <h3 className="edit-card__title">
-                    <FileText size={18} className="edit-card__icon" />
-                    {t("profile.contactTitle")}
-                  </h3>
-
-                  <div className="edit-field">
-                    <div className="edit-field">
-                      <label className="edit-label" htmlFor="email">
-                        {t("profile.workEmail")}
-                      </label>
-                      <div className="edit-input-with-icon">
-                        <Mail size={16} className="edit-input-icon" />
-                        <input
-                          id="email"
-                          type="email"
-                          className="edit-input"
-                          value={form.email}
-                          onChange={handleChange("email")}
-                        />
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="numEnregistrement">
+                            {t("profile.companyRegNum")}
+                          </label>
+                          <input
+                            id="numEnregistrement"
+                            type="text"
+                            className="edit-input"
+                            value={entrepriseForm.num_Enregistrement}
+                            onChange={handleEntrepriseChange("num_Enregistrement")}
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="edit-field">
-                      <label className="edit-label" htmlFor="phone">
-                        {t("profile.phoneNumber")}
-                      </label>
-                      <div className="edit-input-with-icon">
-                        <Phone size={16} className="edit-input-icon" />
+                      <div className="edit-field">
+                        <label className="edit-label" htmlFor="secteur">
+                          {t("profile.companySector")}
+                        </label>
                         <input
-                          id="phone"
-                          type="tel"
-                          className="edit-input"
-                          value={form.telephone}
-                          onChange={handleChange("telephone")}
-                        />
-                      </div>
-                    </div>
-                    <div className="edit-field">
-                      <label className="edit-label" htmlFor="address">
-                        {t("profile.deliveryAddress")}
-                      </label>
-                      <div className="edit-input-with-icon">
-                        <MapPin size={16} className="edit-input-icon" />
-                        <input
-                          id="address"
+                          id="secteur"
                           type="text"
-                          className="edit-input edit-input--highlight"
-                          value={form.adresse}
-                          onChange={handleChange("adresse")}
+                          className="edit-input"
+                          value={entrepriseForm.secteur}
+                          onChange={handleEntrepriseChange("secteur")}
                         />
                       </div>
 
+                      <div className="edit-field">
+                        <label className="edit-label" htmlFor="description">
+                          {t("profile.companyDescriptionLabel")}
+                        </label>
+                        <textarea
+                          id="description"
+                          className="edit-input"
+                          rows={3}
+                          value={entrepriseForm.description}
+                          onChange={handleEntrepriseChange("description")}
+                        />
+                      </div>
                     </div>
-                    <div className="edit-field">
-                      <MapHaiti />
+
+                    {/* ----- Contact & Localisation ----- */}
+                    <div className="edit-card">
+                      <h3 className="edit-card__title">
+                        <FileText size={18} className="edit-card__icon" />
+                        {t("profile.contactTitle")}
+                      </h3>
+
+                      <div className="edit-field">
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="entrepriseEmail">
+                            {t("profile.workEmail")}
+                          </label>
+                          <div className="edit-input-with-icon">
+                            <Mail size={16} className="edit-input-icon" />
+                            <input
+                              id="entrepriseEmail"
+                              type="email"
+                              className="edit-input"
+                              value={entrepriseForm.email}
+                              onChange={handleEntrepriseChange("email")}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="entreprisePhone">
+                            {t("profile.phoneNumber")}
+                          </label>
+                          <div className="edit-input-with-icon">
+                            <Phone size={16} className="edit-input-icon" />
+                            <input
+                              id="entreprisePhone"
+                              type="tel"
+                              className="edit-input"
+                              value={entrepriseForm.telephone}
+                              onChange={handleEntrepriseChange("telephone")}
+                            />
+                          </div>
+                        </div>
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="entrepriseAddress">
+                            {t("profile.deliveryAddress")}
+                          </label>
+                          <div className="edit-input-with-icon">
+                            <MapPin size={16} className="edit-input-icon" />
+                            <input
+                              id="entrepriseAddress"
+                              type="text"
+                              className="edit-input edit-input--highlight"
+                              value={entrepriseForm.adresse}
+                              onChange={handleEntrepriseChange("adresse")}
+                            />
+                          </div>
+                        </div>
+                        <div className="edit-field-row">
+                          <div className="edit-field">
+                            <label className="edit-label" htmlFor="entrepriseCommune">
+                              {t("profile.companyCommuneLabel")}
+                            </label>
+                            <input
+                              id="entrepriseCommune"
+                              type="text"
+                              className="edit-input"
+                              value={entrepriseForm.commune}
+                              onChange={handleEntrepriseChange("commune")}
+                            />
+                          </div>
+                          <div className="edit-field">
+                            <label className="edit-label" htmlFor="entreprisePays">
+                              {t("profile.companyPaysLabel")}
+                            </label>
+                            <input
+                              id="entreprisePays"
+                              type="text"
+                              className="edit-input"
+                              value={entrepriseForm.pays}
+                              onChange={handleEntrepriseChange("pays")}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    {/* ----- Informations personnelles ----- */}
+                    <div className="edit-card">
+                      <h3 className="edit-card__title">
+                        <Briefcase size={18} className="edit-card__icon" />
+                        {t("profile.personalInfoTitle")}
+                      </h3>
+
+                      <div className="edit-field-row">
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="nom">
+                            {t("profile.lastName")}
+                          </label>
+                          <input
+                            id="nom"
+                            type="text"
+                            className="edit-input"
+                            value={form.nom}
+                            onChange={handleChange("nom")}
+                          />
+                        </div>
+
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="prenom">
+                            {t("profile.firstName")}
+                          </label>
+                          <input
+                            id="prenom"
+                            type="text"
+                            className="edit-input"
+                            value={form.prenom}
+                            onChange={handleChange("prenom")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ----- Contact & Localisation ----- */}
+                    <div className="edit-card">
+                      <h3 className="edit-card__title">
+                        <FileText size={18} className="edit-card__icon" />
+                        {t("profile.contactTitle")}
+                      </h3>
+
+                      <div className="edit-field">
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="email">
+                            {t("profile.workEmail")}
+                          </label>
+                          <div className="edit-input-with-icon">
+                            <Mail size={16} className="edit-input-icon" />
+                            <input
+                              id="email"
+                              type="email"
+                              className="edit-input"
+                              value={form.email}
+                              onChange={handleChange("email")}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="phone">
+                            {t("profile.phoneNumber")}
+                          </label>
+                          <div className="edit-input-with-icon">
+                            <Phone size={16} className="edit-input-icon" />
+                            <input
+                              id="phone"
+                              type="tel"
+                              className="edit-input"
+                              value={form.telephone}
+                              onChange={handleChange("telephone")}
+                            />
+                          </div>
+                        </div>
+                        <div className="edit-field">
+                          <label className="edit-label" htmlFor="address">
+                            {t("profile.deliveryAddress")}
+                          </label>
+                          <div className="edit-input-with-icon">
+                            <MapPin size={16} className="edit-input-icon" />
+                            <input
+                              id="address"
+                              type="text"
+                              className="edit-input edit-input--highlight"
+                              value={form.adresse}
+                              onChange={handleChange("adresse")}
+                            />
+                          </div>
+
+                        </div>
+                        <div className="edit-field">
+                          <MapHaiti />
+                        </div>
+                      </div>
 
 
-                </div>
+                    </div>
+                  </>
+                )}
 
               </>
 

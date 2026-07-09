@@ -23,7 +23,7 @@ export default function NotFound() {
             <button className="nf-btn-primary" onClick={() => navigate("/")}>
               Retounen nan paj akèy
             </button>
-            <button className="nf-btn-secondary" onClick={() => navigate(-1)}>
+            <button className="nf-btn-secondary" onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/")}>
               Retounen dèyè
             </button>
           </div>
