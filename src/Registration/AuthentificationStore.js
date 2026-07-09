@@ -2,10 +2,16 @@ import { create } from "zustand";
 import { AuthentificationApi } from "../api/auth";
 import { useProfilStore } from "../Profil/ProfilStore";
 
+// Nettoie les valeurs corrompues du localStorage au démarrage
+["profil", "utilisateur", "entreprise"].forEach((key) => {
+  const val = localStorage.getItem(key);
+  if (val === "undefined" || val === "null") localStorage.removeItem(key);
+});
+
 export const useAuthStore = create((set, get) => ({
     // verifie localStorage pour voir si l'utilisateur est deja connecté
     utilisateur: AuthentificationApi.getUtilisateur(),
-    profil:      JSON.parse(localStorage.getItem("profil")) || null,
+    profil:      (() => { try { return JSON.parse(localStorage.getItem("profil")); } catch { return null; } })() || null,
     // entreprise liée à l'utilisateur (proprietaire_id === utilisateur.id dans la table entreprise)
     entreprise:  JSON.parse(localStorage.getItem("entreprise")) || null,
     isConnected: !!AuthentificationApi.isConnected(),
@@ -131,15 +137,18 @@ export const useAuthStore = create((set, get) => ({
         }
     },
 
-    // création d'une entreprise (utilisée après l'inscription via l'onglet "Antrepriz")
-    // l'entreprise renvoyée (proprietaire_id === utilisateur.id) est mise en cache
-    // pour déterminer si le compte connecté est une entreprise.
+    // inscription autonome d'un compte entreprise (onglet "Antrepriz") — l'entreprise
+    // possède son propre email/mot de passe, comme n'importe quel compte, et est
+    // propriétaire d'elle-même (proprietaire_id === utilisateur.id === entreprise.id).
+    // Connecte directement le compte, comme inscription().
     creerEntreprise: async (data) => {
         set({ loading: true, error: null });
         try {
             const res = await AuthentificationApi.creerEntreprise(data);
+            localStorage.setItem("token", res.token);
+            localStorage.setItem("utilisateur", JSON.stringify(res.utilisateur));
             localStorage.setItem("entreprise", JSON.stringify(res.entreprise));
-            set({ entreprise: res.entreprise });
+            set({ utilisateur: res.utilisateur, entreprise: res.entreprise, isConnected: true });
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -161,6 +170,38 @@ export const useAuthStore = create((set, get) => ({
         } catch (error) {
             // silencieux : pas bloquant pour la connexion si l'appel échoue
             console.error("Erreur chargement entreprise :", error.message);
+        }
+    },
+
+    // mise à jour d'une entreprise appartenant à l'utilisateur connecté
+    modifierEntreprise: async (data) => {
+        set({ loading: true, error: null });
+        try {
+            const res = await AuthentificationApi.modifierEntreprise(data);
+            localStorage.setItem("entreprise", JSON.stringify(res.entreprise));
+            set({ entreprise: res.entreprise });
+            return res;
+        } catch (error) {
+            set({ error: error.message });
+            throw error;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // suppression du logo d'une entreprise déjà enregistré
+    supprimerLogoEntreprise: async (id) => {
+        set({ loading: true, error: null });
+        try {
+            const res = await AuthentificationApi.supprimerLogoEntreprise(id);
+            localStorage.setItem("entreprise", JSON.stringify(res.entreprise));
+            set({ entreprise: res.entreprise });
+            return res;
+        } catch (error) {
+            set({ error: error.message });
+            throw error;
+        } finally {
+            set({ loading: false });
         }
     },
 

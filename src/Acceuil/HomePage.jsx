@@ -42,7 +42,7 @@ export default function HomePage() {
 
   const [search, setSearch] = useState("");
   const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(getVisible);
+  const [visible, setVisible] = useState(getVisible());
 
   useEffect(() => {
     const onResize = () => {

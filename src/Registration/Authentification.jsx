@@ -24,6 +24,8 @@ export default function RekoltHtAuth() {
     bio: "", adresse: "", pays: "Haiti", latitude: "", longitude: "",
     mot_de_passe_confirmation: "", entreprise_nom: "", entreprise_type: "", entreprise_num: "",
     departement: "", commune: "", section_communale: "", entreprise_logo: null,
+    entreprise_email: "", entreprise_mot_de_passe: "", entreprise_mot_de_passe_confirmation: "",
+    entreprise_telephone: "",
   });
   const [logoPreview, setLogoPreview] = useState(null);
 
@@ -41,20 +43,38 @@ export default function RekoltHtAuth() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotError, setForgotError] = useState(null);
   const [forgotLoading, setForgotLoading] = useState(false);
-  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1); // 1 = email, 2 = PIN + nouveau mdp
+  const [forgotPin, setForgotPin] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotNewPasswordConfirm, setForgotNewPasswordConfirm] = useState("");
+  const [showForgotNewMdp, setShowForgotNewMdp] = useState(false);
+  const [showForgotNewMdpConfirm, setShowForgotNewMdpConfirm] = useState(false);
+  const [forgotResetSuccess, setForgotResetSuccess] = useState(false);
 
   // ——— Visibilité des mots de passe ———
   const [showMdp, setShowMdp] = useState(false);
   const [showMdpConfirm, setShowMdpConfirm] = useState(false);
+  const [showEntrepriseMdp, setShowEntrepriseMdp] = useState(false);
+  const [showEntrepriseMdpConfirm, setShowEntrepriseMdpConfirm] = useState(false);
+  const [entrepriseMdpError, setEntrepriseMdpError] = useState(null);
 
   const switchTab = (newTab) => {
     setTab(newTab);
     setFieldErrors({});
     setMdpError(null);
     setShowForgot(false);
-    setForgotSuccess(false);
+    setForgotStep(1);
+    setForgotPin("");
+    setForgotNewPassword("");
+    setForgotNewPasswordConfirm("");
+    setForgotError(null);
+    setForgotEmail("");
+    setForgotResetSuccess(false);
     setShowMdp(false);
     setShowMdpConfirm(false);
+    setShowEntrepriseMdp(false);
+    setShowEntrepriseMdpConfirm(false);
+    setEntrepriseMdpError(null);
     clearError();
   };
 
@@ -80,7 +100,7 @@ export default function RekoltHtAuth() {
     let { name, value } = e.target;
 
     // Téléphone : seulement +, chiffres et espaces
-    if (name === "telephone") {
+    if (name === "telephone" || name === "entreprise_telephone") {
       value = value.replace(/[^\d+\s]/g, "");
     }
     // Non / Siyati : seulement lettres, espaces, tirets
@@ -105,6 +125,16 @@ export default function RekoltHtAuth() {
         setMdpError(t("auth.passwordMismatch"));
       } else {
         setMdpError(null);
+      }
+    }
+
+    if (name === "entreprise_mot_de_passe" || name === "entreprise_mot_de_passe_confirmation") {
+      const mdp1 = name === "entreprise_mot_de_passe" ? value : newForm.entreprise_mot_de_passe;
+      const mdp2 = name === "entreprise_mot_de_passe_confirmation" ? value : newForm.entreprise_mot_de_passe_confirmation;
+      if (mdp2 && mdp1 !== mdp2) {
+        setEntrepriseMdpError(t("auth.passwordMismatch"));
+      } else {
+        setEntrepriseMdpError(null);
       }
     }
   };
@@ -140,15 +170,30 @@ export default function RekoltHtAuth() {
       if (!form.email.trim()) errors.email = t("auth.messageEmailRequired");
       else if (!isValidEmail(form.email)) errors.email = t("auth.messageInvalidMail");
       if (!form.mot_de_passe) errors.mot_de_passe = t("auth.messagePasswordRequired");
-    } else {
-      if (tab === "entreprise") {
-        if (!form.entreprise_nom.trim()) errors.entreprise_nom = t("auth.messageNameEntrepriseRequired");
-        if (!form.entreprise_type) errors.entreprise_type = t("auth.messageTypeEntrepriseRequired");
-        if (!form.entreprise_num.trim()) errors.entreprise_num = t("auth.messageNumEntrepriseRequired");
-        if (!form.departement) errors.departement = t("auth.messageDepartementRequired");
-        if (!form.commune) errors.commune = t("auth.messageCommuneRequired");
-        if (!form.section_communale && sectionsDisponibles.length > 0) errors.section_communale = t("auth.messageSectionRequired");
+    } else if (tab === "entreprise") {
+      if (!form.entreprise_nom.trim()) errors.entreprise_nom = t("auth.messageNameEntrepriseRequired");
+      if (!form.entreprise_type) errors.entreprise_type = t("auth.messageTypeEntrepriseRequired");
+      if (!form.entreprise_num.trim()) errors.entreprise_num = t("auth.messageNumEntrepriseRequired");
+      if (!form.departement) errors.departement = t("auth.messageDepartementRequired");
+      if (!form.commune) errors.commune = t("auth.messageCommuneRequired");
+      if (!form.section_communale && sectionsDisponibles.length > 0) errors.section_communale = t("auth.messageSectionRequired");
+
+      if (!form.entreprise_email.trim()) errors.entreprise_email = t("auth.messageEmailRequired");
+      else if (!isValidEmail(form.entreprise_email)) errors.entreprise_email = t("auth.messageInvalidMail");
+      if (!form.entreprise_telephone.trim()) errors.entreprise_telephone = t("auth.messageTelRequired");
+      else if (!isValidTelephone(form.entreprise_telephone)) errors.entreprise_telephone = t("auth.messageTelPattern");
+      if (!form.entreprise_mot_de_passe) errors.entreprise_mot_de_passe = t("auth.messagePasswordRequired");
+      if (!form.entreprise_mot_de_passe_confirmation) errors.entreprise_mot_de_passe_confirmation = t("auth.messagePasswordComfirmRequired");
+      if (form.entreprise_mot_de_passe && form.entreprise_mot_de_passe_confirmation
+        && form.entreprise_mot_de_passe !== form.entreprise_mot_de_passe_confirmation) {
+        errors.entreprise_mot_de_passe_confirmation = t("auth.passwordMismatch");
       }
+      if (!recaptchaToken) {
+        setRecaptchaError(true);
+        errors.recaptcha = t("auth.recaptchaError");
+      }
+    } else {
+      // tab === "register"
       if (!form.nom.trim()) errors.nom = t("auth.messageNameRequired");
       else if (!isValidName(form.nom)) errors.nom = t("auth.messageNamePattern");
       if (!form.prenom.trim()) errors.prenom = t("auth.messageFirstNameRequired");
@@ -203,23 +248,46 @@ export default function RekoltHtAuth() {
           setSuccess(t("auth.succesConnection"));
           setTimeout(() => navigate("/"), 500);
         }
-      } else {
-        // Vérifie avant de créer le compte qu'aucune entreprise avec ce nom/numéro n'existe déjà
-        if (tab === "entreprise") {
-          const verif = await verifierEntreprise(form.entreprise_nom, form.entreprise_num);
-          if (verif?.existe) {
-            setFieldErrors((prev) => ({ ...prev, entreprise_nom: verif.message, entreprise_num: verif.message }));
-            return;
-          }
+      } else if (tab === "entreprise") {
+        // Inscription autonome : aucun compte personnel préalable — l'entreprise
+        // se crée directement avec ses propres email/mot de passe de connexion.
+        const verif = await verifierEntreprise(form.entreprise_nom, form.entreprise_num);
+        if (verif?.existe) {
+          setFieldErrors((prev) => ({ ...prev, entreprise_nom: verif.message, entreprise_num: verif.message }));
+          return;
         }
 
+        const res = await creerEntreprise({
+          nom_Entreprise: form.entreprise_nom,
+          num_Enregistrement: form.entreprise_num,
+          secteur: secteurParType[form.entreprise_type] || "autre",
+          email: form.entreprise_email,
+          mot_de_passe: form.entreprise_mot_de_passe,
+          telephone: formatTelephone(form.entreprise_telephone),
+          adresse: form.adresse,
+          departement: form.departement,
+          commune: form.commune,
+          section_communale: form.section_communale,
+          pays: form.pays,
+          latitude: form.latitude,
+          longitude: form.longitude,
+          ...(form.entreprise_logo ? { logo: form.entreprise_logo } : {}),
+        });
+        if (res && res.token) {
+          setSuccess(t("auth.messageCreateCompteSuccess"));
+          recaptchaRef.current?.reset();
+          setRecaptchaToken(null);
+          setTimeout(() => navigate("/"), 1000);
+        }
+      } else {
+        // tab === "register" : compte individuel
         const payload = {
           nom: form.nom,
           prenom: form.prenom,
           email: form.email,
           mot_de_passe: form.mot_de_passe,
           telephone: formatTelephone(form.telephone),
-          role: tab === "entreprise" ? "acheteur" : form.role,
+          role: form.role,
           bio: form.bio,
           adresse: form.adresse,
           ville: form.ville,
@@ -230,23 +298,6 @@ export default function RekoltHtAuth() {
         };
         const res = await inscription(payload);
         if (res) {
-          if (tab === "entreprise") {
-            await creerEntreprise({
-              nom_Entreprise: form.entreprise_nom,
-              num_Enregistrement: form.entreprise_num,
-              secteur: secteurParType[form.entreprise_type] || "autre",
-              email: form.email,
-              telephone: formatTelephone(form.telephone),
-              adresse: form.adresse,
-              departement: form.departement,
-              commune: form.commune,
-              section_communale: form.section_communale,
-              pays: form.pays,
-              latitude: form.latitude,
-              longitude: form.longitude,
-              ...(form.entreprise_logo ? { logo: form.entreprise_logo } : {}),
-            });
-          }
           setSuccess(t("auth.messageCreateCompteSuccess"));
           recaptchaRef.current?.reset();
           setRecaptchaToken(null);
@@ -258,6 +309,7 @@ export default function RekoltHtAuth() {
     }
   };
 
+  // Étape 1 — envoyer le code PIN par email
   const handleForgotPassword = async () => {
     setForgotError(null);
     if (!forgotEmail.trim() || !isValidEmail(forgotEmail)) {
@@ -266,10 +318,57 @@ export default function RekoltHtAuth() {
     }
     try {
       setForgotLoading(true);
-      await api.post("/auth/mot-de-passe-oublie", { email: forgotEmail });
-      setForgotSuccess(true);
+      await api.post("/Registration/reinitialisation/demander/", { email: forgotEmail });
+      setForgotStep(2);
     } catch (err) {
-      setForgotError(err.response?.data?.message || t("auth.messageCriticalErrorLoading"));
+      setForgotError(err.message || t("auth.messageCriticalErrorLoading"));
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  // Étape 2 — vérifier le code PIN
+  const handleVerifierCode = async () => {
+    setForgotError(null);
+    if (!forgotPin || forgotPin.length !== 4) {
+      setForgotError("Le code PIN à 4 chiffres est requis");
+      return;
+    }
+    try {
+      setForgotLoading(true);
+      await api.post("/Registration/reinitialisation/verifier-code/", {
+        email: forgotEmail,
+        code: forgotPin,
+      });
+      setForgotStep(3);
+    } catch (err) {
+      setForgotError(err.message || t("auth.messageCriticalErrorLoading"));
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  // Étape 3 — réinitialiser le mot de passe
+  const handleConfirmReset = async () => {
+    setForgotError(null);
+    if (!forgotNewPassword) {
+      setForgotError(t("auth.messagePasswordRequired"));
+      return;
+    }
+    if (forgotNewPassword !== forgotNewPasswordConfirm) {
+      setForgotError(t("auth.passwordMismatch"));
+      return;
+    }
+    try {
+      setForgotLoading(true);
+      await api.post("/Registration/reinitialisation/valider/", {
+        email: forgotEmail,
+        code: forgotPin,
+        nouveau_mot_de_passe: forgotNewPassword,
+      });
+      setForgotResetSuccess(true);
+    } catch (err) {
+      setForgotError(err.message || t("auth.messageCriticalErrorLoading"));
     } finally {
       setForgotLoading(false);
     }
@@ -389,7 +488,7 @@ export default function RekoltHtAuth() {
                 </div>
                 {fieldErrors.mot_de_passe && <p className="rk-error">X {fieldErrors.mot_de_passe}</p>}
                 <div className="rk-label-row">
-                  
+
                   <button type="button" className="rk-forgot-link" onClick={() => setShowForgot(true)}>
                     {t("auth.forgotPassword")}.
                   </button>
@@ -401,10 +500,78 @@ export default function RekoltHtAuth() {
           {/* ——— MOT DE PASSE OUBLIÉ ——— */}
           {tab === "login" && showForgot && (
             <div className="rk-forgot-box">
-              {forgotSuccess ? (
+              {forgotResetSuccess ? (
                 <div className="rk-success">
-                  ✓ {t("auth.mailcheckSuccess")}
+                  ✓ Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.
                 </div>
+              ) : forgotStep === 3 ? (
+                /* ── Étape 3 : nouveau mot de passe ── */
+                <>
+                  <p className="rk-forgot-desc">
+                    Code vérifié. Entrez votre nouveau mot de passe.
+                  </p>
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.password")}<span className="red">*</span></label>
+                    <div className="rk-pw-wrap">
+                      <input
+                        className="rk-input" type={showForgotNewMdp ? "text" : "password"}
+                        placeholder="••••••••" value={forgotNewPassword}
+                        onChange={(e) => { setForgotNewPassword(e.target.value); setForgotError(null); }}
+                        autoComplete="new-password"
+                      />
+                      <button type="button" className="rk-pw-toggle" onClick={() => setShowForgotNewMdp(p => !p)} tabIndex={-1}>
+                        {showForgotNewMdp ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.confirmPassword")}<span className="red">*</span></label>
+                    <div className="rk-pw-wrap">
+                      <input
+                        className="rk-input" type={showForgotNewMdpConfirm ? "text" : "password"}
+                        placeholder="••••••••" value={forgotNewPasswordConfirm}
+                        onChange={(e) => { setForgotNewPasswordConfirm(e.target.value); setForgotError(null); }}
+                        autoComplete="new-password"
+                        style={{
+                          borderColor: forgotNewPasswordConfirm && forgotNewPassword !== forgotNewPasswordConfirm
+                            ? "#e24b4a" : forgotNewPasswordConfirm && forgotNewPassword === forgotNewPasswordConfirm
+                              ? "#1D9E75" : "",
+                        }}
+                      />
+                      <button type="button" className="rk-pw-toggle" onClick={() => setShowForgotNewMdpConfirm(p => !p)} tabIndex={-1}>
+                        {showForgotNewMdpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {forgotNewPasswordConfirm && forgotNewPassword === forgotNewPasswordConfirm && (
+                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}>✓ {t("auth.passwordMatch")}</p>
+                    )}
+                  </div>
+                  {forgotError && <p className="rk-error">{forgotError}</p>}
+                  <button className="rk-btn" onClick={handleConfirmReset} disabled={forgotLoading}>
+                    {forgotLoading ? t("auth.loading") + "..." : "Réinitialiser le mot de passe"}
+                  </button>
+                </>
+              ) : forgotStep === 2 ? (
+                /* ── Étape 2 : saisie et vérification du code PIN ── */
+                <>
+                  <p className="rk-forgot-desc">
+                    Code envoyé à <strong>{forgotEmail}</strong>. Vérifiez votre boîte mail.
+                  </p>
+                  <div className="rk-field">
+                    <label className="rk-label">Code PIN (4 chiffres)<span className="red">*</span></label>
+                    <input
+                      className="rk-input" type="text" placeholder="_ _ _ _"
+                      value={forgotPin}
+                      onChange={(e) => { setForgotPin(e.target.value.replace(/\D/g, "").slice(0, 4)); setForgotError(null); }}
+                      inputMode="numeric" maxLength={4} autoComplete="one-time-code"
+                      style={{ letterSpacing: "0.5em", textAlign: "center", fontSize: "1.2rem" }}
+                    />
+                  </div>
+                  {forgotError && <p className="rk-error">{forgotError}</p>}
+                  <button className="rk-btn" onClick={handleVerifierCode} disabled={forgotLoading}>
+                    {forgotLoading ? t("auth.loading") + "..." : "Vérifier le code"}
+                  </button>
+                </>
               ) : (
                 <>
                   <p className="rk-forgot-desc">
@@ -417,15 +584,15 @@ export default function RekoltHtAuth() {
                       value={forgotEmail} onChange={(e) => { setForgotEmail(e.target.value); setForgotError(null); }}
                       inputMode="email" autoComplete="email"
                     />
-                    {forgotError && <p className="rk-error"> {forgotError}</p>}
+                    {forgotError && <p className="rk-error">{forgotError}</p>}
                   </div>
                   <button className="rk-btn" onClick={handleForgotPassword} disabled={forgotLoading}>
-                    {forgotLoading ? t("auth.loading")+"..." : t("auth.resetmail")}
+                    {forgotLoading ? t("auth.loading") + "..." : t("auth.resetmail")}
                   </button>
                 </>
               )}
-              <button type="button" className="rk-back-link" onClick={() => { setShowForgot(false); setForgotSuccess(false); setForgotError(null); setForgotEmail(""); }}>
-              <ArrowLeft /> 
+              <button type="button" className="rk-back-link" onClick={() => { setShowForgot(false); setForgotStep(1); setForgotPin(""); setForgotNewPassword(""); setForgotNewPasswordConfirm(""); setForgotError(null); setForgotEmail(""); setForgotResetSuccess(false); }}>
+                <ArrowLeft />
               </button>
             </div>
           )}
@@ -433,92 +600,94 @@ export default function RekoltHtAuth() {
           {/* ——— INSCRIPTION (individuel & entreprise) ——— */}
           {isRegisterTab && (
             <>
-              {tab === "entreprise" && (
-                <p className="rk-section-title">{t("auth.personalInfoSection")}</p>
+              {/* Informations personnelles — uniquement pour un compte individuel */}
+              {tab === "register" && (
+                <>
+                  <div className="rk-row">
+                    <div className="rk-field">
+                      <label className="rk-label">{t("auth.lastName")}<span className="red">*</span></label>
+                      <input
+                        className="rk-input" name="nom" placeholder={t("auth.lastName")}
+                        value={form.nom} onChange={handleChange} required
+                        inputMode="text" autoComplete="family-name"
+                        title="Se sèlman lèt ak tirè, pa gen chif"
+                      />
+                      {fieldErrors.nom && <p className="rk-error">X {fieldErrors.nom}</p>}
+                    </div>
+                    <div className="rk-field">
+                      <label className="rk-label">{t("auth.firstName")}<span className="red">*</span></label>
+                      <input
+                        className="rk-input" name="prenom" placeholder={t("auth.firstName")}
+                        value={form.prenom} onChange={handleChange} required
+                        inputMode="text" autoComplete="given-name"
+                        title="Se sèlman lèt ak tirè, pa gen chif"
+                      />
+                      {fieldErrors.prenom && <p className="rk-error">X {fieldErrors.prenom}</p>}
+                    </div>
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.emailRequired")}<span className="red">*</span></label>
+                    <input
+                      className="rk-input" name="email" type="email"
+                      placeholder="ou@exemple.com"
+                      onChange={handleChange} required inputMode="email" autoComplete="email"
+                    />
+                    {fieldErrors.email && <p className="rk-error">X {fieldErrors.email}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.phone")}<span className="red">*</span></label>
+                    <input
+                      className="rk-input" name="telephone" type="tel"
+                      placeholder={"Ex: 3000 1234 " + t("auth.or") + " 509 3000 1234"}
+                      value={form.telephone} onChange={handleChange}
+                      required inputMode="tel" maxLength={16} autoComplete="tel"
+                    />
+                    {fieldErrors.telephone && <p className="rk-error">✗ {fieldErrors.telephone}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.password")}<span className="red">*</span></label>
+                    <div className="rk-pw-wrap">
+                      <input
+                        className="rk-input" name="mot_de_passe" type={showMdp ? "text" : "password"}
+                        placeholder="••••••••" onChange={handleChange}
+                        required autoComplete="new-password" minLength={8}
+                      />
+                      <button type="button" className="rk-pw-toggle" onClick={() => setShowMdp(p => !p)} tabIndex={-1}>
+                        {showMdp ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {fieldErrors.mot_de_passe && <p className="rk-error">X {fieldErrors.mot_de_passe}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.confirmPassword")}<span className="red">*</span></label>
+                    <div className="rk-pw-wrap">
+                      <input
+                        className="rk-input" name="mot_de_passe_confirmation" type={showMdpConfirm ? "text" : "password"}
+                        placeholder="••••••••" onChange={handleChange} required
+                        autoComplete="new-password" style={{
+                          borderColor: mdpError ? "#e24b4a"
+                            : form.mot_de_passe_confirmation && !mdpError ? "#1D9E75" : "",
+                        }}
+                      />
+                      <button type="button" className="rk-pw-toggle" onClick={() => setShowMdpConfirm(p => !p)} tabIndex={-1}>
+                        {showMdpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {fieldErrors.mot_de_passe_confirmation && <p className="rk-error">X {fieldErrors.mot_de_passe_confirmation}</p>}
+                    {mdpError && !fieldErrors.mot_de_passe_confirmation && <p className="rk-error">✗ {mdpError}</p>}
+                    {form.mot_de_passe_confirmation && !mdpError && (
+                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}>✓ {t("auth.passwordMatch")}</p>
+                    )}
+                  </div>
+                </>
               )}
 
-              <div className="rk-row">
-                <div className="rk-field">
-                  <label className="rk-label">{t("auth.firstName")}<span className="red">*</span></label>
-                  <input
-                    className="rk-input" name="nom" placeholder={t("auth.firstName")}
-                    value={form.nom} onChange={handleChange} required
-                    inputMode="text" autoComplete="family-name"
-                    title="Se sèlman lèt ak tirè, pa gen chif"
-                  />
-                  {fieldErrors.nom && <p className="rk-error">X {fieldErrors.nom}</p>}
-                </div>
-                <div className="rk-field">
-                  <label className="rk-label">{t("auth.lastName")}<span className="red">*</span></label>
-                  <input
-                    className="rk-input" name="prenom" placeholder={t("auth.lastName")}
-                    value={form.prenom} onChange={handleChange} required
-                    inputMode="text" autoComplete="given-name"
-                    title="Se sèlman lèt ak tirè, pa gen chif"
-                  />
-                  {fieldErrors.prenom && <p className="rk-error">X {fieldErrors.prenom}</p>}
-                </div>
-              </div>
-
-              <div className="rk-field">
-                <label className="rk-label">{t("auth.emailRequired")}<span className="red">*</span></label>
-                <input
-                  className="rk-input" name="email" type="email"
-                  placeholder="ou@exemple.com"
-                  onChange={handleChange} required inputMode="email" autoComplete="email"
-                />
-                {fieldErrors.email && <p className="rk-error">X {fieldErrors.email}</p>}
-              </div>
-
-              <div className="rk-field">
-                <label className="rk-label">{t("auth.phone")}<span className="red">*</span></label>
-                <input
-                  className="rk-input" name="telephone" type="tel"
-                  placeholder={"Ex: 3000 1234 "+t("auth.or")+" 509 3000 1234"}
-                  value={form.telephone} onChange={handleChange}
-                  required inputMode="tel" maxLength={16} autoComplete="tel"
-                />
-                {fieldErrors.telephone && <p className="rk-error">✗ {fieldErrors.telephone}</p>}
-              </div>
-
-              <div className="rk-field">
-                <label className="rk-label">{t("auth.password")}<span className="red">*</span></label>
-                <div className="rk-pw-wrap">
-                  <input
-                    className="rk-input" name="mot_de_passe" type={showMdp ? "text" : "password"}
-                    placeholder="••••••••" onChange={handleChange}
-                    required autoComplete="new-password" minLength={8}
-                  />
-                  <button type="button" className="rk-pw-toggle" onClick={() => setShowMdp(p => !p)} tabIndex={-1}>
-                    {showMdp ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {fieldErrors.mot_de_passe && <p className="rk-error">X {fieldErrors.mot_de_passe}</p>}
-              </div>
-
-              <div className="rk-field">
-                <label className="rk-label">{t("auth.confirmPassword")}<span className="red">*</span></label>
-                <div className="rk-pw-wrap">
-                  <input
-                    className="rk-input" name="mot_de_passe_confirmation" type={showMdpConfirm ? "text" : "password"}
-                    placeholder="••••••••" onChange={handleChange} required
-                    autoComplete="new-password" style={{
-                      borderColor: mdpError ? "#e24b4a"
-                        : form.mot_de_passe_confirmation && !mdpError ? "#1D9E75" : "",
-                    }}
-                  />
-                  <button type="button" className="rk-pw-toggle" onClick={() => setShowMdpConfirm(p => !p)} tabIndex={-1}>
-                    {showMdpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {fieldErrors.mot_de_passe_confirmation && <p className="rk-error">X {fieldErrors.mot_de_passe_confirmation}</p>}
-                {mdpError && !fieldErrors.mot_de_passe_confirmation && <p className="rk-error">✗ {mdpError}</p>}
-                {form.mot_de_passe_confirmation && !mdpError && (
-                  <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}>✓ {t("auth.passwordMatch")}</p>
-                )}
-              </div>
-
-              {/* Champs exclusifs Antrepriz */}
+              {/* Champs exclusifs Antrepriz — aucune information personnelle : l'entreprise
+                  a ses propres email/mot de passe de connexion. */}
               {tab === "entreprise" && (
                 <>
                   <p className="rk-section-title">{t("auth.companyInfoSection")}</p>
@@ -558,6 +727,65 @@ export default function RekoltHtAuth() {
                       required maxLength={100} autoComplete="off"
                     />
                     {fieldErrors.entreprise_num && <p className="rk-error">X {fieldErrors.entreprise_num}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.phone")}<span className="red">*</span></label>
+                    <input
+                      className="rk-input" name="entreprise_telephone" type="tel"
+                      placeholder={"Ex: 3000 1234 " + t("auth.or") + " 509 3000 1234"}
+                      value={form.entreprise_telephone} onChange={handleChange}
+                      required inputMode="tel" maxLength={16} autoComplete="tel"
+                    />
+                    {fieldErrors.entreprise_telephone && <p className="rk-error">✗ {fieldErrors.entreprise_telephone}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.entrepriseEmail")}<span className="red">*</span></label>
+                    <input
+                      className="rk-input" name="entreprise_email" type="email"
+                      placeholder="antrepriz@exemple.com"
+                      value={form.entreprise_email} onChange={handleChange}
+                      required inputMode="email" autoComplete="off"
+                    />
+                    {fieldErrors.entreprise_email && <p className="rk-error">X {fieldErrors.entreprise_email}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.entreprisePassword")}<span className="red">*</span></label>
+                    <div className="rk-pw-wrap">
+                      <input
+                        className="rk-input" name="entreprise_mot_de_passe" type={showEntrepriseMdp ? "text" : "password"}
+                        placeholder="••••••••" value={form.entreprise_mot_de_passe} onChange={handleChange}
+                        required autoComplete="new-password" minLength={8}
+                      />
+                      <button type="button" className="rk-pw-toggle" onClick={() => setShowEntrepriseMdp(p => !p)} tabIndex={-1}>
+                        {showEntrepriseMdp ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {fieldErrors.entreprise_mot_de_passe && <p className="rk-error">X {fieldErrors.entreprise_mot_de_passe}</p>}
+                  </div>
+
+                  <div className="rk-field">
+                    <label className="rk-label">{t("auth.entreprisePasswordConfirm")}<span className="red">*</span></label>
+                    <div className="rk-pw-wrap">
+                      <input
+                        className="rk-input" name="entreprise_mot_de_passe_confirmation" type={showEntrepriseMdpConfirm ? "text" : "password"}
+                        placeholder="••••••••" value={form.entreprise_mot_de_passe_confirmation} onChange={handleChange}
+                        required autoComplete="new-password" style={{
+                          borderColor: entrepriseMdpError ? "#e24b4a"
+                            : form.entreprise_mot_de_passe_confirmation && !entrepriseMdpError ? "#1D9E75" : "",
+                        }}
+                      />
+                      <button type="button" className="rk-pw-toggle" onClick={() => setShowEntrepriseMdpConfirm(p => !p)} tabIndex={-1}>
+                        {showEntrepriseMdpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {fieldErrors.entreprise_mot_de_passe_confirmation && <p className="rk-error">X {fieldErrors.entreprise_mot_de_passe_confirmation}</p>}
+                    {entrepriseMdpError && !fieldErrors.entreprise_mot_de_passe_confirmation && <p className="rk-error">✗ {entrepriseMdpError}</p>}
+                    {form.entreprise_mot_de_passe_confirmation && !entrepriseMdpError && (
+                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}>✓ {t("auth.passwordMatch")}</p>
+                    )}
                   </div>
 
                   <div className="rk-field">
@@ -692,7 +920,7 @@ export default function RekoltHtAuth() {
 
           {!(tab === "login" && showForgot) && (
             <button className="rk-btn" onClick={handleSubmit} disabled={loading}>
-              {loading ? t("auth.loading")+"..."
+              {loading ? t("auth.loading") + "..."
                 : tab === "login" ? t("auth.tabLogin")
                   : t("auth.submitRegister")}
             </button>

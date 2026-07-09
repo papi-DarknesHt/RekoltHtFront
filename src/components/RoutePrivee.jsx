@@ -1,8 +1,8 @@
 import { Navigate } from "react-router-dom";
-import { AuthentificationApi } from "../api/auth.js";
+import { useAuthStore } from "../Registration/AuthentificationStore";
 
 export default function RoutePrivee({ children }) {
-    const isConnecte = AuthentificationApi((s) => s.isConnecte);
+    const isConnecte = useAuthStore((s) => s.isConnected);
 
     // redirige vers /auth si non connecté
     if (!isConnecte) return <Navigate to="/auth" replace />;

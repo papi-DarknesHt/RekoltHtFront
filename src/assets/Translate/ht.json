@@ -108,6 +108,9 @@
     "entrepriseLogo": "Logo Antrepriz",
     "entrepriseLogoChanged": "Logo seleksyone",
     "entrepriseLogoHint": "Fòma kare rekòmande (JPG, PNG) — maks 2 Mo",
+    "entrepriseEmail": "Adrès Imèl Antrepriz",
+    "entreprisePassword": "Modpas Antrepriz",
+    "entreprisePasswordConfirm": "Konfime Modpas Antrepriz la",
     "chooseLogoFile": "Chwazi yon logo",
     "chooseAType": "Chwazi yon tip",
     "agriculture": "Agrikilti",
@@ -208,7 +211,14 @@
     "changePassword": "Chanje modpas",
     "saveSuccess": "Pwofil mete ajou avèk siksè.",
     "passwordSuccess": "Modpas chanje avèk siksè.",
-    "passwordMismatch": "Modpas yo pa menm."
+    "passwordMismatch": "Modpas yo pa menm.",
+    "companyNameLabel": "Non antrepriz la",
+    "companyDescriptionLabel": "Deskripsyon",
+    "companyCommuneLabel": "Komin",
+    "companyPaysLabel": "Peyi",
+    "logoTitle": "Logo Antrepriz",
+    "removeLogo": "Retire logo",
+    "removeLogoSuccess": "Logo retire avèk siksè"
   },
   "seller": {
     "pageTitle": "Vin yon Vandè",

@@ -19,7 +19,6 @@ import {
     Shield,
     ClipboardEdit,
     ChevronDown,
-    Bell
 } from "lucide-react";
 export default function Navbar() {
     const navigate = useNavigate();

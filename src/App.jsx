@@ -16,7 +16,7 @@ import NotFound from "./pages/NotFound.jsx";
 function AppContent() {
   useGlobalSocket();
   useInactivityTimeout();
-
+  
   return (
     <>
       {/* <NavBar /> */}
@@ -24,9 +24,9 @@ function AppContent() {
         <Route path="/" element={<HomePage />} />
         {/* <Route path="/test" element={<TestPage />} /> */}
         <Route path="/auth" element={<RekoltHtAuth />} />
-        <Route path="/profil" element={<ProfilAcheteur />} />
-        <Route path="/update_profil" element={<ModifierProfil/>}/>
-        <Route path="/Devenir_Vendeur" element={<DevenirVendeur/>}/>
+        <Route path="/profil" element={<RoutePrivee><ProfilAcheteur /></RoutePrivee>} />
+        <Route path="/update_profil" element={<RoutePrivee><ModifierProfil/></RoutePrivee>}/>
+        <Route path="/Devenir_Vendeur" element={<RoutePrivee><DevenirVendeur/></RoutePrivee>}/>
         <Route path="*" element={<NotFound />}/>
       </Routes>
     </>
