@@ -34,9 +34,28 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+// pour les réponses binaires (PDF de prévisualisation du contrat) — request()
+// appelle toujours res.json(), inutilisable sur un corps de réponse non-JSON
+async function requestBlob(path, options = {}) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method:  options.method || "POST",
+    headers: { ...(token && { "Authorization": `Token ${token}` }) },
+    credentials: "include",
+    body: options.body,
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const message = data?.error || data?.message || data?.detail || `Erreur ${res.status}`;
+    throw new Error(message);
+  }
+  return res.blob();
+}
+
 export const api = {
   get: (path) => request(path),
   post: (path, body) => request(path, { method: "POST", body: body instanceof FormData ? body : JSON.stringify(body) }),
   put: (path, body) => request(path, { method: "PUT", body: body instanceof FormData ? body : JSON.stringify(body) }),
   delete: (path, body) => request(path, { method: "DELETE", body: body !== undefined ? JSON.stringify(body) : undefined }),
+  postBlob: (path, body) => requestBlob(path, { method: "POST", body }),
 };
