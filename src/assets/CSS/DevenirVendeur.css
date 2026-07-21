@@ -120,6 +120,266 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
+<<<<<<< Updated upstream
+=======
+/* ── STEPPER (progression du wizard) ──────────────────────────────────────── */
+.dv-stepper {
+  margin-bottom: 1.75rem;
+}
+
+.dv-stepper-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.dv-stepper-track {
+  width: 100%;
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dv-stepper-fill {
+  height: 100%;
+  background: var(--couleurSecondaire, #1a3d1a);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+/* ── NAVIGATION ENTRE ÉTAPES ──────────────────────────────────────────────── */
+.dv-step-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 0.5rem;
+}
+
+.dv-step-nav .rk-btn {
+  margin-top: 0;
+}
+
+.dv-btn-secondary {
+  background: #f5f5f5 !important;
+  color: #444 !important;
+  box-shadow: none !important;
+}
+
+.dv-btn-secondary:hover {
+  background: #ececec !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* ── RÉCAPITULATIF (étape 5) ───────────────────────────────────────────────── */
+.dv-recap-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f4f4f4;
+  font-size: 13px;
+}
+
+.dv-recap-label {
+  color: #999;
+  flex-shrink: 0;
+}
+
+.dv-recap-value {
+  color: #222;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-word;
+}
+
+.dv-recap-selfie {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* ── SELFIE (CaptureSelfie.jsx) ────────────────────────────────────────────── */
+.dv-selfie-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.dv-selfie-camera {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.dv-selfie-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* effet miroir — n'affecte pas la photo capturée */
+}
+
+.dv-selfie-loading {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+}
+
+.dv-selfie-preview {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.dv-selfie-fallback-hint {
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── CARTE GPS (MapSelectionGPS.jsx) ───────────────────────────────────────── */
+.dv-map-wrap {
+  margin-bottom: 0.5rem;
+}
+
+.dv-map-loading {
+  background: #2d6b2d;
+  border-radius: 14px;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.dv-map-address-fallback {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.dv-map-address-fallback .rk-input {
+  flex: 1;
+}
+
+.dv-map-address-fallback .rk-btn {
+  width: auto;
+  margin-top: 0;
+  white-space: nowrap;
+  padding: 11px 16px;
+}
+
+.dv-map-hint {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ── ÉCRAN DE STATUT (étape 6) ──────────────────────────────────────────────── */
+.dv-status-card {
+  text-align: center;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.dv-status-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 1.25rem;
+}
+
+.dv-status-pending {
+  background: #fff8e6;
+  color: #b8860b;
+}
+
+.dv-status-success {
+  background: #f0faf0;
+  color: #1a5c1a;
+}
+
+.dv-status-failed {
+  background: #fef0f0;
+  color: #c0392b;
+}
+
+.dv-status-title {
+  font-family: var(--textTitre), serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--couleurSecondaire, #1a3d1a);
+  margin-bottom: 0.6rem;
+}
+
+.dv-status-text {
+  font-size: 13px;
+  color: #888;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.dv-status-link {
+  display: inline-block;
+  width: auto;
+  text-decoration: none;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.dv-status-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.dv-status-actions .rk-btn {
+  width: auto;
+  flex: 1 1 0;
+  margin-top: 0;
+  padding-left: 24px;
+  padding-right: 24px;
+  white-space: nowrap;
+}
+
+.dv-status-actions .dv-btn-outline {
+  background: transparent;
+  color: var(--couleurSecondaire, #1a3d1a);
+  border: 1px solid var(--couleurSecondaire, #1a3d1a);
+  box-shadow: none;
+}
+
+.dv-status-actions .dv-btn-outline:hover {
+  background: var(--couleurSecondaire, #1a3d1a);
+  color: #fff;
+  box-shadow: none;
+}
+
+>>>>>>> Stashed changes
 @media (max-width: 600px) {
   .dv-root {
     padding: 1.5rem 1rem 3rem;

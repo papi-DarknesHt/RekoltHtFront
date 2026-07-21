@@ -1,0 +1,78 @@
+/* ── CHATBOT VENDEUR (bulle de conseils, ChatbotVendeur.jsx) ────────────────── */
+.cv-wrap {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.cv-toggle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--couleurSecondaire, #1a3d1a);
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(26, 61, 26, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.cv-toggle:hover {
+  transform: scale(1.06);
+}
+
+.cv-panel {
+  width: 260px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.cv-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--couleurSecondaire, #1a3d1a);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+}
+
+.cv-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.cv-panel-text {
+  padding: 14px;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .cv-wrap {
+    bottom: 16px;
+    right: 16px;
+  }
+  .cv-panel {
+    width: min(260px, calc(100vw - 32px));
+  }
+}
