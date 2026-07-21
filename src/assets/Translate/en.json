@@ -252,9 +252,6 @@
     "validationCommune": "Commune required",
     "validationSection": "Communal section required",
     "validationCategory": "Product category required",
-<<<<<<< Updated upstream
-    "validationDocument": "Document required"
-=======
     "validationDocument": "Document required",
 
     "stepIndicator": "Step {current} of {total}",
@@ -347,13 +344,6 @@
     "recapNumeroPiece": "Number entered",
     "previewContract": "Preview contract",
     "previewLoading": "Generating preview..."
->>>>>>> Stashed changes
-  },
-  "product": {
-    "addPageTitle": "Add a product",
-    "comingSoonTitle": "Coming soon",
-    "comingSoonText": "Product creation is coming very soon. Check back shortly to publish your first products on Rekolt Haiti.",
-    "backToHome": "Back to home"
   },
   "monprofil": {
     "loading": "Loading profile or user not connected.",

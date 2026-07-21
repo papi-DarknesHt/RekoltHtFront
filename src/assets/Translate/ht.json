@@ -252,9 +252,6 @@
     "validationCommune": "Komin obligatwa",
     "validationSection": "Seksyon kominal obligatwa",
     "validationCategory": "Kategori pwodui obligatwa",
-<<<<<<< Updated upstream
-    "validationDocument": "Dokiman obligatwa"
-=======
     "validationDocument": "Dokiman obligatwa",
 
     "stepIndicator": "Etap {current} sou {total}",
@@ -347,13 +344,6 @@
     "recapNumeroPiece": "Nimewo ou antre",
     "previewContract": "Gade apèsi kontra a",
     "previewLoading": "Ap prepare apèsi a..."
->>>>>>> Stashed changes
-  },
-  "product": {
-    "addPageTitle": "Ajoute yon pwodwi",
-    "comingSoonTitle": "Byento disponib",
-    "comingSoonText": "Kreye pwodwi ap disponib byento. Retounen nan yon ti tan pou pibliye premye pwodwi ou yo sou Rekolt Ayiti.",
-    "backToHome": "Retounen nan paj akèy"
   },
   "monprofil": {
     "loading": "pwofil ou ap chaje oubyen kont ou an poko konekte.",

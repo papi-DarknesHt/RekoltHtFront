@@ -252,9 +252,6 @@
     "validationCommune": "Commune obligatoire",
     "validationSection": "Section communale obligatoire",
     "validationCategory": "Catégorie de produit obligatoire",
-<<<<<<< Updated upstream
-    "validationDocument": "Document obligatoire"
-=======
     "validationDocument": "Document obligatoire",
 
     "stepIndicator": "Étape {current} sur {total}",
@@ -347,13 +344,6 @@
     "recapNumeroPiece": "Numéro saisi",
     "previewContract": "Prévisualiser le contrat",
     "previewLoading": "Génération de l'aperçu..."
->>>>>>> Stashed changes
-  },
-  "product": {
-    "addPageTitle": "Ajouter un produit",
-    "comingSoonTitle": "Bientôt disponible",
-    "comingSoonText": "La création de produits arrive très prochainement. Revenez bientôt pour publier vos premiers produits sur Rekolt Haïti.",
-    "backToHome": "Retour à l'accueil"
   },
   "monprofil": {
     "loading": "Mon profil",
