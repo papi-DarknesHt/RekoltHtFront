@@ -50,6 +50,16 @@ export const AuthentificationApi = {
     `/Registration/entreprise/verifier/?nom_Entreprise=${encodeURIComponent(nom_Entreprise)}&num_Enregistrement=${encodeURIComponent(num_Enregistrement)}`
   ),
 
+  // soumission du dossier de vérification KYC — formData en multipart (fichiers
+  // réels via request.FILES côté backend, pas de base64), voir DevenirVendeur.jsx
+  soumettreVerification: (formData) => api.post("/Registration/verification/soumettre/", formData),
+
+  // statut courant (+ motif d'échec) de la demande de vérification de l'utilisateur connecté
+  obtenirStatutVerification: () => api.get("/Registration/verification/statut/"),
+
+  // aperçu PDF du contrat AVANT envoi définitif — rien n'est persisté côté serveur
+  previsualiserContrat: (formData) => api.postBlob("/Registration/verification/previsualiser/", formData),
+
   demanderReinitialisation:      (data) => api.post("/Registration/reinitialisation/demander/",      data),
   verifierCodeReinitialisation:  (data) => api.post("/Registration/reinitialisation/verifier-code/", data),
   reinitialiserMotDePasse:       (data) => api.post("/Registration/reinitialisation/valider/",       data),
