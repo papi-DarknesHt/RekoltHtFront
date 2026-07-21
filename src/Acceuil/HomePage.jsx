@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import MapHaiti from "../components/MapHaiti";
 import NavBar from "../components/NavBar.jsx";
 import Footer from "../components/Footer.jsx";
+import ProductCard from "../components/ProductCard.jsx";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 
@@ -117,20 +118,7 @@ export default function HomePage() {
             style={{ gridTemplateColumns: `repeat(${visible}, minmax(0, 1fr))` }}
           >
             {produitsVisibles.map((p) => (
-              <div className="produit-card" key={p.id}>
-                <div className="produit-img">
-                  <span className="produit-emoji">{p.emoji}</span>
-                  <span className="produit-prix-badge">{p.prix}{t("home.priceSuffix")}</span>
-                </div>
-                <div className="produit-info">
-                  <p className="produit-nom">{p.nom}</p>
-                  <p className="produit-lieu">{t("home.locationPrefix")}{p.lieu}</p>
-                  <div className="produit-btns">
-                    <button className="btn-detay">{t("home.details")}</button>
-                    <button className="btn-kontakte">{t("home.contact")}</button>
-                  </div>
-                </div>
-              </div>
+              <ProductCard key={p.id} produit={p} />
             ))}
           </div>
 

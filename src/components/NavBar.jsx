@@ -99,8 +99,8 @@ export default function Navbar() {
                 {/* Liens de navigation — desktop */}
                 <ul className="nav-links">
                     <li><Link to="/">{t("nav.home")}</Link></li>
-                    <li><a href="#">{t("nav.products")}</a></li>
-                    <li><a href="#">{t("nav.help")}</a></li>
+                    <li><a href="/produits">{t("nav.products")}</a></li>
+                    <li><a href="/aide">{t("nav.help")}</a></li>
                 </ul>
 
                 {/* Actions — desktop */}

@@ -18,7 +18,13 @@ export function useGlobalSocket() {
         setConnected(false);
         setTimeout(connect, 3000);  // reconnexion automatique
       };
-      ws.onmessage = (event) => dispatch(JSON.parse(event.data));
+      ws.onmessage = (event) =>{
+        try{
+          dispatch(JSON.parse(event.data));
+        }catch(e){
+          console.error("Invalid WS message", event.data,"error",e);
+        }
+      } 
       ws.onerror   = ()      => ws.close();
     }
     connect();

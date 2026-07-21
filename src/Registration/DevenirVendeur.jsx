@@ -7,6 +7,7 @@ import { useProfilStore } from "../Profil/ProfilStore.js";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import departementsData from "../assets/Departements/haiti_departements.json";
+<<<<<<< Updated upstream
 
 const CATEGORIES = [
     { value: "legim", label: "Legim (Légumes)" },
@@ -20,6 +21,175 @@ const CATEGORIES = [
     { value: "semans", label: "Semans & Pye Bwa" },
     { value: "lot", label: "Lòt" },
 ];
+=======
+import CaptureSelfie from "../components/CaptureSelfie.jsx";
+import MapSelectionGPS from "../components/MapSelectionGPS.jsx";
+import { useChatbotStore } from "../components/chatbotStore.js";
+
+// clé de traduction du libellé pour chaque type_document (DemandeVerification.TYPE_DOCUMENT côté backend)
+const LABEL_TYPE_DOCUMENT = { passeport: "seller.passport", permis: "seller.driverLicense", cin: "seller.nationalId" };
+
+// clé de traduction du libellé du champ numéro, selon le type de pièce choisi
+// (Paspò nimewo/N° Passeport, Numéro de carte/Nimewo kat la, NIF, Numéro de patente)
+const LABEL_NUMERO_PIECE = { passeport: "seller.numeroPasseport", permis: "seller.numeroPermis", cin: "seller.numeroCin" };
+
+const FORM_INITIAL = {
+    type_document: "",
+    numero_piece_saisi: "",
+    document_recto: null,
+    document_verso: null,
+    certificat_patente: null,
+    selfie: null,
+    departement: "",
+    commune: "",
+    section_communale: "",
+    coord: null,   // { lat, lng }
+};
+
+// retrouve le département contenant une commune déjà connue (prefill), pour
+// que le <select> commune (dont les options dépendent du département choisi)
+// ne se retrouve pas avec une valeur sans option correspondante
+function trouverDepartementPourCommune(commune) {
+    if (!commune) return "";
+    return departementsData.find(d => d.communes.some(c => c.commune === commune))?.departement || "";
+}
+
+// ── BROUILLON localStorage (reprise après rechargement) ──────────────────────
+// Limite volontaire : les fichiers (File) ne peuvent pas être sérialisés en
+// localStorage — seuls les champs texte/GPS sont sauvegardés. Au retour, on
+// ne peut donc jamais restaurer une étape au-delà de l'upload des documents
+// (étape 2) : les pièces/le selfie doivent toujours être re-fournis.
+const CLE_BROUILLON = "rekoltht_devenir_vendeur_wizard";
+
+function chargerBrouillon() {
+    try {
+        const brut = localStorage.getItem(CLE_BROUILLON);
+        return brut ? JSON.parse(brut) : null;
+    } catch {
+        return null;
+    }
+}
+
+function sauvegarderBrouillon(etape, form) {
+    try {
+        localStorage.setItem(CLE_BROUILLON, JSON.stringify({
+            etape,
+            form: {
+                type_document: form.type_document,
+                numero_piece_saisi: form.numero_piece_saisi,
+                departement: form.departement,
+                commune: form.commune,
+                section_communale: form.section_communale,
+                coord: form.coord,
+            },
+        }));
+    } catch {
+        // quota dépassé ou navigation privée : non bloquant, on continue sans brouillon
+    }
+}
+
+function effacerBrouillon() {
+    try { localStorage.removeItem(CLE_BROUILLON); } catch { /* non bloquant */ }
+}
+
+// champ fichier réutilisable (recto / verso / certificat de patente) — même
+// balisage que le champ "document" du formulaire d'origine
+function ChampFichier({ id, label, hint, accept, value, onChange, error, placeholder }) {
+    return (
+        <div className="rk-field">
+            <label className="rk-label">
+                {label}<span style={{ color: "#e24b4a" }}>*</span>
+            </label>
+            <div className="dv-file-wrap">
+                <label className={`dv-file-label ${value ? "has-file" : ""}`} htmlFor={id}>
+                    <span className="dv-file-icon">{value ? "✓" : "📎"}</span>
+                    {value ? value.name : placeholder}
+                </label>
+                <input
+                    id={id}
+                    type="file"
+                    className="dv-file-input"
+                    accept={accept}
+                    onChange={(e) => onChange(e.target.files?.[0] || null)}
+                />
+            </div>
+            {hint && <span className="rk-hint">{hint}</span>}
+            {error && <p className="rk-error">X {error}</p>}
+        </div>
+    );
+}
+
+// barre de progression du wizard
+function Stepper({ index, total, label }) {
+    const pct = Math.round(((index + 1) / total) * 100);
+    return (
+        <div className="dv-stepper">
+            <p className="dv-stepper-label">{label}</p>
+            <div className="dv-stepper-track">
+                <div className="dv-stepper-fill" style={{ width: `${pct}%` }} />
+            </div>
+        </div>
+    );
+}
+
+// étape 6 — écran de statut (en_attente / vérifié / échoué)
+function EcranStatut({ verification, onRetry, navigate, t }) {
+    const statut = verification?.statut;
+    return (
+        <div className="rk-card dv-status-card">
+            {statut === "en_attente" && (
+                <>
+                    <div className="dv-status-icon dv-status-pending">⏳</div>
+                    <h2 className="dv-status-title">{t("seller.statusPendingTitle")}</h2>
+                    <p className="dv-status-text">{t("seller.statusPendingText")}</p>
+                </>
+            )}
+            {statut === "en_attente_manuelle" && (
+                <>
+                    <div className="dv-status-icon dv-status-pending">👤</div>
+                    <h2 className="dv-status-title">{t("seller.statusManualTitle")}</h2>
+                    <p className="dv-status-text">{t("seller.statusManualText")}</p>
+                </>
+            )}
+            {statut === "verifie" && (
+                <>
+                    <div className="dv-status-icon dv-status-success">✓</div>
+                    <h2 className="dv-status-title">{t("seller.statusVerifiedTitle")}</h2>
+                    <p className="dv-status-text">{t("seller.statusVerifiedText")}</p>
+                    {verification.contrat_pdf && (
+                        <a
+                            className="rk-btn dv-status-link"
+                            href={verification.contrat_pdf}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {t("seller.viewContract")}
+                        </a>
+                    )}
+                    <div className="dv-status-actions">
+                        <button type="button" className="rk-btn dv-btn-outline" onClick={() => navigate("/")}>
+                            {t("seller.backToHome")}
+                        </button>
+                        <button type="button" className="rk-btn" onClick={() => navigate("/produits/ajouter")}>
+                            {t("seller.addProduct")}
+                        </button>
+                    </div>
+                </>
+            )}
+            {statut === "echoue" && (
+                <>
+                    <div className="dv-status-icon dv-status-failed">✗</div>
+                    <h2 className="dv-status-title">{t("seller.statusFailedTitle")}</h2>
+                    <p className="dv-status-text">{verification.motif_echec}</p>
+                    <button type="button" className="rk-btn" onClick={onRetry}>
+                        {t("seller.retrySubmission")}
+                    </button>
+                </>
+            )}
+        </div>
+    );
+}
+>>>>>>> Stashed changes
 
 export default function DevenirVendeur() {
     const navigate = useNavigate();
@@ -50,6 +220,44 @@ export default function DevenirVendeur() {
         document: null,
     });
 
+<<<<<<< Updated upstream
+=======
+    // alimente la bulle de conseils (ChatbotVendeur, montée globalement dans
+    // App.jsx) avec le contexte du wizard — remis à zéro en quittant la page,
+    // pour que les autres pages retrouvent le conseil générique par défaut
+    const setChatbotContexte = useChatbotStore((s) => s.setContexte);
+    useEffect(() => {
+        if (vue === "wizard") setChatbotContexte(etape, null);
+        else if (vue === "statut") setChatbotContexte(null, verification?.statut);
+        else setChatbotContexte(null, null);
+        return () => setChatbotContexte(null, null);
+    }, [vue, etape, verification?.statut, setChatbotContexte]);
+
+    // au chargement : une demande existe déjà (peu importe son statut) → afficher
+    // directement l'écran de statut plutôt que de faire re-remplir le wizard.
+    // Sinon, un brouillon localStorage peut exister (voir chargerBrouillon) — les
+    // champs texte/GPS sont restaurés ici ; l'étape réelle est calculée plus bas
+    // (validateEtape), une fois isEntreprise connu.
+    useEffect(() => {
+        if (!utilisateur) return;
+        let annule = false;
+        AuthentificationApi.obtenirStatutVerification()
+            .then((res) => { if (!annule) { setVerification(res); setVue("statut"); } })
+            .catch(() => {
+                if (annule) return;
+                const brouillon = chargerBrouillon();
+                if (brouillon) {
+                    setForm(prev => ({ ...prev, ...brouillon.form }));
+                    setDraftEtape(brouillon.etape || 1);
+                }
+                setVue("wizard");
+            });
+        return () => { annule = true; };
+    }, [utilisateur]);
+
+    // pré-remplissage localisation depuis le compte (déjà géré auparavant pour
+    // commune côté individuel — étendu ici à l'entreprise et au point GPS)
+>>>>>>> Stashed changes
     useEffect(() => {
         if (!profil) return;
         setForm(prev => ({
@@ -157,11 +365,17 @@ export default function DevenirVendeur() {
 
                 <div className="rk-card">
 
+<<<<<<< Updated upstream
                     {success && (
                         <div className="rk-success">
                             ✓ {t("seller.successMessage")}
                         </div>
                     )}
+=======
+                {vue === "statut" && (
+                    <EcranStatut verification={verification} onRetry={relancerDemande} navigate={navigate} t={t} />
+                )}
+>>>>>>> Stashed changes
 
                     {/* ——— Identité (pré-rempli, désactivé) ——— */}
                     <p className="dv-section-label">{t("seller.identitySection")}</p>
@@ -367,6 +581,7 @@ export default function DevenirVendeur() {
                         }}>
                             ✗ {serverError}
                         </div>
+<<<<<<< Updated upstream
                     )}
 
                     <button
@@ -377,6 +592,10 @@ export default function DevenirVendeur() {
                         {submitLoading ? t("seller.saving") : t("seller.submit")}
                     </button>
                 </div>
+=======
+                    </div>
+                )}
+>>>>>>> Stashed changes
             </div>
         </div>
     );
