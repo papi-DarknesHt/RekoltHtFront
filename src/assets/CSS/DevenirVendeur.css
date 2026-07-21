@@ -120,8 +120,6 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-<<<<<<< Updated upstream
-=======
 /* ── STEPPER (progression du wizard) ──────────────────────────────────────── */
 .dv-stepper {
   margin-bottom: 1.75rem;
@@ -379,7 +377,6 @@
   box-shadow: none;
 }
 
->>>>>>> Stashed changes
 @media (max-width: 600px) {
   .dv-root {
     padding: 1.5rem 1rem 3rem;
