@@ -1,0 +1,73 @@
+/* =============================================================
+   RekoltHT — Ajouter un produit (vendeur)
+   Réutilise les variables/classes de ProfilAcheteur.css et AdminDashboard.css
+   (importées avant ce fichier) : --rk-*, .profil-card, .admin-input, ...
+   ============================================================= */
+
+.admin-category-checklist {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.admin-category-checklist__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--rk-border);
+  border-radius: var(--rk-radius-sm);
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--rk-text);
+}
+
+.admin-category-checklist__item:has(input:checked) {
+  border-color: var(--rk-terracotta);
+  background: var(--rk-green-light);
+}
+
+.admin-success {
+  color: var(--rk-green);
+  font-weight: 600;
+}
+
+.admin-product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-product-form__row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--rk-text-light);
+  flex: 1 1 220px;
+}
+
+.admin-field-label--full {
+  flex-basis: 100%;
+}
+
+.admin-textarea {
+  min-height: 90px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.admin-product-form__actions {
+  display: flex;
+  gap: 12px;
+}

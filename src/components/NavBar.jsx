@@ -25,6 +25,7 @@ export default function Navbar() {
     const chargerEntreprise = useAuthStore((s) => s.chargerEntreprise);
     const profil      = useProfilStore((s) => s.profil);
     const afficherProfil = useProfilStore((s) => s.afficherProfil);
+    const isAdmin = profil?.role === "admin";
 
     // S'assure que le logo de l'entreprise et la photo de profil sont à jour
     // même si la session était déjà ouverte avant le rechargement de la page
@@ -101,6 +102,9 @@ export default function Navbar() {
                     <li><Link to="/">{t("nav.home")}</Link></li>
                     <li><a href="/produits">{t("nav.products")}</a></li>
                     <li><a href="/aide">{t("nav.help")}</a></li>
+                    {isConnecte && isAdmin && (
+                        <li><Link to="/admin/dashboard">{t("nav.dashboard")}</Link></li>
+                    )}
                 </ul>
 
                 {/* Actions — desktop */}
@@ -198,6 +202,9 @@ export default function Navbar() {
                         <li><Link to="/" onClick={closeMobile}>{t("nav.home")}</Link></li>
                         <li><a href="#" onClick={closeMobile}>{t("nav.products")}</a></li>
                         <li><a href="#" onClick={closeMobile}>{t("nav.help")}</a></li>
+                        {isConnecte && isAdmin && (
+                            <li><Link to="/admin/dashboard" onClick={closeMobile}>{t("nav.dashboard")}</Link></li>
+                        )}
                     </ul>
 
                     <div className="nav-mobile-actions">
