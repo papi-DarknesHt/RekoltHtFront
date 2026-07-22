@@ -1,0 +1,159 @@
+/* =============================================================
+   RekoltHT — Tableau de bord admin
+   Réutilise les variables/classes définies dans ProfilAcheteur.css
+   (importé avant ce fichier) : --rk-*, .profil-card, .profil-btn, ...
+   ============================================================= */
+
+.admin-dashboard-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-stat-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--rk-radius-sm);
+  background: var(--rk-green-light);
+  color: var(--rk-green);
+  flex-shrink: 0;
+}
+
+.admin-stat-card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--rk-text);
+  line-height: 1.1;
+}
+
+.admin-stat-card__label {
+  font-size: 0.85rem;
+  color: var(--rk-text-muted);
+  margin-top: 2px;
+}
+
+.admin-error {
+  color: var(--rk-danger);
+  font-weight: 600;
+}
+
+.admin-badge--blocked {
+  background: var(--rk-danger);
+  color: #fff;
+}
+
+.admin-btn--danger {
+  padding: 8px 16px;
+  border-radius: var(--rk-radius-sm);
+  border: 1px solid var(--rk-danger);
+  background: transparent;
+  color: var(--rk-danger);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-btn--danger:hover {
+  background: var(--rk-danger);
+  color: #fff;
+}
+
+.admin-btn--danger:disabled,
+.profil-seller .profil-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profil-seller {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ===================== Onglets ===================== */
+
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--rk-border);
+  flex-wrap: wrap;
+}
+
+.admin-tabs__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--rk-text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.admin-tabs__item:hover {
+  color: var(--rk-text);
+}
+
+.admin-tabs__item--active {
+  color: var(--rk-terracotta);
+  border-bottom-color: var(--rk-terracotta);
+}
+
+/* ===================== Formulaire catégorie ===================== */
+
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-category-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.admin-input {
+  flex: 1 1 220px;
+  padding: 10px 14px;
+  border-radius: var(--rk-radius-sm);
+  border: 1px solid var(--rk-border);
+  font-size: 0.9rem;
+  color: var(--rk-text);
+  background: var(--rk-card);
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--rk-terracotta);
+}
+
+.admin-category-form .admin-error {
+  flex-basis: 100%;
+}
+
+.admin-icon-btn--danger {
+  color: var(--rk-danger);
+}

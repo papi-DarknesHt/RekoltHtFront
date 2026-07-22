@@ -21,6 +21,7 @@ import copy from "./components/copy.jsx"
 import Aide from "./pages/aide.jsx"
 import NotFound from "./pages/NotFound.jsx";
 import ChatbotVendeur from "./components/ChatbotVendeur.jsx";
+import AdminDashboard from "./Admin/AdminDashboard.jsx";
 function AppContent() {
   useGlobalSocket();
   useInactivityTimeout();
@@ -42,6 +43,7 @@ function AppContent() {
         <Route path="/produits/mesProduits" element={<RoutePrivee><MesProduits/></RoutePrivee>}/>
         <Route path="/produits/suprimerProduits" element={<RoutePrivee><SuprimerProduit/></RoutePrivee>}/>
         <Route path="/aide" element={<RoutePrivee><Aide/></RoutePrivee>}/>
+        <Route path="/admin/dashboard" element={<RoutePrivee><AdminDashboard/></RoutePrivee>}/>
         <Route path="*" element={<NotFound />}/>
       </Routes>
     </>

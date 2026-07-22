@@ -1,7 +1,12 @@
 // import useWebSocket from "react-use-websocket";
 import { useGlobalStore } from "./globalStore.js";
 import { useEffect, useRef } from "react";
-const WS_URL = "ws://127.0.0.1:8000/ws/global/";
+
+// dérivé de VITE_API_URL (même base que src/api/client.js) plutôt que codé en
+// dur sur localhost:8000 — sinon la reconnexion temps réel ne fonctionnerait
+// jamais en production (ex: rekolthtbackend.onrender.com, https donc wss)
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://rekolthtbackend.onrender.com";
+const WS_URL = API_BASE_URL.replace(/^http/, "ws") + "/ws/global/";
 
 export function useGlobalSocket() {
   const dispatch     = useGlobalStore((s) => s.dispatch);

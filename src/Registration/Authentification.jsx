@@ -4,6 +4,7 @@ import logo from "../assets/Images/Asset5.svg";
 import ReCAPTCHA from "react-google-recaptcha";
 import { api } from "../api/client";
 import { useAuthStore } from "./AuthentificationStore";
+import { useProfilStore } from "../Profil/ProfilStore";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
@@ -18,6 +19,23 @@ export default function RekoltHtAuth() {
   const [tab, setTab] = useState("login");
   const googleConnexion = useAuthStore((s) => s.googleConnexion);
   const googleInscription = useAuthStore((s) => s.googleInscription);
+  const afficherProfil = useProfilStore((s) => s.afficherProfil);
+
+  // un admin est redirigé vers son tableau de bord plutôt que l'accueil —
+  // le rôle vit sur Profil (pas sur la réponse de connexion elle-même), donc
+  // on le récupère avant de décider où naviguer (voir handleSubmit/loginGoogle)
+  const redirigerApresConnexion = async () => {
+    try {
+      const res = await afficherProfil();
+      if (res?.profil?.role === "admin") {
+        navigate("/admin/dashboard");
+        return;
+      }
+    } catch {
+      // en cas d'échec, on retombe sur la redirection par défaut ci-dessous
+    }
+    navigate("/");
+  };
 
   const [form, setForm] = useState({
     nom: "", prenom: "", email: "", mot_de_passe: "", telephone: "", role: "acheteur",
@@ -246,7 +264,7 @@ export default function RekoltHtAuth() {
         const res = await connexion({ email: form.email, mot_de_passe: form.mot_de_passe });
         if (res && res.token) {
           setSuccess(t("auth.succesConnection"));
-          setTimeout(() => navigate("/"), 500);
+          setTimeout(redirigerApresConnexion, 500);
         }
       } else if (tab === "entreprise") {
         // Inscription autonome : aucun compte personnel préalable — l'entreprise
@@ -382,7 +400,7 @@ export default function RekoltHtAuth() {
           : await googleInscription(response.access_token);
         if (res && res.token) {
           setSuccess(tab === "login" ? t("auth.succesConnection") : t("auth.messageSuccesInscription"));
-          setTimeout(() => navigate("/"), 1000);
+          setTimeout(tab === "login" ? redirigerApresConnexion : () => navigate("/"), 1000);
         }
       } catch (err) {
         console.error("Erreur Google :", err.message);

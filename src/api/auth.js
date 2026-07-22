@@ -45,6 +45,12 @@ export const AuthentificationApi = {
   // tous les utilisateurs — réservé aux admins
   listerUtilisateursAdmin: () => api.get("/Registration/admin/utilisateurs/"),
 
+  // bloque/débloque un compte (bascule) — réservé aux admins
+  bloquerUtilisateurAdmin: (id) => api.put("/Registration/admin/utilisateurs/bloquer/", { id }),
+
+  // statistiques agrégées pour le tableau de bord admin — réservé aux admins
+  obtenirDashboardAdmin: () => api.get("/Registration/admin/dashboard/"),
+
   // vérifie si une entreprise (nom + numéro d'enregistrement) existe déjà — sans authentification
   verifierEntreprise: (nom_Entreprise, num_Enregistrement) => api.get(
     `/Registration/entreprise/verifier/?nom_Entreprise=${encodeURIComponent(nom_Entreprise)}&num_Enregistrement=${encodeURIComponent(num_Enregistrement)}`
