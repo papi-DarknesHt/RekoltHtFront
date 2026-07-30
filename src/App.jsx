@@ -1,6 +1,6 @@
 
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useGlobalSocket } from "./api/useGlobalSocket.js";
 import { useInactivityTimeout } from "./hooks/useInactivityTimeout.js";
 import TestPage from "./testpage.jsx";
@@ -15,21 +15,29 @@ import DevenirVendeur from "./Registration/DevenirVendeur.jsx";
 import AjouterProduit from "./Produits/AjouterProduit.jsx";
 import ModifierProduit from "./Produits/modifierProduits.jsx";
 import Produits from "./Produits/afficherProduits.jsx";
+import DetailProduit from "./Produits/DetailProduit.jsx";
 import MesProduits from "./Produits/mesProduits.jsx";
+import TableauDeBordVendeur from "./Produits/TableauDeBordVendeur.jsx";
 import SuprimerProduit from "./Produits/suprimerProduit.jsx"
 import copy from "./components/copy.jsx"
 import Aide from "./pages/aide.jsx"
 import NotFound from "./pages/NotFound.jsx";
 import ChatbotVendeur from "./components/ChatbotVendeur.jsx";
 import AdminDashboard from "./Admin/AdminDashboard.jsx";
+import Messagerie from "./Messagerie/Messagerie.jsx";
+import ContacterAdmin from "./Support/ContacterAdmin.jsx";
 function AppContent() {
   useGlobalSocket();
   useInactivityTimeout();
+  const location = useLocation();
 
   return (
     <>
       {/* <NavBar /> */}
-      <ChatbotVendeur />
+      {/* masquée sur /messages : la bulle de conseils flottante (pas un vrai
+          chat, voir ChatbotVendeur.jsx) chevauche le bouton d'envoi de la
+          vraie messagerie et n'a plus de raison d'être sur cette page */}
+      {location.pathname !== "/messages" && <ChatbotVendeur />}
       <Routes>
         <Route path="/" element={<HomePage />} />
         {/* <Route path="/test" element={<TestPage />} /> */}
@@ -38,12 +46,22 @@ function AppContent() {
         <Route path="/update_profil" element={<RoutePrivee><ModifierProfil/></RoutePrivee>}/>
         <Route path="/Devenir_Vendeur" element={<RoutePrivee><DevenirVendeur/></RoutePrivee>}/>
         <Route path="/produits/ajouter" element={<RoutePrivee><AjouterProduit/></RoutePrivee>}/>
-        <Route path="/produits" element={<RoutePrivee><Produits/></RoutePrivee>}/>
+        {/* publique, comme la home page et le détail produit : un visiteur
+            non connecté doit pouvoir consulter le catalogue (voir
+            Produits/views/produitsViews.py::listerProduits, accès public) */}
+        <Route path="/produits" element={<Produits/>}/>
+        {/* publique, comme la home page : le détail d'un produit est
+            consultable sans compte (voir Produits/views/produitsViews.py::detailProduit) */}
+        <Route path="/produits/detail" element={<DetailProduit/>}/>
         <Route path="/produits/modifier" element={<RoutePrivee><ModifierProduit/></RoutePrivee>}/>
         <Route path="/produits/mesProduits" element={<RoutePrivee><MesProduits/></RoutePrivee>}/>
+        <Route path="/produits/tableau-de-bord" element={<RoutePrivee><TableauDeBordVendeur/></RoutePrivee>}/>
         <Route path="/produits/suprimerProduits" element={<RoutePrivee><SuprimerProduit/></RoutePrivee>}/>
-        <Route path="/aide" element={<RoutePrivee><Aide/></RoutePrivee>}/>
+        {/* publique : un visiteur non connecté doit pouvoir consulter l'aide */}
+        <Route path="/aide" element={<Aide/>}/>
         <Route path="/admin/dashboard" element={<RoutePrivee><AdminDashboard/></RoutePrivee>}/>
+        <Route path="/messages" element={<RoutePrivee><Messagerie/></RoutePrivee>}/>
+        <Route path="/contacter-admin" element={<RoutePrivee><ContacterAdmin/></RoutePrivee>}/>
         <Route path="*" element={<NotFound />}/>
       </Routes>
     </>

@@ -1,0 +1,302 @@
+/* =============================================================
+   RekoltHT — Tableau de bord (vendeur)
+   Fichier autonome : ne dépend d'aucune variable/classe définie ailleurs.
+   Toutes les classes sont préfixées "tdb-".
+   ============================================================= */
+
+.tdb-page {
+  --tdb-terracotta: #c1693f;
+  --tdb-terracotta-dark: #a85a35;
+  --tdb-terracotta-light: #fbeee6;
+  --tdb-green: #2f4a3c;
+  --tdb-green-light: #e3f3e8;
+  --tdb-danger: #c0392b;
+  --tdb-danger-light: rgba(192, 57, 43, 0.08);
+  --tdb-bg: #f6f4f1;
+  --tdb-card: #ffffff;
+  --tdb-border: #e7e2dc;
+  --tdb-text: #2b2622;
+  --tdb-text-muted: #8a8178;
+  --tdb-text-light: #6f675f;
+  --tdb-radius: 12px;
+  --tdb-radius-sm: 8px;
+  --tdb-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--tdb-bg);
+  color: var(--tdb-text);
+  min-height: 100vh;
+}
+
+.tdb-page * {
+  box-sizing: border-box;
+}
+
+.tdb-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===================== En-tête ===================== */
+
+.tdb-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tdb-header__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--tdb-radius);
+  background: var(--tdb-green-light);
+  color: var(--tdb-green);
+  flex-shrink: 0;
+}
+
+.tdb-header__title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.tdb-header__subtitle {
+  color: var(--tdb-text-muted);
+  margin: 0;
+}
+
+/* ===================== Texte neutre / alertes ===================== */
+
+.tdb-hint {
+  font-size: 0.92rem;
+  color: var(--tdb-text-light);
+  margin: 0;
+}
+
+.tdb-alert {
+  padding: 11px 14px;
+  border-radius: var(--tdb-radius-sm);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.tdb-alert--error {
+  color: var(--tdb-danger);
+  background: var(--tdb-danger-light);
+}
+
+/* ===================== Statistiques ===================== */
+
+.tdb-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.tdb-stat {
+  background: var(--tdb-card);
+  border: 1px solid var(--tdb-border);
+  border-radius: var(--tdb-radius);
+  box-shadow: var(--tdb-shadow);
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tdb-stat__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--tdb-bg);
+  color: var(--tdb-text-muted);
+  flex-shrink: 0;
+}
+
+.tdb-stat__icon--green {
+  background: var(--tdb-green-light);
+  color: var(--tdb-green);
+}
+
+.tdb-stat__icon--terracotta {
+  background: var(--tdb-terracotta-light);
+  color: var(--tdb-terracotta-dark);
+}
+
+.tdb-stat__value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.tdb-stat__label {
+  font-size: 0.78rem;
+  color: var(--tdb-text-muted);
+  margin: 2px 0 0;
+}
+
+/* ===================== Carte générique ===================== */
+
+.tdb-card {
+  background: var(--tdb-card);
+  border: 1px solid var(--tdb-border);
+  border-radius: var(--tdb-radius);
+  box-shadow: var(--tdb-shadow);
+  padding: 22px;
+}
+
+.tdb-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--tdb-terracotta-dark);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin: 0 0 18px;
+}
+
+/* ===================== Petit graphe (produits les plus contactés) ===================== */
+
+.tdb-graphe {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 18px;
+  height: 200px;
+  padding-top: 4px;
+}
+
+.tdb-graphe-colonne {
+  flex: 1;
+  min-width: 0;
+  max-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tdb-graphe-valeur {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--tdb-terracotta-dark);
+  margin-bottom: 6px;
+}
+
+.tdb-graphe-barre-piste {
+  flex: 1;
+  width: 100%;
+  max-width: 44px;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 999px;
+  background: var(--tdb-bg);
+  overflow: hidden;
+}
+
+.tdb-graphe-barre {
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--tdb-terracotta), var(--tdb-terracotta-dark));
+  transition: height 0.3s ease;
+}
+
+.tdb-graphe-nom {
+  margin-top: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tdb-text);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===================== Historique des contacts ===================== */
+
+.tdb-historique {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.tdb-historique-ligne {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--tdb-border);
+}
+
+.tdb-historique-ligne:last-child {
+  border-bottom: none;
+}
+
+.tdb-historique-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--tdb-green-light);
+  color: var(--tdb-green);
+  flex-shrink: 0;
+}
+
+.tdb-historique-texte {
+  flex: 1;
+  min-width: 0;
+}
+
+.tdb-historique-titre {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--tdb-text);
+  line-height: 1.4;
+}
+
+.tdb-historique-date {
+  margin: 3px 0 0;
+  font-size: 0.76rem;
+  color: var(--tdb-text-muted);
+}
+
+/* ===================== Responsive ===================== */
+
+@media (max-width: 640px) {
+  .tdb-container {
+    padding: 20px 16px 40px;
+  }
+
+  .tdb-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .tdb-graphe {
+    height: 160px;
+    gap: 10px;
+  }
+
+  .tdb-graphe-nom {
+    font-size: 0.7rem;
+  }
+}

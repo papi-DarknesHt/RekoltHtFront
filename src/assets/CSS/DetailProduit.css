@@ -1,0 +1,342 @@
+/* =============================================================
+   RekoltHT — Détail produit
+   Fichier autonome, classes préfixées "pd-".
+   ============================================================= */
+
+.pd-page {
+  --pd-terracotta: #c1693f;
+  --pd-green: #2f4a3c;
+  --pd-green-light: #e3f3e8;
+  --pd-bg: #f6f4f1;
+  --pd-card: #ffffff;
+  --pd-border: #e7e2dc;
+  --pd-text: #2b2622;
+  --pd-text-muted: #8a8178;
+  --pd-danger: #c0392b;
+  --pd-radius: 14px;
+  --pd-radius-sm: 8px;
+  --pd-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--pd-bg);
+  color: var(--pd-text);
+  min-height: 100vh;
+}
+
+.pd-page * {
+  box-sizing: border-box;
+}
+
+.pd-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.pd-hint {
+  color: var(--pd-text-muted);
+}
+
+.pd-alert {
+  padding: 11px 14px;
+  border-radius: var(--pd-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.pd-alert--error {
+  color: var(--pd-danger);
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.pd-alert--succes {
+  color: var(--pd-green);
+  background: var(--pd-green-light);
+}
+
+/* ===================== Bloc principal ===================== */
+
+.pd-main {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+
+.pd-gallery__main {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--pd-radius);
+  overflow: hidden;
+  background: #f2f0eb;
+  border: 1px solid var(--pd-border);
+}
+
+.pd-gallery__main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pd-gallery__emoji {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pd-text-muted);
+  opacity: 0.6;
+}
+
+.pd-gallery__thumbs {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+.pd-gallery__thumb {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border-radius: var(--pd-radius-sm);
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: none;
+}
+
+.pd-gallery__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pd-gallery__thumb--active {
+  border-color: var(--pd-terracotta);
+}
+
+.pd-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pd-badge {
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--pd-green-light);
+  color: var(--pd-green);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pd-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.pd-price {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--pd-terracotta);
+  margin: 0;
+}
+
+.pd-price small {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pd-text-muted);
+}
+
+.pd-availability {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: var(--pd-radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pd-availability--yes {
+  background: var(--pd-green-light);
+  color: var(--pd-green);
+}
+
+.pd-availability--no {
+  background: rgba(192, 57, 43, 0.08);
+  color: var(--pd-danger);
+}
+
+.pd-description {
+  color: var(--pd-text);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.pd-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--pd-text-muted);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.pd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.pd-contact-btn,
+.pd-call-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--pd-radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 12px 24px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.pd-contact-btn {
+  border: none;
+  background: var(--pd-green);
+  color: #fff;
+}
+
+.pd-call-btn {
+  border: 1.5px solid var(--pd-terracotta);
+  background: transparent;
+  color: var(--pd-terracotta);
+}
+
+.pd-contact-btn:hover,
+.pd-call-btn:hover {
+  opacity: 0.75;
+}
+
+/* ===================== Carte vendeur ===================== */
+
+.pd-seller {
+  display: flex;
+  gap: 16px;
+  background: var(--pd-card);
+  border: 1px solid var(--pd-border);
+  border-radius: var(--pd-radius);
+  box-shadow: var(--pd-shadow);
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.pd-seller__avatar {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--pd-green-light);
+  color: var(--pd-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pd-seller__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pd-seller__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pd-seller__nom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.pd-seller__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--pd-green-light);
+  color: var(--pd-green);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pd-seller__bio {
+  color: var(--pd-text-muted);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.pd-seller__infos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.pd-seller__infos span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--pd-text-muted);
+}
+
+/* ===================== Sections produits liés ===================== */
+
+.pd-section {
+  margin-bottom: 32px;
+}
+
+.pd-section__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 14px;
+}
+
+.pd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* ===================== Responsive ===================== */
+
+@media (max-width: 800px) {
+  .pd-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pd-container {
+    padding: 20px 16px 40px;
+  }
+}

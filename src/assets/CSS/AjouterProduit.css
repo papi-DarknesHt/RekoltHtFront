@@ -1,73 +1,509 @@
 /* =============================================================
    RekoltHT — Ajouter un produit (vendeur)
-   Réutilise les variables/classes de ProfilAcheteur.css et AdminDashboard.css
-   (importées avant ce fichier) : --rk-*, .profil-card, .admin-input, ...
+   Fichier autonome : ne dépend d'aucune variable/classe définie dans
+   ProfilAcheteur.css ou AdminDashboard.css (AjouterProduit.jsx n'importe
+   plus que ce fichier). Toutes les classes sont préfixées "ap-".
    ============================================================= */
 
-.admin-category-checklist {
-  list-style: none;
-  margin: 0 0 16px;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 8px;
+.ap-page {
+  --ap-terracotta: #c1693f;
+  --ap-terracotta-dark: #a85a35;
+  --ap-green: #2f4a3c;
+  --ap-green-light: #e3f3e8;
+  --ap-bg: #f6f4f1;
+  --ap-card: #ffffff;
+  --ap-border: #e7e2dc;
+  --ap-text: #2b2622;
+  --ap-text-muted: #8a8178;
+  --ap-text-light: #6f675f;
+  --ap-danger: #c0392b;
+  --ap-radius: 12px;
+  --ap-radius-sm: 8px;
+  --ap-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--ap-bg);
+  color: var(--ap-text);
+  min-height: 100vh;
 }
 
-.admin-category-checklist__item {
+.ap-page * {
+  box-sizing: border-box;
+}
+
+.ap-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+/* ===================== En-tête ===================== */
+
+.ap-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ap-header__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--ap-radius);
+  background: var(--ap-green-light);
+  color: var(--ap-green);
+  flex-shrink: 0;
+}
+
+.ap-header__title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.ap-header__subtitle {
+  color: var(--ap-text-muted);
+  margin: 0;
+}
+
+/* ===================== Indicateur d'étapes ===================== */
+
+.ap-steps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+  margin: 4px 0 24px;
+  padding: 0;
+}
+
+.ap-steps__item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--rk-border);
-  border-radius: var(--rk-radius-sm);
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: var(--rk-text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ap-text-muted);
 }
 
-.admin-category-checklist__item:has(input:checked) {
-  border-color: var(--rk-terracotta);
-  background: var(--rk-green-light);
+.ap-steps__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ap-border);
+  color: var(--ap-text-muted);
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.admin-success {
-  color: var(--rk-green);
+.ap-steps__item--active {
+  color: var(--ap-text);
+}
+
+.ap-steps__item--active .ap-steps__badge {
+  background: var(--ap-terracotta);
+  color: #fff;
+}
+
+.ap-steps__item--done {
+  color: var(--ap-green);
+}
+
+.ap-steps__item--done .ap-steps__badge {
+  background: var(--ap-green-light);
+  color: var(--ap-green);
+}
+
+.ap-steps__line {
+  flex: 1 1 32px;
+  max-width: 48px;
+  height: 2px;
+  background: var(--ap-border);
+}
+
+/* ===================== Texte neutre / chargement ===================== */
+
+.ap-hint {
+  font-size: 0.92rem;
+  color: var(--ap-text-light);
+  margin: 0;
+}
+
+/* ===================== Alertes ===================== */
+
+.ap-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 11px 14px;
+  border-radius: var(--ap-radius-sm);
+  font-size: 0.86rem;
   font-weight: 600;
 }
 
-.admin-product-form {
+.ap-alert--error {
+  color: var(--ap-danger);
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.ap-alert--success {
+  color: var(--ap-green);
+  background: var(--ap-green-light);
+}
+
+/* ===================== Carte principale ===================== */
+
+.ap-card {
+  background: var(--ap-card);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius);
+  box-shadow: var(--ap-shadow);
+  padding: 24px;
+  animation: ap-fade-in 0.25s ease;
+}
+
+.ap-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ap-terracotta-dark);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin: 0 0 18px;
+}
+
+.ap-card__intro {
+  color: var(--ap-text-light);
+  font-size: 0.92rem;
+  margin: 0 0 20px;
+}
+
+@keyframes ap-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================== Choix des catégories (chips) ===================== */
+
+.ap-category-grid {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.ap-category-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--ap-border);
+  border-radius: var(--ap-radius-sm);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  background: var(--ap-card);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.ap-category-chip:hover {
+  border-color: var(--ap-terracotta);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(43, 38, 34, 0.06);
+}
+
+.ap-category-chip input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ap-category-chip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ap-bg);
+  color: var(--ap-text-muted);
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ap-category-chip__label {
+  flex: 1;
+}
+
+.ap-category-chip__check {
+  color: var(--ap-terracotta);
+  flex-shrink: 0;
+}
+
+.ap-category-chip--selected {
+  border-color: var(--ap-terracotta);
+  background: var(--ap-green-light);
+}
+
+.ap-category-chip--selected .ap-category-chip__icon {
+  background: var(--ap-terracotta);
+  color: #fff;
+}
+
+/* ===================== Formulaire produit ===================== */
+
+.ap-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-form-section {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--ap-border);
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.admin-product-form__row {
+.ap-form-section:first-child {
+  padding-top: 0;
+}
+
+.ap-form-section--last {
+  border-bottom: none;
+  padding-bottom: 8px;
+}
+
+.ap-form-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ap-terracotta-dark);
+}
+
+.ap-form-row {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.admin-field-label {
+.ap-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  cursor: pointer;
+}
+
+.ap-checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--ap-terracotta);
+  cursor: pointer;
+}
+
+.ap-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--rk-text-light);
+  color: var(--ap-text-light);
   flex: 1 1 220px;
 }
 
-.admin-field-label--full {
+.ap-field--full {
   flex-basis: 100%;
 }
 
-.admin-textarea {
-  min-height: 90px;
-  resize: vertical;
+.ap-input {
+  padding: 11px 14px;
+  border-radius: var(--ap-radius-sm);
+  border: 1.5px solid var(--ap-border);
+  font-size: 0.9rem;
   font-family: inherit;
+  color: var(--ap-text);
+  background: var(--ap-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.admin-product-form__actions {
+.ap-input:hover {
+  border-color: var(--ap-text-muted);
+}
+
+.ap-input:focus {
+  outline: none;
+  border-color: var(--ap-terracotta);
+  box-shadow: 0 0 0 3px rgba(193, 105, 63, 0.12);
+}
+
+.ap-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.ap-form-actions {
   display: flex;
   gap: 12px;
+  margin-top: 8px;
+}
+
+/* ===================== Photos du produit ===================== */
+
+.ap-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.ap-photo-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--ap-radius-sm);
+  overflow: hidden;
+  border: 1.5px solid var(--ap-border);
+}
+
+.ap-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ap-photo-thumb__remove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(43, 38, 34, 0.65);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ap-photo-thumb__remove:hover {
+  background: var(--ap-danger);
+}
+
+.ap-photo-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  aspect-ratio: 1;
+  border: 1.5px dashed var(--ap-border);
+  border-radius: var(--ap-radius-sm);
+  background: transparent;
+  color: var(--ap-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.ap-photo-add:hover {
+  border-color: var(--ap-terracotta);
+  color: var(--ap-terracotta);
+}
+
+/* ===================== Boutons ===================== */
+
+.ap-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--ap-radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.ap-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ap-btn--primary {
+  background: var(--ap-green);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(47, 74, 60, 0.15);
+}
+
+.ap-btn--primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.ap-btn--secondary {
+  background: transparent;
+  color: var(--ap-text-light);
+  border: 1.5px solid var(--ap-border);
+}
+
+.ap-btn--secondary:hover:not(:disabled) {
+  background: var(--ap-bg);
+}
+
+/* ===================== Responsive ===================== */
+
+@media (max-width: 640px) {
+  .ap-container {
+    padding: 20px 16px 40px;
+  }
+
+  .ap-header {
+    gap: 12px;
+  }
+
+  .ap-header__icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .ap-category-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ap-form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 420px) {
+  .ap-category-grid {
+    grid-template-columns: 1fr;
+  }
 }

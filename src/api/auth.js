@@ -48,6 +48,9 @@ export const AuthentificationApi = {
   // bloque/débloque un compte (bascule) — réservé aux admins
   bloquerUtilisateurAdmin: (id) => api.put("/Registration/admin/utilisateurs/bloquer/", { id }),
 
+  // nomme un compte administrateur — réservé aux admins
+  nommerAdminUtilisateur: (id) => api.put("/Registration/admin/utilisateurs/nommer-admin/", { id }),
+
   // statistiques agrégées pour le tableau de bord admin — réservé aux admins
   obtenirDashboardAdmin: () => api.get("/Registration/admin/dashboard/"),
 

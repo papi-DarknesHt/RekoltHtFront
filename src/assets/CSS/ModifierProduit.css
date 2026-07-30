@@ -1,0 +1,454 @@
+/* =============================================================
+   RekoltHT — Modifier un produit (vendeur)
+   Fichier autonome : ne dépend d'aucune variable/classe définie dans
+   AjouterProduit.css ou MesProduits.css (modifierProduits.jsx n'importe
+   plus que ce fichier). Toutes les classes sont préfixées "mep-".
+   ============================================================= */
+
+.mep-page {
+  --mep-terracotta: #c1693f;
+  --mep-terracotta-dark: #a85a35;
+  --mep-green: #2f4a3c;
+  --mep-green-light: #e3f3e8;
+  --mep-bg: #f6f4f1;
+  --mep-card: #ffffff;
+  --mep-border: #e7e2dc;
+  --mep-text: #2b2622;
+  --mep-text-muted: #8a8178;
+  --mep-text-light: #6f675f;
+  --mep-danger: #c0392b;
+  --mep-danger-light: rgba(192, 57, 43, 0.08);
+  --mep-radius: 12px;
+  --mep-radius-sm: 8px;
+  --mep-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--mep-bg);
+  color: var(--mep-text);
+  min-height: 100vh;
+}
+
+.mep-page * {
+  box-sizing: border-box;
+}
+
+.mep-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+/* ===================== En-tête ===================== */
+
+.mep-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.mep-header__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--mep-radius);
+  background: var(--mep-green-light);
+  color: var(--mep-green);
+  flex-shrink: 0;
+}
+
+.mep-header__texte {
+  flex: 1;
+}
+
+.mep-header__title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.mep-header__subtitle {
+  color: var(--mep-text-muted);
+  margin: 0;
+}
+
+.mep-header__delete {
+  background: transparent;
+  border: 1.5px solid var(--mep-danger);
+  color: var(--mep-danger);
+}
+
+.mep-header__delete:hover:not(:disabled) {
+  background: var(--mep-danger-light);
+}
+
+/* ===================== Texte neutre / chargement ===================== */
+
+.mep-hint {
+  font-size: 0.92rem;
+  color: var(--mep-text-light);
+  margin: 0;
+}
+
+/* ===================== Alertes ===================== */
+
+.mep-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 11px 14px;
+  border-radius: var(--mep-radius-sm);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.mep-alert--error {
+  color: var(--mep-danger);
+  background: var(--mep-danger-light);
+}
+
+.mep-alert--success {
+  color: var(--mep-green);
+  background: var(--mep-green-light);
+}
+
+/* ===================== Carte principale ===================== */
+
+.mep-card {
+  background: var(--mep-card);
+  border: 1px solid var(--mep-border);
+  border-radius: var(--mep-radius);
+  box-shadow: var(--mep-shadow);
+  padding: 24px;
+  animation: mep-fade-in 0.25s ease;
+}
+
+.mep-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mep-terracotta-dark);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin: 0 0 18px;
+}
+
+@keyframes mep-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================== Formulaire produit ===================== */
+
+.mep-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.mep-form-section {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--mep-border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mep-form-section:first-child {
+  padding-top: 0;
+}
+
+.mep-form-section--last {
+  border-bottom: none;
+  padding-bottom: 8px;
+}
+
+.mep-form-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mep-terracotta-dark);
+}
+
+.mep-form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mep-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--mep-text);
+  cursor: pointer;
+}
+
+.mep-checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--mep-terracotta);
+  cursor: pointer;
+}
+
+.mep-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mep-text-light);
+  flex: 1 1 220px;
+}
+
+.mep-field--full {
+  flex-basis: 100%;
+}
+
+.mep-input {
+  padding: 11px 14px;
+  border-radius: var(--mep-radius-sm);
+  border: 1.5px solid var(--mep-border);
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--mep-text);
+  background: var(--mep-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mep-input:hover {
+  border-color: var(--mep-text-muted);
+}
+
+.mep-input:focus {
+  outline: none;
+  border-color: var(--mep-terracotta);
+  box-shadow: 0 0 0 3px rgba(193, 105, 63, 0.12);
+}
+
+.mep-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.mep-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* ===================== Photos du produit ===================== */
+
+.mep-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.mep-photo-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--mep-radius-sm);
+  overflow: hidden;
+  border: 1.5px solid var(--mep-border);
+}
+
+.mep-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mep-photo-thumb__remove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(43, 38, 34, 0.65);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mep-photo-thumb__remove:hover {
+  background: var(--mep-danger);
+}
+
+.mep-photo-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  aspect-ratio: 1;
+  border: 1.5px dashed var(--mep-border);
+  border-radius: var(--mep-radius-sm);
+  background: transparent;
+  color: var(--mep-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.mep-photo-add:hover:not(:disabled) {
+  border-color: var(--mep-terracotta);
+  color: var(--mep-terracotta);
+}
+
+.mep-photo-add:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===================== Boutons ===================== */
+
+.mep-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--mep-radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.mep-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mep-btn--primary {
+  background: var(--mep-green);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(47, 74, 60, 0.15);
+}
+
+.mep-btn--primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.mep-btn--secondary {
+  background: transparent;
+  color: var(--mep-text-light);
+  border: 1.5px solid var(--mep-border);
+}
+
+.mep-btn--secondary:hover:not(:disabled) {
+  background: var(--mep-bg);
+}
+
+.mep-btn--danger {
+  background: var(--mep-danger);
+  color: #fff;
+}
+
+.mep-btn--danger:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+/* ===================== Pop-up de confirmation (suppression) ===================== */
+
+.mep-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 38, 34, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  animation: mep-fade-in 0.15s ease;
+}
+
+.mep-modal {
+  background: var(--mep-card);
+  border-radius: var(--mep-radius);
+  box-shadow: 0 12px 32px rgba(43, 38, 34, 0.25);
+  padding: 26px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.mep-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--mep-danger-light);
+  color: var(--mep-danger);
+  margin-bottom: 14px;
+}
+
+.mep-modal__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.mep-modal__text {
+  font-size: 0.9rem;
+  color: var(--mep-text-light);
+  margin: 0 0 22px;
+  line-height: 1.5;
+}
+
+.mep-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* ===================== Responsive ===================== */
+
+@media (max-width: 640px) {
+  .mep-container {
+    padding: 20px 16px 40px;
+  }
+
+  .mep-header {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .mep-header__icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mep-header__delete {
+    margin-left: auto;
+  }
+
+  .mep-form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .mep-modal__actions {
+    flex-direction: column-reverse;
+  }
+}

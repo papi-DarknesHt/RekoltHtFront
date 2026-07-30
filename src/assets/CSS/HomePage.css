@@ -81,6 +81,36 @@
     overflow: hidden;
   }
 
+  .produits-etat {
+    text-align: center;
+    color: var(--muted);
+    font-size: 15px;
+    padding: 2rem 1rem;
+  }
+
+  .produits-etat--erreur {
+    color: #c0392b;
+  }
+
+  .produits-etat--succes {
+    color: #1a3d1a;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+  }
+
+  /* variante claire, pour un texte d'état affiché sur .section-brown (fond
+     foncé) — voir la section "Mes produits" de la page d'accueil pour un
+     vendeur déjà connecté */
+  .produits-etat--clair {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* ── SECTION "MES PRODUITS" (accueil, vendeur déjà connecté) ── */
+  .mes-produits-accueil {
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
   .carousel-nav-btn {
     width: 40px;
     height: 40px;

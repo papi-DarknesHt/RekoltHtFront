@@ -14,26 +14,34 @@ import Footer from "../components/Footer.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { useAuthStore } from "../Registration/AuthentificationStore";
+import { useProfilStore } from "../Profil/ProfilStore";
+import { useGlobalStore } from "../api/globalStore.js";
+import { ProduitsApi } from "../api/produits";
 
-// Liste des produits récents affichés dans la section "Pwodi resan"
-const PRODUITS = [
-  { id: 1, nom: "Zaboka", lieu: "Hinche, Centre", prix: 25, emoji: "🥑" },
-  { id: 2, nom: "Sitwon", lieu: "Mayisad, Centre", prix: 15, emoji: "🍋" },
-  { id: 3, nom: "Kalalou", lieu: "Hinche, Centre", prix: 5, emoji: "🫑" },
-  { id: 4, nom: "Bannann", lieu: "Jacmel, Sud-Est", prix: 10, emoji: "🍌" },
-  { id: 5, nom: "Mango", lieu: "Gonaïves, Artib.", prix: 8, emoji: "🥭" },
-  { id: 6, nom: "Pistach", lieu: "Cap-Haïtien, Nord", prix: 20, emoji: "🥜" },
-];
+// Convertit un produit tel que renvoyé par l'API (voir _serialiseProduit,
+// Produits/views/produitsViews.py) au format attendu par ProductCard.jsx
+function versProduitAffiche(p, texteNonPrecise) {
+  return {
+    id: p.id,
+    nom: p.nom,
+    vendeurId: p.vendeur_id,
+    vendeurNom: p.vendeur_nom,
+    lieu: [p.commune, p.departement].filter(Boolean).join(", ") || p.region || texteNonPrecise,
+    prix: p.prix,
+    devise: p.unitePrix,
+    image: p.photos?.[0]?.url_photo || null,
+  };
+}
 
 // Étapes du processus affichées dans la section "Kijan prosesis la ye?"
 
 // Articles d'aide affichés dans la section "Sant Ed"
 
 
-// pour la navigation entre les pages
-
-export default function HomePage() {
-
+// Carousel réutilisable (produits récents ET, plus bas, "mes produits" pour
+// un vendeur déjà connecté) — encapsule son propre index/nombre visible/
+// écoute du resize, pour que chaque instance défile indépendamment
+function ProduitsCarousel({ produits, onDetails, onContact }) {
   const getVisible = () => {
     if (typeof window === "undefined") return 4;
     if (window.innerWidth <= 480) return 1;
@@ -41,7 +49,6 @@ export default function HomePage() {
     return 4;
   };
 
-  const [search, setSearch] = useState("");
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(getVisible());
 
@@ -49,17 +56,109 @@ export default function HomePage() {
     const onResize = () => {
       const v = getVisible();
       setVisible(v);
-      setIndex(i => Math.min(i, Math.max(0, PRODUITS.length - v)));
+      setIndex((i) => Math.min(i, Math.max(0, produits.length - v)));
     };
     window.addEventListener("resize", onResize, { passive: true });
     return () => window.removeEventListener("resize", onResize);
-  }, []);
+  }, [produits.length]);
 
-  const produitsVisibles = PRODUITS.slice(index, index + visible);
-  const next = () => { if (index + visible < PRODUITS.length) setIndex(i => i + 1); };
-  const prev = () => { if (index > 0) setIndex(i => i - 1); };
+  const produitsVisibles = produits.slice(index, index + visible);
+  const next = () => { if (index + visible < produits.length) setIndex((i) => i + 1); };
+  const prev = () => { if (index > 0) setIndex((i) => i - 1); };
+
+  return (
+    <>
+      <div className="carousel">
+        <button className="carousel-nav-btn" onClick={prev} disabled={index === 0} aria-label="Précédent">‹</button>
+
+        <div
+          className="carousel-cards"
+          style={{ gridTemplateColumns: `repeat(${visible}, minmax(0, 1fr))` }}
+        >
+          {produitsVisibles.map((p) => (
+            <ProductCard key={p.id} produit={p} onDetails={onDetails} onContact={onContact} />
+          ))}
+        </div>
+
+        <button className="carousel-nav-btn" onClick={next} disabled={index + visible >= produits.length} aria-label="Suivant">›</button>
+      </div>
+
+      {produits.length > visible && (
+        <div className="carousel-dots">
+          {Array.from({ length: Math.max(0, produits.length - visible + 1) }).map((_, i) => (
+            <button
+              key={i}
+              className={`carousel-dot${i === index ? " carousel-dot--active" : ""}`}
+              onClick={() => setIndex(i)}
+              aria-label={`Page ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// pour la navigation entre les pages
+
+export default function HomePage() {
+  const [search, setSearch] = useState("");
+
+  const [produits, setProduits] = useState([]);
+  const [chargementProduits, setChargementProduits] = useState(true);
+  const [erreurProduits, setErreurProduits] = useState(null);
+  const produitEvent = useGlobalStore((s) => s.produitEvent);
+
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  // produits disponibles pour affichage public — seuls les "disponible"
+  // doivent être visibles (voir Produits/views/produitsViews.py::listerProduits,
+  // filtre ?disponible=true)
+  useEffect(() => {
+    ProduitsApi.listerProduits({ disponible: "true" })
+      .then((res) => setProduits(res.produits || []))
+      .catch((err) => setErreurProduits(err.message))
+      .finally(() => setChargementProduits(false));
+  }, []);
+
+  // réactivité temps réel (voir Produits/signals.py côté backend) : un
+  // produit publié/rendu disponible par n'importe quel vendeur apparaît ici
+  // sans rechargement de page ; un produit rendu indisponible ou supprimé en
+  // disparaît de la même façon
+  useEffect(() => {
+    if (!produitEvent) return;
+    const { type, data } = produitEvent;
+    setProduits((liste) => {
+      if (type === "produit.deleted" || (data.est_disponible === false)) {
+        return liste.filter((p) => p.id !== data.id);
+      }
+      const existe = liste.some((p) => p.id === data.id);
+      return existe
+        ? liste.map((p) => (p.id === data.id ? { ...p, ...data } : p))
+        : [...liste, data];
+    });
+  }, [produitEvent]);
+
+  const produitsAffiches = produits.map((p) => versProduitAffiche(p, t("profile.notSpecified")));
+
+  // enregistre le clic "Contacter" (alimente nombre_contacts affiché au
+  // vendeur sur "Mes produits") — silencieux en cas d'échec réseau : ne doit
+  // pas empêcher l'acheteur de voir malgré tout les infos du produit. Si
+  // connecté, ouvre directement la messagerie avec ce vendeur (voir
+  // Messagerie.jsx, qui lit ?avec=/?produit= pour démarrer la conversation
+  // et y partager la fiche produit) ; sinon simple confirmation (la
+  // messagerie exige une identité, la home page reste publique).
+  const [messageContact, setMessageContact] = useState(null);
+  const contacterProduit = (produit) => {
+    ProduitsApi.contacterProduit(produit.id).catch(() => {});
+    if (isConnected && produit.vendeurId) {
+      navigate(`/messages?avec=${produit.vendeurId}&produit=${produit.id}`);
+      return;
+    }
+    setMessageContact(t("home.contactRecorded"));
+    setTimeout(() => setMessageContact(null), 3000);
+  };
   const ETAPES = [
     { n: "1", texte: t("home.stepCreateAccount") },
     { n: "2", texte: t("home.stepSearchProduct") },
@@ -74,6 +173,43 @@ export default function HomePage() {
 
 
   const isConnected = useAuthStore((s) => s.isConnected);
+  const utilisateur = useAuthStore((s) => s.utilisateur);
+  const profil = useProfilStore((s) => s.profil);
+  const isVendeur = profil?.role === "vendeur";
+
+  // remplace le bouton "Devenir vendeur" par un carousel "Mes produits" une
+  // fois que le compte connecté est déjà vendeur — inutile de lui proposer
+  // à nouveau de le devenir (voir section "Kijan prosesis la ye?" plus bas)
+  const [mesProduits, setMesProduits] = useState([]);
+  const [chargementMesProduits, setChargementMesProduits] = useState(true);
+
+  useEffect(() => {
+    if (!isConnected || !isVendeur) {
+      setChargementMesProduits(false);
+      return;
+    }
+    ProduitsApi.mesProduits()
+      .then((res) => setMesProduits(res.produits || []))
+      .catch(() => {})
+      .finally(() => setChargementMesProduits(false));
+  }, [isConnected, isVendeur]);
+
+  // réactivité temps réel (voir Produits/signals.py côté backend), filtrée
+  // à ce vendeur — même principe que mesProduits.jsx
+  useEffect(() => {
+    if (!produitEvent || !isVendeur) return;
+    const { type, data } = produitEvent;
+    if (data.vendeur_id !== undefined && data.vendeur_id !== utilisateur?.id) return;
+    setMesProduits((liste) => {
+      if (type === "produit.deleted") return liste.filter((p) => p.id !== data.id);
+      const existe = liste.some((p) => p.id === data.id);
+      return existe
+        ? liste.map((p) => (p.id === data.id ? { ...p, ...data } : p))
+        : [...liste, data];
+    });
+  }, [produitEvent, isVendeur, utilisateur?.id]);
+
+  const mesProduitsAffiches = mesProduits.map((p) => versProduitAffiche(p, t("profile.notSpecified")));
 
   return (
     <>
@@ -91,85 +227,110 @@ export default function HomePage() {
         </h1>
         <p className="hero-sub">{t("home.heroSubtitle")}</p>
 
-        {/* Barre de recherche */}
-        <input
-          className="hero-search"
-          type="text"
-          placeholder={t("home.searchPlaceholder")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        {/* Barre de recherche — redirige vers le catalogue (/produits), qui
+            filtre par nom de produit ou de vendeur (voir afficherProduits.jsx) */}
+        <form
+          className="hero-search-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            navigate(`/produits${search.trim() ? `?q=${encodeURIComponent(search.trim())}` : ""}`);
+          }}
+        >
+          <input
+            className="hero-search"
+            type="text"
+            placeholder={t("home.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </form>
       </section>
 
       {/* ── PWODI RESAN — Carousel des produits récents ── */}
       <section className="section">
         <h2 className="section-title">{t("home.recentProducts")}</h2>
 
-        <div className="carousel">
-          <button
-            className="carousel-nav-btn"
-            onClick={prev}
-            disabled={index === 0}
-            aria-label="Précédent"
-          >‹</button>
+        {chargementProduits && (
+          <p className="produits-etat">{t("home.loadingProducts")}</p>
+        )}
 
-          <div
-            className="carousel-cards"
-            style={{ gridTemplateColumns: `repeat(${visible}, minmax(0, 1fr))` }}
-          >
-            {produitsVisibles.map((p) => (
-              <ProductCard key={p.id} produit={p} />
-            ))}
-          </div>
+        {!chargementProduits && erreurProduits && (
+          <p className="produits-etat produits-etat--erreur">{erreurProduits}</p>
+        )}
 
-          <button
-            className="carousel-nav-btn"
-            onClick={next}
-            disabled={index + visible >= PRODUITS.length}
-            aria-label="Suivant"
-          >›</button>
-        </div>
+        {!chargementProduits && !erreurProduits && produitsAffiches.length === 0 && (
+          <p className="produits-etat">{t("home.noProductsYet")}</p>
+        )}
 
-        <div className="carousel-dots">
-          {Array.from({ length: Math.max(0, PRODUITS.length - visible + 1) }).map((_, i) => (
-            <button
-              key={i}
-              className={`carousel-dot${i === index ? " carousel-dot--active" : ""}`}
-              onClick={() => setIndex(i)}
-              aria-label={`Page ${i + 1}`}
-            />
-          ))}
-        </div>
+        {!chargementProduits && !erreurProduits && produitsAffiches.length > 0 && (
+          <ProduitsCarousel
+            produits={produitsAffiches}
+            onDetails={(pr) => navigate(`/produits/detail?id=${pr.id}`)}
+            onContact={contacterProduit}
+          />
+        )}
+
+        {messageContact && <p className="produits-etat produits-etat--succes">{messageContact}</p>}
       </section>
 
-      {/* ── PROSESIS — Comment ça marche ── */}
+      {/* ── PROSESIS — Comment ça marche, remplacée par "Mes produits"
+             quand le compte connecté est déjà vendeur (voir isVendeur plus
+             haut) : ces étapes d'onboarding ne concernent que les futurs
+             acheteurs/vendeurs, pas quelqu'un qui vend déjà sur la plateforme ── */}
       <section className="section-brown">
-        <h2 className="section-title">{t("home.processTitle")}</h2>
+        {isConnected && isVendeur ? (
+          <div className="mes-produits-accueil">
+            <h2 className="section-title">{t("myProducts.title")}</h2>
 
-        {/* Étapes avec flèches entre chaque */}
-        <div className="etapes">
-          {ETAPES.map((e, i) => (
-            <>
-              {/* Boîte de l'étape */}
-              <div className="etape-box" key={e.n}>
-                {e.n}. {e.texte}
-              </div>
+            {chargementMesProduits && (
+              <p className="produits-etat produits-etat--clair">{t("home.loadingProducts")}</p>
+            )}
 
-              {/* Flèche entre les étapes (pas après la dernière) */}
-              {i < ETAPES.length - 1 && (
-                <span className="etape-arrow" key={`arrow-${i}`}>→</span>
-              )}
-            </>
-          ))}
-        </div>
+            {!chargementMesProduits && mesProduitsAffiches.length === 0 && (
+              <p className="produits-etat produits-etat--clair">{t("myProducts.noProducts")}</p>
+            )}
 
-        {/* Bouton d'appel à l'action */}
-        <button
-          className="btn-cta"
-          onClick={() => navigate(isConnected ? "/Devenir_Vendeur" : "/auth")}
-        >
-          {isConnected ? t("home.becomeASalesperson") : t("auth.cardTitleRegister")}
-        </button>
+            {!chargementMesProduits && mesProduitsAffiches.length > 0 && (
+              <ProduitsCarousel
+                produits={mesProduitsAffiches}
+                onDetails={(pr) => navigate(`/produits/modifier?id=${pr.id}`)}
+                onContact={() => navigate("/produits/mesProduits")}
+              />
+            )}
+
+            <button className="btn-cta" onClick={() => navigate("/produits/mesProduits")} style={{ marginTop: "1.5rem" }}>
+              {t("home.viewAllMyProducts")}
+            </button>
+          </div>
+        ) : (
+          <>
+            <h2 className="section-title">{t("home.processTitle")}</h2>
+
+            {/* Étapes avec flèches entre chaque */}
+            <div className="etapes">
+              {ETAPES.map((e, i) => (
+                <>
+                  {/* Boîte de l'étape */}
+                  <div className="etape-box" key={e.n}>
+                    {e.n}. {e.texte}
+                  </div>
+
+                  {/* Flèche entre les étapes (pas après la dernière) */}
+                  {i < ETAPES.length - 1 && (
+                    <span className="etape-arrow" key={`arrow-${i}`}>→</span>
+                  )}
+                </>
+              ))}
+            </div>
+
+            <button
+              className="btn-cta"
+              onClick={() => navigate(isConnected ? "/Devenir_Vendeur" : "/auth")}
+            >
+              {isConnected ? t("home.becomeASalesperson") : t("auth.cardTitleRegister")}
+            </button>
+          </>
+        )}
       </section>
 
       {/* ── KAT + SANT ED — Carte & Aide côte à côte ── */}
