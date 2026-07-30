@@ -120,6 +120,65 @@
   border-bottom-color: var(--rk-terracotta);
 }
 
+.admin-tabs__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--rk-terracotta);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* ===================== Messages vendeur -> admins (support) ===================== */
+
+.admin-support-list {
+  flex-direction: column;
+}
+
+.admin-support-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rk-border);
+}
+
+.admin-support-item:last-child {
+  border-bottom: none;
+}
+
+.admin-support-item__entete {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-support-item__contenu {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--rk-bg);
+  border-radius: var(--rk-radius-sm);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.admin-support-item__reponse {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.admin-support-item__textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
 /* ===================== Formulaire catégorie ===================== */
 
 .admin-card-header {

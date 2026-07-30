@@ -1,0 +1,423 @@
+{
+    "Categorie": "Produits Agricoles",
+    "Sous-Categories": [
+        {
+            "Sous-Categorie": "Animaux vivants",
+            "Unite_mesure": [
+                "Unite (tete de bétail)"
+            ],
+            "Produit": [
+                "Boeuf",
+                "Vache",
+                "veaux",
+                "taureau",
+                "Chevre",
+                "Mouton",
+                "Chamois",
+                "Porc",
+                "Poulets",
+                "Dindes",
+                "Canards",
+                "Oies",
+                "Chevaux",
+                "Lapins",
+                "Abeilles (ruches)"
+            ]
+        },
+        {
+            "Sous-Categorie": "Viandes et abats",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Livre"
+            ],
+            "Produit": [
+                "Viande de boeuf",
+                "Viande de porc",
+                "Viande de mouton/agneau",
+                "Viande de chevre",
+                "Viande de poulet",
+                "Viande de dinde",
+                "Viande de canard",
+                "Viande de lapin",
+                "Gibier",
+                "Charcuterie (saucisson, jambon)"
+            ]
+        },
+        {
+            "Sous-Categorie": "Poissons et produits aquatiques",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Livre",
+                "Unite"
+            ],
+            "Produit": [
+                "Tilapia",
+                "Carpe",
+                "Thon",
+                "Sardine",
+                "Maquereau",
+                "Saumon",
+                "Crevette",
+                "Crabe",
+                "Langouste",
+                "Huitre",
+                "Moule",
+                "Calamar",
+                "Poisson fume",
+                "Poisson seche",
+                "Requin"
+            ]
+        },
+        {
+            "Sous-Categorie": "Produits laitiers, oeufs et miel",
+            "Unite_mesure": [
+                "Litre",
+                "Kilogramme (kg)",
+                "Unite",
+                "Douzaine"
+            ],
+            "Produit": [
+                "Lait de vache",
+                "Lait de chevre",
+                "Lait de brebis",
+                "Fromage",
+                "Beurre",
+                "Yaourt",
+                "Creme fraiche",
+                "Oeufs de poule",
+                "Oeufs de caille",
+                "Miel",
+                "Pollen",
+                "Propolis",
+                "Gelee royale",
+                "Cire d'abeille"
+            ]
+        },
+        {
+            "Sous-Categorie": "Plantes vivantes et floriculture",
+            "Unite_mesure": [
+                "Unite",
+                "Bouquet"
+            ],
+            "Produit": [
+                "Roses coupees",
+                "Tulipes",
+                "Plantes en pot",
+                "Plants de pepiniere",
+                "Bulbes",
+                "Semences ornementales",
+                "Arbustes"
+            ]
+        },
+        {
+            "Sous-Categorie": "Legumes, racines et tubercules",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Marmite",
+                "Panier",
+                "Sac"
+            ],
+            "Produit": [
+                "Manioc",
+                "Igname",
+                "Patate douce",
+                "Pomme de terre",
+                "Taro",
+                "Malanga",
+                "Tomate",
+                "Oignon",
+                "Ail",
+                "Carotte",
+                "Chou",
+                "Piment",
+                "Poivron",
+                "Aubergine",
+                "Gombo",
+                "Courge",
+                "Concombre",
+                "Laitue",
+                "Epinard"
+            ]
+        },
+        {
+            "Sous-Categorie": "Fruits et fruits a coque",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Unite",
+                "Regime",
+                "Sac"
+            ],
+            "Produit": [
+                "Mangue Madame Francique",
+                "Mangue Baptiste",
+                "Mangue Blanc",
+                "Mangue Corne",
+                "Mangue Carotte",
+                "Mangue Doudouce",
+                "Mangue Fil",
+                "Mangue Jean-Marie",
+                "Mangue Muscat",
+                "Mangue Rosalie",
+                "Manque Pensik",
+                "Ananas",
+                "Banane",
+                "Figue-banane",
+                "Orange",
+                "Citron",
+                "Chadèque (pomelo)",
+                "Pomme",
+                "Avocat",
+                "Papaye",
+                "Goyave",
+                "Corossol",
+                "Quenepe",
+                "Fruit de la passion",
+                "l'arbe veritable",
+                "châtaigne-pays",
+                "Noix de coco",
+                "Raisin",
+                "Fraise",
+                "Amande",
+                "Noix de cajou",
+                "Arachide en coque"
+            ]
+        },
+        {
+            "Sous-Categorie": "Cafe, the et epices",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Livre",
+                "Marmite",
+                "Sac"
+            ],
+            "Produit": [
+                "Cafe arabica",
+                "Cafe robusta",
+                "Thin",
+                "Gros thin",
+                "Assorosi",
+                "Citronel",
+                "Cacao brut",
+                "Poivre",
+                "Gingembre",
+                "Cannelle",
+                "Vanille",
+                "Curcuma",
+                "Piment seche",
+                "Clou de girofle",
+                "Noix de Muscade"
+            ]
+        },
+        {
+            "Sous-Categorie": "Cereales",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Marmite",
+                "Sac",
+                "Barik"
+            ],
+            "Produit": [
+                "Riz",
+                "Riz Lacrette",
+                "Riz Chella",
+                "Riz Ti Manchet",
+                "Riz Madan Blan",
+                "Riz M1",
+                "Riz M8",
+                "Mais",
+                "Ble",
+                "Orge",
+                "Avoine",
+                "Sorgho",
+                "Petit Mil"
+            ]
+        },
+        {
+            "Sous-Categorie": "Graines oleagineuses et fourrages",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Tonne",
+                "Sac",
+                "Balle"
+            ],
+            "Produit": [
+                "Soja",
+                "Arachide",
+                "Tournesol",
+                "Colza",
+                "Sesame",
+                "Palmiste",
+                "Luzerne",
+                "Foin",
+                "Paille"
+            ]
+        },
+        {
+            "Sous-Categorie": "Matieres premieres vegetales brutes",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Tonne",
+                "Balle",
+                "Sac"
+            ],
+            "Produit": [
+                "Coton brut",
+                "Fibre de lin",
+                "Chanvre",
+                "Jute",
+                "Sisal",
+                "Vetiver (racine)",
+                "Gomme arabique",
+                "Resine naturelle",
+                "Caoutchouc naturel (latex)",
+                "Osier"
+            ]
+        },
+        {
+            "Sous-Categorie": "Tabac",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Livre",
+                "Botte (paquet de feuilles)"
+            ],
+            "Produit": [
+                "Feuilles de tabac brutes",
+                "Tabac seche"
+            ]
+        },
+        {
+            "Sous-Categorie": "Produits de minoterie",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Sac",
+                "Livre"
+            ],
+            "Produit": [
+                "Farine de ble",
+                "Farine de mais",
+                "Farine de manioc",
+                "Malt",
+                "Amidon",
+                "Semoule",
+                "Son de Céreals"
+            ]
+        },
+        {
+            "Sous-Categorie": "Huiles et graisses",
+            "Unite_mesure": [
+                "Litre",
+                "Gallon",
+                "Bouteille"
+            ],
+            "Produit": [
+                "Huile de palme",
+                "Huile de tournesol",
+                "Huile d'olive",
+                "Huile d'arachide",
+                "Huile de soja",
+                "Huile de coco",
+                "Beurre de cacao",
+                "Margarine"
+            ]
+        },
+        {
+            "Sous-Categorie": "Sucres",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Sac",
+                "Livre"
+            ],
+            "Produit": [
+                "Sucre de canne",
+                "Sucre de betterave",
+                "Melasse",
+                "Sucre roux",
+                "Sucre glace"
+            ]
+        },
+        {
+            "Sous-Categorie": "Cacao et derives",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Sac",
+                "Quintal"
+            ],
+            "Produit": [
+                "Feves de cacao torrefiees",
+                "Poudre de cacao",
+                "Beurre de cacao",
+                "Chocolat",
+                "Pate de cacao"
+            ]
+        },
+        {
+            "Sous-Categorie": "Preparations alimentaires",
+            "Unite_mesure": [
+                "Unite",
+                "Boite/Conserve",
+                "Kilogramme (kg)"
+            ],
+            "Produit": [
+                "Conserves de legumes",
+                "Conserves de fruits",
+                "Confitures",
+                "Jus de fruits concentres",
+                "Sauces",
+                "Plats prepares",
+                "Conserves de viande",
+                "Conserves de poisson",
+                "Pates alimentaires",
+                "Noix grillees",
+                "Fruits seches"
+            ]
+        },
+        {
+            "Sous-Categorie": "Boissons",
+            "Unite_mesure": [
+                "Litre",
+                "Bouteille",
+                "Gallon"
+            ],
+            "Produit": [
+                "Vin",
+                "Biere",
+                "Clairin",
+                "Jus de fruits",
+                "Boisson au gingembre",
+                "Eau aromatisee",
+                "Boissons fermentees"
+            ]
+        },
+        {
+            "Sous-Categorie": "Residus et alimentation animale",
+            "Unite_mesure": [
+                "Kilogramme (kg)",
+                "Sac",
+                "Tonne"
+            ],
+            "Produit": [
+                "Tourteau de soja",
+                "Tourteau d'arachide",
+                "Son de ble",
+                "Farines animales",
+                "Aliments composes pour betail",
+                "Granules fourragers"
+            ]
+        },
+        {
+            "Sous-Categorie": "Produits forestiers",
+            "Unite_mesure": [
+                "Sac",
+                "Kilogramme (kg)",
+                "Stere/m3",
+                "Unite"
+            ],
+            "Produit": [
+                "Charbon de bois",
+                "Bois de chauffe",
+                "Bois d'oeuvre",
+                "Perches/piquets"
+            ]
+        }
+    ]
+}

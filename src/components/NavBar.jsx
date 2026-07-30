@@ -9,9 +9,13 @@ import {
     LogOut,
     Menu,
     X,
+    MessageCircle,
+    ShieldCheck,
 } from "lucide-react";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { useProfilStore } from "../Profil/ProfilStore";
+import { useGlobalStore } from "../api/globalStore.js";
+import { useMessagerieBadgeStore } from "../api/messagerieBadgeStore.js";
 import logo from "../assets/Images/Asset5.svg";
 import "../assets/CSS/NavBar.css";
 
@@ -26,6 +30,41 @@ export default function Navbar() {
     const profil      = useProfilStore((s) => s.profil);
     const afficherProfil = useProfilStore((s) => s.afficherProfil);
     const isAdmin = profil?.role === "admin";
+    const isVendeur = profil?.role === "vendeur";
+
+    // pastille de la sonnette : nombre de messages non lus (voir
+    // messagerieBadgeStore.js) — rafraîchi à chaque montage (donc à chaque
+    // navigation, NavBar étant remonté par page) et à chaque message reçu en
+    // temps réel (voir Messagerie/signals.py côté backend)
+    const messageEvent = useGlobalStore((s) => s.messageEvent);
+    const nonLus = useMessagerieBadgeStore((s) => s.nonLus);
+    const rafraichirNonLus = useMessagerieBadgeStore((s) => s.rafraichir);
+
+    useEffect(() => {
+        if (isConnecte) rafraichirNonLus();
+    }, [isConnecte, rafraichirNonLus]);
+
+    useEffect(() => {
+        if (isConnecte && messageEvent) rafraichirNonLus();
+    }, [messageEvent, isConnecte, rafraichirNonLus]);
+
+    // pastille "demandes vendeur" (admin uniquement) — un vendeur qui envoie
+    // un message via "Contacter un admin" (voir Support/ContacterAdmin.jsx)
+    // doit déclencher une notification visible de n'importe quelle page,
+    // pas seulement depuis l'onglet "Messages vendeurs" du tableau de bord admin
+    const messageAdminEvent = useGlobalStore((s) => s.messageAdminEvent);
+    const messagesSupportEnAttente = useMessagerieBadgeStore((s) => s.messagesSupportEnAttente);
+    const rafraichirSupport = useMessagerieBadgeStore((s) => s.rafraichirSupport);
+
+    useEffect(() => {
+        if (isConnecte && isAdmin) rafraichirSupport();
+    }, [isConnecte, isAdmin, rafraichirSupport]);
+
+    useEffect(() => {
+        if (isConnecte && isAdmin && messageAdminEvent) rafraichirSupport();
+    }, [messageAdminEvent, isConnecte, isAdmin, rafraichirSupport]);
+
+    const totalNotifications = nonLus + (isAdmin ? messagesSupportEnAttente : 0);
 
     // S'assure que le logo de l'entreprise et la photo de profil sont à jour
     // même si la session était déjà ouverte avant le rechargement de la page
@@ -51,14 +90,19 @@ export default function Navbar() {
         ? entreprise.logo
         : profil?.photo_profil;
     const [menuOpen, setMenuOpen] = useState(false);
+    const [notifOpen, setNotifOpen] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const menuRef = useRef(null);
+    const notifRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (menuRef.current && !menuRef.current.contains(e.target)) {
                 setMenuOpen(false);
+            }
+            if (notifRef.current && !notifRef.current.contains(e.target)) {
+                setNotifOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -78,6 +122,16 @@ export default function Navbar() {
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
+
+    const allerVersMessagerie = () => {
+        setNotifOpen(false);
+        navigate("/messages");
+    };
+
+    const allerVersSupportAdmin = () => {
+        setNotifOpen(false);
+        navigate("/admin/dashboard?tab=support");
+    };
 
     const handleDeconnexion = async () => {
         await deconnexion();
@@ -102,6 +156,9 @@ export default function Navbar() {
                     <li><Link to="/">{t("nav.home")}</Link></li>
                     <li><a href="/produits">{t("nav.products")}</a></li>
                     <li><a href="/aide">{t("nav.help")}</a></li>
+                    {isConnecte && isVendeur && (
+                        <li><Link to="/produits/tableau-de-bord">{t("nav.vendorDashboard")}</Link></li>
+                    )}
                     {isConnecte && isAdmin && (
                         <li><Link to="/admin/dashboard">{t("nav.dashboard")}</Link></li>
                     )}
@@ -112,9 +169,50 @@ export default function Navbar() {
                     <Language />
                     {isConnecte ? (
                         <>
-                            <button className="profil-icon-btn" aria-label="Notifications">
-                                <Bell size={20} color={"var(--white)"} />
+                            <button
+                                className="profil-icon-btn nav-bell-btn"
+                                aria-label={t("nav.messages")}
+                                onClick={allerVersMessagerie}
+                            >
+                                <MessageCircle size={20} color={"var(--white)"} />
+                                {nonLus > 0 && (
+                                    <span className="nav-bell-badge">{nonLus > 9 ? "9+" : nonLus}</span>
+                                )}
                             </button>
+                            <div className="user-menu" ref={notifRef}>
+                                <button
+                                    className="profil-icon-btn nav-bell-btn"
+                                    aria-label={t("nav.notifications")}
+                                    onClick={() => setNotifOpen(!notifOpen)}
+                                >
+                                    <Bell size={20} color={"var(--white)"} />
+                                    {totalNotifications > 0 && (
+                                        <span className="nav-bell-badge">{totalNotifications > 9 ? "9+" : totalNotifications}</span>
+                                    )}
+                                </button>
+                                {notifOpen && (
+                                    <div className="dropdown-menu nav-notif-dropdown">
+                                        <div className="dropdown-header">
+                                            <p>{t("nav.notifications")}</p>
+                                        </div>
+                                        {nonLus > 0 && (
+                                            <button className="dropdown-item" onClick={allerVersMessagerie}>
+                                                <MessageCircle size={16} />
+                                                {t("nav.newMessagesNotification", { count: nonLus })}
+                                            </button>
+                                        )}
+                                        {isAdmin && messagesSupportEnAttente > 0 && (
+                                            <button className="dropdown-item" onClick={allerVersSupportAdmin}>
+                                                <ShieldCheck size={16} />
+                                                {t("nav.newSupportRequestsNotification", { count: messagesSupportEnAttente })}
+                                            </button>
+                                        )}
+                                        {totalNotifications === 0 && (
+                                            <p className="nav-notif-vide">{t("nav.noNotifications")}</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                             <div className="user-menu" ref={menuRef}>
                                 <button
                                     className="user-btn"
@@ -202,6 +300,15 @@ export default function Navbar() {
                         <li><Link to="/" onClick={closeMobile}>{t("nav.home")}</Link></li>
                         <li><a href="#" onClick={closeMobile}>{t("nav.products")}</a></li>
                         <li><a href="#" onClick={closeMobile}>{t("nav.help")}</a></li>
+                        {isConnecte && (
+                            <li><Link to="/messages" onClick={closeMobile}>{t("nav.messages")}</Link></li>
+                        )}
+                        {isConnecte && isVendeur && (
+                            <li><Link to="/produits/tableau-de-bord" onClick={closeMobile}>{t("nav.vendorDashboard")}</Link></li>
+                        )}
+                        {isConnecte && isVendeur && (
+                            <li><Link to="/contacter-admin" onClick={closeMobile}>{t("nav.contactAdmin")}</Link></li>
+                        )}
                         {isConnecte && isAdmin && (
                             <li><Link to="/admin/dashboard" onClick={closeMobile}>{t("nav.dashboard")}</Link></li>
                         )}

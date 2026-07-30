@@ -1,3 +1,25 @@
+/* ── PASTILLE NON-LUS (sonnette de notifications + raccourci messages) ── */
+.nav-bell-btn {
+  position: relative;
+}
+
+.nav-bell-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e24b4a;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--couleurSecondaire);
+}
+
 /* ── NAV WRAPPER (conteneur sticky) ── */
 .nav-wrapper {
   position: sticky;
@@ -171,6 +193,17 @@
 
 .dropdown-item:hover {
   background: #f5f5f5;
+}
+
+.nav-notif-dropdown {
+  min-width: 260px;
+}
+
+.nav-notif-vide {
+  padding: 16px;
+  font-size: 13px;
+  color: #888;
+  text-align: center;
 }
 
 .logout {

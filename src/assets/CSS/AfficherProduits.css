@@ -1,0 +1,398 @@
+/* =============================================================
+   RekoltHT — Catalogue des produits (tous vendeurs, public)
+   Fichier autonome, même principe que AjouterProduit.css/MesProduits.css :
+   ne dépend d'aucune variable/classe définie ailleurs. Classes préfixées "ap2-".
+   ============================================================= */
+
+.ap2-page {
+  --ap2-green: #2f4a3c;
+  --ap2-green-light: #e3f3e8;
+  --ap2-terracotta: #c1693f;
+  --ap2-danger: #c0392b;
+  --ap2-danger-light: rgba(192, 57, 43, 0.08);
+  --ap2-bg: #f6f4f1;
+  --ap2-card: #ffffff;
+  --ap2-border: #e7e2dc;
+  --ap2-text: #2b2622;
+  --ap2-text-muted: #8a8178;
+  --ap2-radius: 12px;
+  --ap2-radius-sm: 8px;
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--ap2-bg);
+  color: var(--ap2-text);
+  min-height: 100vh;
+}
+
+.ap2-page * {
+  box-sizing: border-box;
+}
+
+.ap2-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.ap2-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.ap2-header__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--ap2-radius);
+  background: var(--ap2-green-light);
+  color: var(--ap2-green);
+  flex-shrink: 0;
+}
+
+.ap2-header__title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.ap2-header__subtitle {
+  color: var(--ap2-text-muted);
+  margin: 0;
+}
+
+.ap2-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 420px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  background: var(--ap2-card);
+  border: 1px solid var(--ap2-border);
+  border-radius: 999px;
+}
+
+.ap2-search__icon {
+  color: var(--ap2-text-muted);
+  flex-shrink: 0;
+}
+
+.ap2-search__input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--ap2-text);
+  width: 100%;
+}
+
+.ap2-hint {
+  text-align: center;
+  color: var(--ap2-text-muted);
+  font-size: 0.95rem;
+  padding: 2rem 1rem;
+}
+
+.ap2-alert {
+  padding: 11px 14px;
+  border-radius: var(--ap2-radius-sm);
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.ap2-alert--error {
+  color: var(--ap2-danger);
+  background: var(--ap2-danger-light);
+}
+
+.ap2-alert--succes {
+  color: var(--ap2-green);
+  background: var(--ap2-green-light);
+}
+
+.ap2-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 22px;
+}
+
+/* ===================== Bouton "Filtres" (masquer/afficher, toutes tailles) ===================== */
+
+.ap2-filtres-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 10px 16px;
+  border: 1px solid var(--ap2-border);
+  border-radius: 999px;
+  background: var(--ap2-card);
+  color: var(--ap2-text);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ap2-filtres-toggle__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--ap2-terracotta);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+/* ===================== Disposition (sidebar filtres + résultats) ===================== */
+
+.ap2-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.ap2-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===================== Sidebar de filtres (style "menu Amazon") ===================== */
+
+.ap2-sidebar {
+  flex: 0 0 240px;
+  width: 240px;
+  background: var(--ap2-card);
+  border: 1px solid var(--ap2-border);
+  border-radius: var(--ap2-radius);
+  padding: 18px;
+  position: sticky;
+  top: 90px;
+}
+
+.ap2-sidebar__fermer {
+  display: none;
+}
+
+.ap2-sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ap2-sidebar__titre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.ap2-sidebar__reset {
+  border: none;
+  background: transparent;
+  color: var(--ap2-terracotta);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ap2-sidebar__reset:hover {
+  text-decoration: underline;
+}
+
+.ap2-filtre-section {
+  padding: 14px 0;
+  border-top: 1px solid var(--ap2-border);
+}
+
+.ap2-sidebar__header + .ap2-filtre-section {
+  border-top: none;
+  padding-top: 4px;
+}
+
+.ap2-filtre-section__titre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--ap2-text);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ap2-filtre-chevron {
+  transition: transform 0.15s ease;
+  color: var(--ap2-text-muted);
+}
+
+.ap2-filtre-chevron--ferme {
+  transform: rotate(-90deg);
+}
+
+.ap2-filtre-liste {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.ap2-filtre-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.85rem;
+  color: var(--ap2-text);
+  cursor: pointer;
+}
+
+.ap2-filtre-option input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--ap2-green);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ap2-filtre-option__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ap2-filtre-option__count {
+  color: var(--ap2-text-muted);
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+/* ===================== Filtre "Prix" (min / max) ===================== */
+
+.ap2-filtre-prix {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ap2-filtre-prix__input {
+  width: 0;
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--ap2-border);
+  border-radius: var(--ap2-radius-sm);
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--ap2-text);
+  background: var(--ap2-card);
+}
+
+.ap2-filtre-prix__input:focus {
+  outline: none;
+  border-color: var(--ap2-green);
+}
+
+.ap2-filtre-prix__separateur {
+  color: var(--ap2-text-muted);
+  flex-shrink: 0;
+}
+
+/* ===================== Compteur de résultats / "Afficher plus" ===================== */
+
+.ap2-compteur {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: var(--ap2-text-muted);
+}
+
+.ap2-voir-plus {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.ap2-voir-plus__btn {
+  padding: 12px 28px;
+  border: 1px solid var(--ap2-border);
+  border-radius: 999px;
+  background: var(--ap2-card);
+  color: var(--ap2-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.ap2-voir-plus__btn:hover {
+  border-color: var(--ap2-green);
+  color: var(--ap2-green);
+}
+
+@media (max-width: 640px) {
+  .ap2-container {
+    padding: 20px 16px 40px;
+  }
+
+  .ap2-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  /* la sidebar n'est montée dans le DOM que lorsque filtresOuverts est vrai
+     (voir afficherProduits.jsx) — en dessous de 640px, ce même état bascule
+     l'affichage en panneau plein écran plutôt qu'en colonne latérale */
+  .ap2-sidebar {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    width: auto;
+    border-radius: 0;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .ap2-sidebar__fermer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: var(--ap2-bg);
+    color: var(--ap2-text);
+    margin-bottom: 14px;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 420px) {
+  .ap2-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -11,8 +11,8 @@ export default function produits(){
         <NavBar />
               <div className="nf-root">
                 <div className="nf-container">
-                  <h1 className="nf-title">{t("product.comingSoonTitle")}</h1>
-                  <p className="nf-sub">{t("product.comingSoonText")}</p>
+                  <h1 className="nf-title">{t("aide.title")}</h1>
+                  <p className="nf-sub">{t("aide.text")}</p>
         
                   <div className="nf-actions">
                     <button className="nf-btn-primary" onClick={() => navigate("/")}>
