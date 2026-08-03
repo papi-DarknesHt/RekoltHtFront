@@ -1,0 +1,169 @@
+/* =============================================================
+   RekoltHT — Centre d'aide
+   Fichier autonome, mêmes conventions que ModifierProduit.css :
+   variables préfixées "aide-" propres à .aide-page, classes préfixées
+   "aide-".
+   ============================================================= */
+
+.aide-page {
+  --aide-terracotta: #c1693f;
+  --aide-green: #2f4a3c;
+  --aide-green-light: #e3f3e8;
+  --aide-bg: #f6f4f1;
+  --aide-card: #ffffff;
+  --aide-border: #e7e2dc;
+  --aide-text: #2b2622;
+  --aide-text-muted: #8a8178;
+  --aide-text-light: #6f675f;
+  --aide-radius: 12px;
+  --aide-radius-sm: 8px;
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--aide-bg);
+  color: var(--aide-text);
+  min-height: 100vh;
+}
+
+.aide-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+.aide-header {
+  margin-bottom: 28px;
+}
+
+.aide-header__title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.aide-header__subtitle {
+  font-size: 0.95rem;
+  color: var(--aide-text-light);
+  margin: 0;
+}
+
+.aide-layout {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+/* ===================== Menu latéral ===================== */
+
+.aide-sidebar {
+  flex: 0 0 240px;
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--aide-card);
+  border: 1px solid var(--aide-border);
+  border-radius: var(--aide-radius);
+  padding: 10px;
+}
+
+.aide-sidebar__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: var(--aide-radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--aide-text-light);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.aide-sidebar__item:hover {
+  background: var(--aide-bg);
+  color: var(--aide-text);
+}
+
+.aide-sidebar__item--active {
+  background: var(--aide-green-light);
+  color: var(--aide-green);
+}
+
+/* ===================== Contenu ===================== */
+
+.aide-content {
+  flex: 1;
+  min-width: 0;
+  background: var(--aide-card);
+  border: 1px solid var(--aide-border);
+  border-radius: var(--aide-radius);
+  padding: 28px 32px;
+}
+
+.aide-content__title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0 0 20px;
+}
+
+.aide-item {
+  padding: 16px 0;
+  border-top: 1px solid var(--aide-border);
+}
+
+.aide-item:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.aide-item__question {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.aide-item__reponse {
+  font-size: 0.88rem;
+  color: var(--aide-text-light);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===================== Responsive ===================== */
+
+@media (max-width: 768px) {
+  .aide-layout {
+    flex-direction: column;
+  }
+
+  .aide-sidebar {
+    flex: none;
+    width: 100%;
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .aide-sidebar__item {
+    width: auto;
+  }
+
+  .aide-content {
+    padding: 22px 20px;
+  }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .aide-page {
+  --aide-bg: #14181a;
+  --aide-card: #1f2422;
+  --aide-border: #343b36;
+  --aide-text: #eceae4;
+  --aide-text-muted: #a8a49b;
+  --aide-text-light: #8d8a82;
+  --aide-green-light: #1c2e22;
+}

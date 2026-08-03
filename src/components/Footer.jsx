@@ -11,7 +11,7 @@ export default function Footer() {
             <footer className="profil-footer">
                 <div className="profil-footer__brand">
                     <p className="profil-footer__logo">
-                        <img style={{ width: "50%" }} src={logo} alt="Logo" />
+                        <img style={{ width: "50%" }} src={logo} alt={t("common.logoAlt")} />
                     </p>
                     <p className="profil-footer__tagline">
                         {t("footer.tagline")}
@@ -21,16 +21,16 @@ export default function Footer() {
                 <div className="profil-footer__column">
                     <h4 className="profil-footer__title">{t("footer.navigation")}</h4>
                     <Link to="/">{t("nav.home")}</Link>
-                    <a href="#">{t("nav.products")}</a>
-                    <a href="#">{t("nav.help")}</a>
+                    <Link to="/produits">{t("nav.products")}</Link>
+                    <Link to="/aide">{t("nav.help")}</Link>
                 </div>
 
                 <div className="profil-footer__column">
                     <h4 className="profil-footer__title">{t("footer.information")}</h4>
-                    <a href="#">{t("footer.about")}</a>
-                    <a href="#">{t("footer.helpCenter")}</a>
-                    <a href="#">{t("footer.terms")}</a>
-                    <a href="#">{t("footer.contact")}</a>
+                    <Link to="/qui-sommes-nous">{t("footer.about")}</Link>
+                    <Link to="/aide">{t("footer.helpCenter")}</Link>
+                    <Link to="/politique-utilisation">{t("footer.terms")}</Link>
+                    <Link to="/contact">{t("footer.contact")}</Link>
                 </div>
             </footer>
         </>

@@ -21,8 +21,12 @@ function versProduitAffiche(p, texteNonPrecise) {
   return {
     id: p.id,
     nom: p.nom,
+    description: p.description,
     vendeurId: p.vendeur_id,
     vendeurNom: p.vendeur_nom,
+    vendeurTelephone: p.vendeur_telephone,
+    noteMoyenne: p.note_moyenne,
+    nombreAvis: p.nombre_avis,
     lieu: [p.commune, p.departement].filter(Boolean).join(", ") || p.region || texteNonPrecise,
     prix: p.prix,
     devise: p.unitePrix,
@@ -136,12 +140,12 @@ export default function AfficherProduits() {
   const navigate = useNavigate();
   const produitEvent = useGlobalStore((s) => s.produitEvent);
   const isConnected = useAuthStore((s) => s.isConnected);
+  const utilisateur = useAuthStore((s) => s.utilisateur);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [produits, setProduits] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
-  const [messageContact, setMessageContact] = useState(null);
   const [recherche, setRecherche] = useState(searchParams.get("q") || "");
   const [categorieIds, setCategorieIds] = useState(() => _lireListeParam(searchParams, "categorie"));
   const [sousCategorieIds, setSousCategorieIds] = useState(() => _lireListeParam(searchParams, "sous_categorie"));
@@ -343,16 +347,24 @@ export default function AfficherProduits() {
     majParams({ categorie: [], sousCategorie: [], departement: [], commune: [], sectionComunale: [], prixMin: "", prixMax: "" });
   };
 
-  // voir HomePage.jsx::contacterProduit pour le détail du choix (messagerie
-  // si connecté, sinon simple confirmation)
+  // voir HomePage.jsx::contacterProduit — un visiteur non connecté est
+  // redirigé vers la connexion plutôt que de pouvoir contacter le vendeur
   const contacterProduit = (produit) => {
-    ProduitsApi.contacterProduit(produit.id).catch(() => {});
-    if (isConnected && produit.vendeurId) {
-      navigate(`/messages?avec=${produit.vendeurId}&produit=${produit.id}`);
+    if (!isConnected) {
+      navigate("/auth");
       return;
     }
-    setMessageContact(t("home.contactRecorded"));
-    setTimeout(() => setMessageContact(null), 3000);
+    ProduitsApi.contacterProduit(produit.id).catch(() => {});
+    if (produit.vendeurId) {
+      navigate(`/messages?avec=${produit.vendeurId}&produit=${produit.id}`);
+    }
+  };
+
+  // même compteur "nombre_contacts" que le bouton Contacter — le clic ouvre
+  // directement WhatsApp (lien <a>, voir ProductCard.jsx), pas de navigation
+  // interne à faire ici
+  const contacterViaWhatsapp = (produit) => {
+    ProduitsApi.contacterProduit(produit.id).catch(() => {});
   };
 
   const panneauFiltres = (
@@ -472,8 +484,6 @@ export default function AfficherProduits() {
               </p>
             )}
 
-            {messageContact && <p className="ap2-alert ap2-alert--succes">{messageContact}</p>}
-
             {!chargement && !erreur && produitsPage.length > 0 && (
               <>
                 <p className="ap2-compteur">
@@ -486,6 +496,8 @@ export default function AfficherProduits() {
                       produit={p}
                       onDetails={(pr) => navigate(`/produits/detail?id=${pr.id}`)}
                       onContact={contacterProduit}
+                      onWhatsapp={contacterViaWhatsapp}
+                      utilisateurId={utilisateur?.id}
                     />
                   ))}
                 </div>

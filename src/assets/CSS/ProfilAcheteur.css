@@ -737,3 +737,14 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── MODE SOMBRE ── la quasi-totalité de ce fichier passe déjà par les
+   jetons --rk-* (redéfinis en mode sombre dans src/index.css) ; seuls les
+   couleurs codées en dur ci-dessous ont besoin d'une surcharge propre */
+[data-theme="dark"] .profil-product__badge {
+  background: rgba(31, 36, 34, 0.85);
+}
+
+[data-theme="dark"] .profil-switch__slider::before {
+  background: #ecebe6;
+}

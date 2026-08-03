@@ -228,3 +228,15 @@
     max-width: 92%;
   }
 }
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .ca-page {
+  --ca-green-light: #1c2e22;
+  --ca-danger-light: rgba(192, 57, 43, 0.18);
+  --ca-bg: #14181a;
+  --ca-card: #1f2422;
+  --ca-border: #343b36;
+  --ca-text: #eceae4;
+  --ca-text-muted: #a8a49b;
+  --ca-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

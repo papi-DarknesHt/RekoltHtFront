@@ -24,6 +24,54 @@
     --couleurComp: #3A4F63;
     --white: #FFF;
     --rk-bg: #f6f4f1;
+
+    /* famille de jetons partagée par ProfilAcheteur.css/ModifierProfil.css/
+       AdminDashboard.css (classes .rk-*, .profil-*) — redéclarée ici pour
+       que la surcharge sombre ci-dessous s'applique quel que soit l'ordre
+       de chargement des feuilles de style */
+    --rk-terracotta: #c1693f;
+    --rk-terracotta-dark: #a85a35;
+    --rk-green: #2f4a3c;
+    --rk-green-light: #e3f3e8;
+    --rk-card: #ffffff;
+    --rk-border: #e7e2dc;
+    --rk-text: #2b2622;
+    --rk-text-muted: #8a8178;
+    --rk-text-light: #6f675f;
+    --rk-danger: #c0392b;
+
+    color-scheme: light;
+}
+
+/* ── MODE SOMBRE ────────────────────────────────────────────────────────────
+   Activé en posant data-theme="dark" sur <html> (voir src/api/themeStore.js,
+   appliqué avant le premier rendu pour éviter un flash de thème clair, et
+   basculé par le bouton de NavBar.jsx). Seuls les jetons "neutres" (fonds,
+   texte, bordures) sont redéfinis ici ; les couleurs de marque (--brown,
+   --green, --gold, --rk-terracotta...) restent des accents reconnaissables
+   sur fond sombre. Les autres fichiers CSS du projet (un par page/composant,
+   voir src/assets/CSS/) ajoutent leurs propres règles [data-theme="dark"]
+   pour leurs couleurs codées en dur spécifiques à chaque page. */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --cream: #1c1f1a;
+    --couleurFond: #171a15;
+    --text: #eceae4;
+    --muted: #a8a49b;
+    --rk-bg: #14181a;
+    --rk-card: #1f2422;
+    --rk-border: #343b36;
+    --rk-text: #eceae4;
+    --rk-text-muted: #a8a49b;
+    --rk-text-light: #8d8a82;
+    --rk-green-light: #1c2e22;
+}
+
+html, body {
+    background: var(--cream);
+    color: var(--text);
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 

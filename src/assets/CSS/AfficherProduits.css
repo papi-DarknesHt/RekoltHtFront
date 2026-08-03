@@ -396,3 +396,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── MODE SOMBRE ── toutes les couleurs de ce fichier passant par les
+   variables --ap2-* définies sur .ap2-page, il suffit de les redéfinir ici */
+[data-theme="dark"] .ap2-page {
+  --ap2-green-light: #1c2e22;
+  --ap2-danger-light: rgba(192, 57, 43, 0.15);
+  --ap2-bg: #14181a;
+  --ap2-card: #1f2422;
+  --ap2-border: #343b36;
+  --ap2-text: #eceae4;
+  --ap2-text-muted: #a8a49b;
+}

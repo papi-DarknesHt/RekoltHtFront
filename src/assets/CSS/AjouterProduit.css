@@ -507,3 +507,19 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .ap-page {
+  --ap-green-light: #1c2e22;
+  --ap-bg: #14181a;
+  --ap-card: #1f2422;
+  --ap-border: #343b36;
+  --ap-text: #eceae4;
+  --ap-text-muted: #a8a49b;
+  --ap-text-light: #8d8a82;
+  --ap-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .ap-alert--error {
+  background: rgba(192, 57, 43, 0.18);
+}

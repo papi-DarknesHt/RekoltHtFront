@@ -1,0 +1,139 @@
+/* =============================================================
+   RekoltHT — Politique d'utilisation (public)
+   Fichier autonome : ne dépend d'aucune variable/classe définie ailleurs.
+   Toutes les classes sont préfixées "pu-".
+   ============================================================= */
+
+.pu-page {
+  --pu-terracotta: #c1693f;
+  --pu-green: #2f4a3c;
+  --pu-green-light: #e3f3e8;
+  --pu-bg: #f6f4f1;
+  --pu-card: #ffffff;
+  --pu-border: #e7e2dc;
+  --pu-text: #2b2622;
+  --pu-text-muted: #8a8178;
+  --pu-radius: 12px;
+  --pu-radius-sm: 8px;
+  --pu-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--pu-bg);
+  color: var(--pu-text);
+  min-height: 100vh;
+}
+
+.pu-page * {
+  box-sizing: border-box;
+}
+
+.pu-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+}
+
+/* ===================== En-tête ===================== */
+
+.pu-header {
+  margin-bottom: 12px;
+}
+
+.pu-header__title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.pu-header__updated {
+  font-size: 0.85rem;
+  color: var(--pu-text-muted);
+  margin: 0;
+}
+
+.pu-intro {
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--pu-text-muted);
+  margin: 18px 0 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--pu-border);
+}
+
+/* ===================== Sections ===================== */
+
+.pu-section {
+  margin-bottom: 26px;
+}
+
+.pu-section__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--pu-terracotta);
+  margin: 0 0 8px;
+}
+
+.pu-section__text {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--pu-text);
+  margin: 0;
+}
+
+/* ===================== Contact ===================== */
+
+.pu-contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+  padding: 20px 24px;
+  background: var(--pu-green-light);
+  border-radius: var(--pu-radius);
+}
+
+.pu-contact__text {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--pu-green);
+  margin: 0;
+}
+
+.pu-contact__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: var(--pu-radius-sm);
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 10px 20px;
+  cursor: pointer;
+  background: var(--pu-green);
+  color: #fff;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.pu-contact__link:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .pu-container {
+    padding: 20px 16px 48px;
+  }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .pu-page {
+  --pu-green-light: #1c2e22;
+  --pu-bg: #14181a;
+  --pu-card: #1f2422;
+  --pu-border: #343b36;
+  --pu-text: #eceae4;
+  --pu-text-muted: #a8a49b;
+  --pu-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

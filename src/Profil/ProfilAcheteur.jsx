@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import "../assets/CSS/ProfilAcheteur.css";
 import NavBar from "../components/NavBar.jsx";
+import BoutonRetour from "../components/BoutonRetour.jsx";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../Registration/AuthentificationStore";
@@ -140,7 +141,7 @@ export default function ProfilAcheteur() {
           <div className="profil-sidebar__user">
             <div className="profil-sidebar__avatar">
               {avatarAffiche ? (
-                <img src={avatarAffiche} alt={isEntreprise ? "Logo entreprise" : "Photo profil"} className="profil-sidebar__avatar-image" />
+                <img src={avatarAffiche} alt={isEntreprise ? t("profile.logoTitle") : t("profile.photoTitle")} className="profil-sidebar__avatar-image" />
               ) : (
                 <User size={20} />
               )}
@@ -204,6 +205,7 @@ export default function ProfilAcheteur() {
 
         {/* ===== Contenu principal ===== */}
         <main className="profil-main">
+          <BoutonRetour />
           {activeTab === "personal" && (
             <>
               <div className="profil-header">
@@ -286,7 +288,7 @@ export default function ProfilAcheteur() {
                           <p className="profil-seller__name">{seller.name}</p>
                           <p className="profil-seller__contact">{seller.lastContact}</p>
                         </div>
-                        <button className="profil-icon-btn" aria-label={`Message à ${seller.name}`}>
+                        <button className="profil-icon-btn" aria-label={t("profile.messageToAria", { nom: seller.name })}>
                           <MessageSquare size={18} />
                         </button>
                       </li>
@@ -357,10 +359,6 @@ export default function ProfilAcheteur() {
                   </h3>
 
                   <div className="profil-contact-grid">
-                    <div>
-                      <p className="profil-field-label">{t("profile.companyRegNum")}</p>
-                      <p className="profil-field-value">{entreprise.num_Enregistrement}</p>
-                    </div>
                     <div>
                       <p className="profil-field-label">{t("profile.companySector")}</p>
                       <p className="profil-field-value">{entreprise.secteur}</p>
@@ -453,7 +451,7 @@ export default function ProfilAcheteur() {
                         )}
                         <div className="profil-seller__info">
                           <p className="profil-seller__name">{e.nom_Entreprise}</p>
-                          <p className="profil-seller__contact">{e.num_Enregistrement} — {e.secteur}</p>
+                          <p className="profil-seller__contact">{e.secteur}</p>
                         </div>
                         <span className="profil-badge">{e.statut_verification}</span>
                       </li>

@@ -43,3 +43,17 @@
   transform: rotate(180deg);
   transition: transform 0.2s;
 }
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .lang-menu {
+  background: var(--rk-card, #1f2422);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .lang-item {
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .lang-item:hover {
+  background: var(--rk-border, #343b36);
+}

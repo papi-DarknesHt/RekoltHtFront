@@ -75,7 +75,7 @@ export default function CaptureSelfie({ value, onChange }) {
   if (value) {
     return (
       <div className="dv-selfie-wrap">
-        <img src={previewUrl} alt="Selfie" className="dv-selfie-preview" />
+        <img src={previewUrl} alt={t("common.selfieAlt")} className="dv-selfie-preview" />
         <button type="button" className="rk-btn dv-btn-secondary" onClick={() => onChange(null)}>
           {t("seller.selfieRetake")}
         </button>

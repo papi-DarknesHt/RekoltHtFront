@@ -10,7 +10,9 @@ import { useTranslation } from "../assets/Translate/i18n.jsx";
 import departementsData from "../assets/Departements/haiti_departements.json";
 import CaptureSelfie from "../components/CaptureSelfie.jsx";
 import MapSelectionGPS from "../components/MapSelectionGPS.jsx";
+import { fusionnerLocalisationDetectee, niveauDetecteDepuisLoc } from "../utils/geoLookup.js";
 import { useChatbotStore } from "../components/chatbotStore.js";
+import BoutonRetour from "../components/BoutonRetour.jsx";
 
 // clé de traduction du libellé pour chaque type_document (DemandeVerification.TYPE_DOCUMENT côté backend)
 const LABEL_TYPE_DOCUMENT = { passeport: "seller.passport", permis: "seller.driverLicense", cin: "seller.nationalId" };
@@ -26,6 +28,7 @@ const FORM_INITIAL = {
     document_verso: null,
     certificat_patente: null,
     selfie: null,
+    adresse: "",
     departement: "",
     commune: "",
     section_communale: "",
@@ -63,6 +66,7 @@ function sauvegarderBrouillon(etape, form) {
             form: {
                 type_document: form.type_document,
                 numero_piece_saisi: form.numero_piece_saisi,
+                adresse: form.adresse,
                 departement: form.departement,
                 commune: form.commune,
                 section_communale: form.section_communale,
@@ -209,6 +213,7 @@ export default function DevenirVendeur() {
     const [previewLoading, setPreviewLoading] = useState(false);
     const [serverError, setServerError] = useState(null);
     const [selfiePreviewUrl, setSelfiePreviewUrl] = useState(null);
+    const [localisationNiveauDetecte, setLocalisationNiveauDetecte] = useState(null); // "section" | "commune" | "departement" | "aucun" | null (pas encore de point posé)
     const [draftEtape, setDraftEtape] = useState(null);       // étape du brouillon localStorage, en attente de validation
     const [draftApplied, setDraftApplied] = useState(false);  // affiche la notice "progression restaurée"
     const draftAppliedRef = useRef(false);
@@ -247,17 +252,21 @@ export default function DevenirVendeur() {
     }, [utilisateur]);
 
     // pré-remplissage localisation depuis le compte (déjà géré auparavant pour
-    // commune côté individuel — étendu ici à l'entreprise et au point GPS)
+    // commune côté individuel — étendu ici à l'entreprise, à l'adresse, au
+    // département/section communale et au point GPS)
     useEffect(() => {
         if (!profil) return;
-        const communeExistante = isEntreprise ? (entreprise?.commune || "") : (profil.commune || "");
-        const coordExistant = isEntreprise
-            ? (entreprise?.latitude != null && entreprise?.longitude != null ? { lat: entreprise.latitude, lng: entreprise.longitude } : null)
-            : (profil.latitude != null && profil.longitude != null ? { lat: profil.latitude, lng: profil.longitude } : null);
+        const source = isEntreprise ? entreprise : profil;
+        const communeExistante = source?.commune || "";
+        const coordExistant = source?.latitude != null && source?.longitude != null
+            ? { lat: source.latitude, lng: source.longitude }
+            : null;
         setForm(prev => ({
             ...prev,
-            departement: prev.departement || trouverDepartementPourCommune(communeExistante),
+            adresse: prev.adresse || source?.adresse || "",
+            departement: prev.departement || source?.departement || trouverDepartementPourCommune(communeExistante),
             commune: prev.commune || communeExistante,
+            section_communale: prev.section_communale || source?.section_communale || "",
             coord: prev.coord || coordExistant,
         }));
     }, [profil, entreprise, isEntreprise]);
@@ -416,6 +425,10 @@ export default function DevenirVendeur() {
             const formData = construireFormData();
             formData.append("latitude", form.coord.lat);
             formData.append("longitude", form.coord.lng);
+            formData.append("adresse", form.adresse.trim());
+            formData.append("departement", form.departement);
+            formData.append("commune", form.commune);
+            formData.append("section_communale", form.section_communale);
 
             const res = await AuthentificationApi.soumettreVerification(formData);
             setVerification(res.verification);
@@ -470,6 +483,7 @@ export default function DevenirVendeur() {
         return (
             <div className="dv-root">
                 <div className="dv-container" style={{ textAlign: "center", paddingTop: "4rem" }}>
+                    <BoutonRetour />
                     <p style={{ color: "#888", marginBottom: "1rem" }}>
                         {t("seller.notConnected")}
                     </p>
@@ -484,6 +498,7 @@ export default function DevenirVendeur() {
     return (
         <div className="dv-root">
             <div className="dv-container">
+                <BoutonRetour />
 
                 <div className="dv-header">
                     <h1 className="dv-title">{t("seller.pageTitle")}</h1>
@@ -647,6 +662,37 @@ export default function DevenirVendeur() {
                             <>
                                 <p className="dv-section-label">{t("seller.step4Title")}</p>
 
+                                <p className="dv-section-label">{t("seller.gpsSectionLabel")}</p>
+                                <MapSelectionGPS
+                                    value={form.coord}
+                                    onChange={(coord) => setForm(prev => ({ ...prev, coord }))}
+                                    onLocalisationDetectee={(loc) => {
+                                        // setForm fonctionnel : onLocalisationDetectee arrive après un
+                                        // délai réseau (résolution géographique asynchrone) — un `form`
+                                        // capturé par closure serait périmé et écraserait le `coord` posé
+                                        // entre-temps par onChange (voir commentaire dans geoLookup.js)
+                                        setForm(prev => fusionnerLocalisationDetectee(prev, loc).valeurs);
+                                        setLocalisationNiveauDetecte(niveauDetecteDepuisLoc(loc));
+                                    }}
+                                    onAdresseDetectee={(texte) => setForm(prev => ({ ...prev, adresse: prev.adresse || texte }))}
+                                />
+                                {fieldErrors.coord && <p className="rk-error">✗ {fieldErrors.coord}</p>}
+                                {localisationNiveauDetecte === "aucun" && (
+                                    <p className="rk-hint">{t("seller.locationDetectNone")}</p>
+                                )}
+                                {localisationNiveauDetecte === "departement" && (
+                                    <p className="rk-hint">{t("seller.locationDetectCommuneOnly")}</p>
+                                )}
+                                {localisationNiveauDetecte === "commune" && (
+                                    <p className="rk-hint">{t("seller.locationDetectSectionOnly")}</p>
+                                )}
+
+                                {/* département → commune → section : ordre de sélection en cascade
+                                    (chaque niveau dépend du choix du niveau au-dessus, voir
+                                    communesDisponibles/sectionsDisponibles) — inverser cet ordre
+                                    casserait la logique de désactivation progressive des selects.
+                                    L'ordre "adresse, section, commune, département, pays" demandé
+                                    est appliqué au récapitulatif en lecture seule (étape 5). */}
                                 <div className="rk-field">
                                     <label className="rk-label">
                                         {t("auth.departement")}<span style={{ color: "#e24b4a" }}>*</span>
@@ -698,9 +744,10 @@ export default function DevenirVendeur() {
                                     {fieldErrors.section_communale && <p className="rk-error">✗ {fieldErrors.section_communale}</p>}
                                 </div>
 
-                                <p className="dv-section-label">{t("seller.gpsSectionLabel")}</p>
-                                <MapSelectionGPS value={form.coord} onChange={(coord) => setForm(prev => ({ ...prev, coord }))} />
-                                {fieldErrors.coord && <p className="rk-error">✗ {fieldErrors.coord}</p>}
+                                <div className="rk-field">
+                                    <label className="rk-label">{t("auth.country")}</label>
+                                    <input className="rk-input dv-disabled" value={t("auth.haiti")} disabled readOnly />
+                                </div>
                             </>
                         )}
 
@@ -738,7 +785,7 @@ export default function DevenirVendeur() {
                                         )}
                                         <div className="dv-recap-row">
                                             <span className="dv-recap-label">{t("seller.recapSelfie")}</span>
-                                            {selfiePreviewUrl && <img src={selfiePreviewUrl} alt="Selfie" className="dv-recap-selfie" />}
+                                            {selfiePreviewUrl && <img src={selfiePreviewUrl} alt={t("common.selfieAlt")} className="dv-recap-selfie" />}
                                         </div>
                                     </>
                                 )}
@@ -756,11 +803,28 @@ export default function DevenirVendeur() {
                                     </>
                                 )}
 
+                                {/* ordre demandé : adresse, section communale, commune,
+                                    département, pays — lecture seule, pas de contrainte
+                                    de cascade ici contrairement aux selects de l'étape 4 */}
                                 <div className="dv-recap-row">
-                                    <span className="dv-recap-label">{t("seller.recapLocation")}</span>
-                                    <span className="dv-recap-value">
-                                        {[form.section_communale, form.commune, form.departement].filter(Boolean).join(", ")}
-                                    </span>
+                                    <span className="dv-recap-label">{t("auth.address")}</span>
+                                    <span className="dv-recap-value">{form.adresse || "—"}</span>
+                                </div>
+                                <div className="dv-recap-row">
+                                    <span className="dv-recap-label">{t("auth.sectionCommunale")}</span>
+                                    <span className="dv-recap-value">{form.section_communale || "—"}</span>
+                                </div>
+                                <div className="dv-recap-row">
+                                    <span className="dv-recap-label">{t("auth.commune")}</span>
+                                    <span className="dv-recap-value">{form.commune || "—"}</span>
+                                </div>
+                                <div className="dv-recap-row">
+                                    <span className="dv-recap-label">{t("auth.departement")}</span>
+                                    <span className="dv-recap-value">{form.departement || "—"}</span>
+                                </div>
+                                <div className="dv-recap-row">
+                                    <span className="dv-recap-label">{t("auth.country")}</span>
+                                    <span className="dv-recap-value">{t("auth.haiti")}</span>
                                 </div>
 
                                 <div className="dv-recap-row">

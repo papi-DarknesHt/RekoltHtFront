@@ -568,3 +568,95 @@
 .red{
   color: red;
 }
+
+/* ── MODE SOMBRE ──────────────────────────────────────────────────────────
+   .rk-* est le système de formulaire partagé par la quasi-totalité des
+   pages (profil, produits, KYC, support...) : ces surcharges s'appliquent
+   donc bien au-delà de la page de connexion elle-même. */
+[data-theme="dark"] .rk-root {
+  background: var(--rk-bg, #14181a);
+}
+
+[data-theme="dark"] .rk-card {
+  background: var(--rk-card, #1f2422);
+  border-color: var(--rk-border, #343b36);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .rk-card-sub,
+[data-theme="dark"] .rk-hint,
+[data-theme="dark"] .rk-forgot-desc,
+[data-theme="dark"] .rk-back-link,
+[data-theme="dark"] .rk-select-wrap::after {
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .rk-back-link:hover {
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .rk-label {
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .rk-tab.active {
+  background: var(--rk-card, #1f2422);
+  color: #6fcf6f;
+}
+
+[data-theme="dark"] .rk-file-label {
+  background: var(--rk-bg, #14181a);
+  border-color: var(--rk-border, #343b36);
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .rk-file-label:hover {
+  border-color: #6fcf6f;
+  background: var(--rk-green-light, #1c2e22);
+  color: #6fcf6f;
+}
+
+[data-theme="dark"] .rk-file-label.has-file {
+  background: var(--rk-green-light, #1c2e22);
+  color: #6fcf6f;
+}
+
+[data-theme="dark"] .rk-input,
+[data-theme="dark"] .rk-select {
+  background: var(--rk-bg, #14181a);
+  border-color: var(--rk-border, #343b36);
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .rk-input:focus,
+[data-theme="dark"] .rk-select:focus {
+  background: var(--rk-card, #1f2422);
+  border-color: #6fcf6f;
+}
+
+[data-theme="dark"] .rk-divider {
+  color: var(--rk-text-light, #8d8a82);
+}
+
+[data-theme="dark"] .rk-divider::before,
+[data-theme="dark"] .rk-divider::after {
+  background: var(--rk-border, #343b36);
+}
+
+[data-theme="dark"] .rk-switch a {
+  color: #6fcf6f;
+}
+
+[data-theme="dark"] .rk-success {
+  background: var(--rk-green-light, #1c2e22);
+  border-color: #2f4a3c;
+  color: #8fe08f;
+}
+
+[data-theme="dark"] .rk-pw-toggle {
+  color: var(--rk-text-light, #8d8a82);
+}
+
+[data-theme="dark"] .rk-pw-toggle:hover {
+  color: var(--rk-text, #eceae4);
+}

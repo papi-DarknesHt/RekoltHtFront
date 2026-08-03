@@ -1,0 +1,204 @@
+/* =============================================================
+   RekoltHT — Contactez-nous (public)
+   Fichier autonome : ne dépend d'aucune variable/classe définie ailleurs.
+   Toutes les classes sont préfixées "cn-".
+   ============================================================= */
+
+.cn-page {
+  --cn-terracotta: #c1693f;
+  --cn-green: #2f4a3c;
+  --cn-green-light: #e3f3e8;
+  --cn-danger: #c0392b;
+  --cn-danger-light: rgba(192, 57, 43, 0.08);
+  --cn-bg: #f6f4f1;
+  --cn-card: #ffffff;
+  --cn-border: #e7e2dc;
+  --cn-text: #2b2622;
+  --cn-text-muted: #8a8178;
+  --cn-radius: 12px;
+  --cn-radius-sm: 8px;
+  --cn-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--cn-bg);
+  color: var(--cn-text);
+  min-height: 100vh;
+}
+
+.cn-page * {
+  box-sizing: border-box;
+}
+
+.cn-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.cn-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.cn-header__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--cn-radius);
+  background: var(--cn-green-light);
+  color: var(--cn-green);
+  flex-shrink: 0;
+}
+
+.cn-header__title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.cn-header__subtitle {
+  color: var(--cn-text-muted);
+  margin: 0;
+}
+
+.cn-infos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.cn-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--cn-text-muted);
+}
+
+.cn-form {
+  background: var(--cn-card);
+  border: 1px solid var(--cn-border);
+  border-radius: var(--cn-radius);
+  box-shadow: var(--cn-shadow);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cn-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cn-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cn-row .cn-field {
+  flex: 1 1 220px;
+}
+
+.cn-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cn-text);
+}
+
+.cn-input,
+.cn-textarea {
+  padding: 11px 14px;
+  border: 1.5px solid var(--cn-border);
+  border-radius: var(--cn-radius-sm);
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--cn-text);
+  background: var(--cn-bg);
+  transition: border-color 0.15s ease;
+}
+
+.cn-textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+
+.cn-input:focus,
+.cn-textarea:focus {
+  outline: none;
+  border-color: var(--cn-terracotta);
+  background: var(--cn-card);
+}
+
+.cn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  align-self: flex-start;
+  border: none;
+  border-radius: var(--cn-radius-sm);
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 12px 26px;
+  cursor: pointer;
+  background: var(--cn-green);
+  color: #fff;
+  transition: opacity 0.15s ease;
+}
+
+.cn-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.cn-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cn-alert {
+  padding: 11px 14px;
+  border-radius: var(--cn-radius-sm);
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cn-alert--error {
+  color: var(--cn-danger);
+  background: var(--cn-danger-light);
+}
+
+.cn-alert--succes {
+  color: var(--cn-green);
+  background: var(--cn-green-light);
+}
+
+@media (max-width: 640px) {
+  .cn-container {
+    padding: 20px 16px 40px;
+  }
+
+  .cn-form {
+    padding: 18px;
+  }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .cn-page {
+  --cn-green-light: #1c2e22;
+  --cn-danger-light: rgba(192, 57, 43, 0.18);
+  --cn-bg: #14181a;
+  --cn-card: #1f2422;
+  --cn-border: #343b36;
+  --cn-text: #eceae4;
+  --cn-text-muted: #a8a49b;
+  --cn-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

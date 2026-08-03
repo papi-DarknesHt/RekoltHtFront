@@ -1,5 +1,15 @@
+import { traduireErreurApi } from "./apiErrors.js";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "https://rekolthtbackend.onrender.com";
+
+// préfère le message traduit (voir error_code renvoyé par le backend et
+// apiErrors.* dans les fichiers de traduction) — ne couvre pour l'instant que
+// les erreurs les plus fréquentes/génériques ; les autres retombent sur le
+// message brut renvoyé par Django (toujours en français)
+function resoudreMessageErreur(data, status) {
+  const traduit = traduireErreurApi(data?.error_code, data?.error_params);
+  return traduit || data?.error || data?.message || data?.detail || `Erreur ${status}`;
+}
 
 async function request(path, options = {}) {
   const token = localStorage.getItem("token");
@@ -25,8 +35,13 @@ async function request(path, options = {}) {
       throw new Error("session-expired");
     }
     const data = await res.json().catch(() => ({}));
-    const message = data?.error || data?.message || data?.detail || `Erreur ${res.status}`;
-    throw new Error(message);
+    const erreur = new Error(resoudreMessageErreur(data, res.status));
+    // status/code exposés pour les appelants qui doivent distinguer un cas
+    // précis (ex: 404 "pas encore configuré" vs une vraie erreur) sans
+    // dépendre du texte du message traduit — voir e2eStore.js::garantirCleE2E
+    erreur.status = res.status;
+    erreur.code = data?.error_code;
+    throw erreur;
   }
   // DELETE retourne souvent un body vide
   if (res.status === 204) return {};
@@ -46,8 +61,7 @@ async function requestBlob(path, options = {}) {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    const message = data?.error || data?.message || data?.detail || `Erreur ${res.status}`;
-    throw new Error(message);
+    throw new Error(resoudreMessageErreur(data, res.status));
   }
   return res.blob();
 }
@@ -58,4 +72,5 @@ export const api = {
   put: (path, body) => request(path, { method: "PUT", body: body instanceof FormData ? body : JSON.stringify(body) }),
   delete: (path, body) => request(path, { method: "DELETE", body: body !== undefined ? JSON.stringify(body) : undefined }),
   postBlob: (path, body) => requestBlob(path, { method: "POST", body }),
+  getBlob: (path) => requestBlob(path, { method: "GET" }),
 };

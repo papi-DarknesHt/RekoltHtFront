@@ -545,3 +545,14 @@
   transition: all 0.2s;
   font-family: 'DM Sans', sans-serif;
 }
+
+/* ── MODE SOMBRE ── ce fichier passe déjà par --rk-*, --couleurFond et --text
+   (redéfinis en mode sombre dans src/index.css) ; seuls les blancs codés en
+   dur ci-dessous ont besoin d'une surcharge propre */
+[data-theme="dark"] .edit-btn--outline {
+  background: var(--rk-card);
+}
+
+[data-theme="dark"] .edit-input:focus {
+  background: var(--rk-card);
+}

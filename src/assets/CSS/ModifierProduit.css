@@ -452,3 +452,16 @@
     flex-direction: column-reverse;
   }
 }
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .mep-page {
+  --mep-green-light: #1c2e22;
+  --mep-bg: #14181a;
+  --mep-card: #1f2422;
+  --mep-border: #343b36;
+  --mep-text: #eceae4;
+  --mep-text-muted: #a8a49b;
+  --mep-text-light: #8d8a82;
+  --mep-danger-light: rgba(192, 57, 43, 0.18);
+  --mep-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

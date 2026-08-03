@@ -67,6 +67,130 @@
   line-height: 1.5;
 }
 
+/* ── PANNEAU "CHAT" (assistant FAQ interactif) ── */
+.cv-panel--chat {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cv-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  max-height: 320px;
+  min-height: 80px;
+  overflow-y: auto;
+}
+
+.cv-message {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  max-width: 88%;
+  white-space: pre-wrap;
+}
+
+.cv-message--bot {
+  align-self: flex-start;
+  background: #f2f0eb;
+  color: #333;
+  border-bottom-left-radius: 4px;
+}
+
+.cv-message--moi {
+  align-self: flex-end;
+  background: var(--couleurSecondaire, #1a3d1a);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.cv-message--attente {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.cv-escalade-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 10px;
+}
+
+.cv-btn {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: transparent;
+  color: #444;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cv-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.cv-btn--primary {
+  border-color: var(--couleurSecondaire, #1a3d1a);
+  background: var(--couleurSecondaire, #1a3d1a);
+  color: #fff;
+}
+
+.cv-btn--primary:hover {
+  opacity: 0.9;
+  background: var(--couleurSecondaire, #1a3d1a);
+}
+
+.cv-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.cv-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: transparent;
+  color: inherit;
+}
+
+.cv-input:focus {
+  border-color: var(--couleurSecondaire, #1a3d1a);
+}
+
+.cv-send {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--couleurSecondaire, #1a3d1a);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cv-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 600px) {
   .cv-wrap {
     bottom: 16px;
@@ -75,4 +199,40 @@
   .cv-panel {
     width: min(260px, calc(100vw - 32px));
   }
+  .cv-panel--chat {
+    width: min(320px, calc(100vw - 32px));
+  }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .cv-panel {
+  background: var(--rk-card, #1f2422);
+  border-color: var(--rk-border, #343b36);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .cv-panel-text {
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .cv-message--bot {
+  background: var(--rk-border, #343b36);
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .cv-btn {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .cv-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .cv-input-row {
+  border-top-color: var(--rk-border, #343b36);
+}
+
+[data-theme="dark"] .cv-input {
+  border-color: var(--rk-border, #343b36);
 }
