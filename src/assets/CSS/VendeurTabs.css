@@ -53,3 +53,17 @@
     padding: 9px 10px;
   }
 }
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .vtabs {
+  background: var(--rk-card, #1f2422);
+  border-color: var(--rk-border, #343b36);
+}
+
+[data-theme="dark"] .vtabs__onglet {
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .vtabs__onglet:hover {
+  background: var(--rk-bg, #14181a);
+}

@@ -352,3 +352,51 @@
   transition: all 0.2s;
   font-family: 'DM Sans', sans-serif;
 }
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .dropdown-menu {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .dropdown-header {
+  background: var(--rk-card);
+  border-bottom-color: var(--rk-border);
+}
+
+[data-theme="dark"] .dropdown-avatar {
+  border-color: var(--rk-border);
+}
+
+[data-theme="dark"] .dropdown-avatar-placeholder {
+  background: var(--rk-border);
+  color: var(--rk-text-muted);
+}
+
+[data-theme="dark"] .dropdown-header p {
+  color: var(--rk-text);
+}
+
+[data-theme="dark"] .dropdown-header span,
+[data-theme="dark"] .nav-notif-vide {
+  color: var(--rk-text-muted);
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--rk-text);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background: var(--rk-border);
+}
+
+[data-theme="dark"] .divider {
+  background: var(--rk-border);
+}
+
+[data-theme="dark"] .rk-tabs {
+  background: var(--rk-bg);
+}
+
+[data-theme="dark"] .rk-tab {
+  color: var(--rk-text-muted);
+}

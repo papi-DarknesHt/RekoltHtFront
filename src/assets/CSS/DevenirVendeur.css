@@ -291,6 +291,22 @@
   text-align: center;
 }
 
+.dv-map-manual-toggle {
+  display: block;
+  margin: 6px auto 0;
+  background: none;
+  border: none;
+  color: #6bbf6b;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.dv-map-manual-toggle:hover {
+  color: #8fd48f;
+}
+
 /* ── ÉCRAN DE STATUT (étape 6) ──────────────────────────────────────────────── */
 .dv-status-card {
   text-align: center;
@@ -384,4 +400,93 @@
   .dv-title {
     font-size: 22px;
   }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .dv-root {
+  background: var(--rk-bg, #14181a);
+}
+
+[data-theme="dark"] .dv-subtitle,
+[data-theme="dark"] .dv-stepper-label,
+[data-theme="dark"] .dv-selfie-fallback-hint,
+[data-theme="dark"] .dv-map-hint,
+[data-theme="dark"] .dv-status-text {
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .dv-disabled {
+  background: var(--rk-bg, #14181a) !important;
+  color: var(--rk-text-muted, #a8a49b) !important;
+  border-color: var(--rk-border, #343b36) !important;
+}
+
+[data-theme="dark"] .dv-disabled:focus {
+  border-color: var(--rk-border, #343b36) !important;
+}
+
+[data-theme="dark"] .dv-char-count {
+  color: var(--rk-text-light, #8d8a82);
+}
+
+[data-theme="dark"] .dv-file-label {
+  background: var(--rk-bg, #14181a);
+  border-color: var(--rk-border, #343b36);
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .dv-file-label:hover {
+  border-color: #6fcf6f;
+  background: var(--rk-green-light, #1c2e22);
+  color: #6fcf6f;
+}
+
+[data-theme="dark"] .dv-file-label.has-file {
+  background: var(--rk-green-light, #1c2e22);
+  color: #6fcf6f;
+}
+
+[data-theme="dark"] .dv-section-label {
+  color: var(--rk-text-light, #8d8a82);
+  border-bottom-color: var(--rk-border, #343b36);
+}
+
+[data-theme="dark"] .dv-stepper-track {
+  background: var(--rk-border, #343b36);
+}
+
+[data-theme="dark"] .dv-btn-secondary {
+  background: var(--rk-border, #343b36) !important;
+  color: var(--rk-text, #eceae4) !important;
+}
+
+[data-theme="dark"] .dv-btn-secondary:hover {
+  background: var(--rk-text-light, #8d8a82) !important;
+}
+
+[data-theme="dark"] .dv-recap-row {
+  border-bottom-color: var(--rk-border, #343b36);
+}
+
+[data-theme="dark"] .dv-recap-label {
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .dv-recap-value {
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .dv-status-pending {
+  background: #3a2f14;
+  color: #e0b84a;
+}
+
+[data-theme="dark"] .dv-status-success {
+  background: var(--rk-green-light, #1c2e22);
+  color: #8fe08f;
+}
+
+[data-theme="dark"] .dv-status-failed {
+  background: rgba(192, 57, 43, 0.18);
+  color: #e88a84;
 }

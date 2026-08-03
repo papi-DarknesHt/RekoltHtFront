@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
+import { useEffect, useState } from "react";
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
+import { ProduitsApi } from "../api/produits";
+import { useTranslation } from "../assets/Translate/i18n.jsx";
+import logoSite from "../assets/Images/Asset5.svg";
 
 // Taille de la carte
 const MAP_SIZE = { width: "100%", height: "260px" };
@@ -7,17 +10,34 @@ const MAP_SIZE = { width: "100%", height: "260px" };
 // Centré sur Haïti (utilisé tant qu'on n'a pas la position réelle)
 const CENTRE_HAITI = { lat: 18.9712, lng: -72.2852 };
 
-// Distance au-delà de laquelle un produit est considéré "loin"
+// Distance au-delà de laquelle un vendeur est considéré "loin"
 const SEUIL_LOIN_KM = 10;
 
-// Produits avec leurs coordonnées GPS
-const MARQUEURS = [
-  { id: 1, nom: "Zaboka",  lat: 19.1467, lng: -71.8489 }, // Hinche
-  { id: 2, nom: "Sitwon",  lat: 18.7896, lng: -72.1234 }, // Mayisad
-  { id: 3, nom: "Kalalou", lat: 19.1467, lng: -71.8489 }, // Hinche
-  { id: 4, nom: "Mango",   lat: 19.4500, lng: -72.6833 }, // Gonaïves
-  { id: 5, nom: "Bannann", lat: 18.2342, lng: -72.5345 }, // Jacmel
-];
+// Icône de marqueur circulaire (photo de profil du vendeur, ou logo du site
+// si le vendeur n'en a pas) avec un anneau coloré reprenant le code
+// pré/loin déjà utilisé sur les marqueurs — construite comme un data URI SVG
+// (pas un canvas) : la balise <image> référence l'URL directement, ce que le
+// moteur de rendu SVG charge comme une <img> normale, sans jamais lire les
+// pixels en JS. Ça évite tout souci de canvas "taint" par CORS que poserait
+// un data URI généré via canvas.toDataURL() sur une photo hébergée ailleurs.
+function construireIconeVendeur(photoUrl, couleurAnneau) {
+  const taille = 44;
+  const rayon = taille / 2;
+  // échappe les caractères XML réservés (une URL réelle — Cloudinary,
+  // Django media — peut contenir "&" dans sa query string, ce qui casserait
+  // le XML du SVG sans cet échappement)
+  const hrefEchappe = photoUrl.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${taille}" height="${taille}" viewBox="0 0 ${taille} ${taille}">
+    <defs><clipPath id="rond"><circle cx="${rayon}" cy="${rayon}" r="${rayon - 4}" /></clipPath></defs>
+    <circle cx="${rayon}" cy="${rayon}" r="${rayon - 2}" fill="#fff" stroke="${couleurAnneau}" stroke-width="3.5" />
+    <image href="${hrefEchappe}" x="4" y="4" width="${taille - 8}" height="${taille - 8}" clip-path="url(#rond)" preserveAspectRatio="xMidYMid slice" />
+  </svg>`;
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    scaledSize: new window.google.maps.Size(taille, taille),
+    anchor: new window.google.maps.Point(rayon, rayon),
+  };
+}
 
 // Distance à vol d'oiseau entre deux points GPS (formule de Haversine), en km
 function distanceKm(a, b) {
@@ -35,6 +55,7 @@ function distanceKm(a, b) {
 }
 
 export default function MapHaiti() {
+  const { t } = useTranslation();
   // Charge l'API Google Maps avec la clé depuis .env
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_KEY,
@@ -42,6 +63,8 @@ export default function MapHaiti() {
 
   // Position réelle de l'utilisateur (fallback : centre d'Haïti)
   const [position, setPosition] = useState(CENTRE_HAITI);
+  const [vendeurs, setVendeurs] = useState([]);
+  const [vendeurSurvole, setVendeurSurvole] = useState(null);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -52,15 +75,16 @@ export default function MapHaiti() {
     );
   }, []);
 
-  // Marqueurs enrichis avec la distance réelle et le statut "loin"
-  const marqueurs = useMemo(
-    () =>
-      MARQUEURS.map((m) => {
-        const distance = distanceKm(position, m);
-        return { ...m, distance, loin: distance > SEUIL_LOIN_KM };
-      }),
-    [position]
-  );
+  // vendeurs ayant au moins un produit disponible et une position GPS connue
+  // (voir Produits/views/produitsViews.py::listerVendeursCarte) — public,
+  // aucune connexion requise
+  useEffect(() => {
+    ProduitsApi.listerVendeursCarte()
+      .then((res) => setVendeurs(res.vendeurs || []))
+      .catch(() => {});
+  }, []);
+
+  const vendeurAffiche = vendeurs.find((v) => v.vendeur_id === vendeurSurvole) || null;
 
   // Affiche un placeholder pendant le chargement
   if (!isLoaded) {
@@ -75,7 +99,7 @@ export default function MapHaiti() {
         color: "rgba(255,255,255,0.7)",
         fontSize: "14px"
       }}>
-        Chargement kat...
+        {t("map.loading")}
       </div>
     );
   }
@@ -96,7 +120,7 @@ export default function MapHaiti() {
         {/* Notre position */}
         <Marker
           position={position}
-          title="Ou la"
+          title={t("map.here")}
           icon={{
             path: window.google.maps.SymbolPath.CIRCLE,
             scale: 7,
@@ -107,25 +131,59 @@ export default function MapHaiti() {
           }}
         />
 
-        {/* Un marqueur par produit — crème = pre (≤10km), rouge = loin (>10km) */}
-        {marqueurs.map((m) => (
-          <Marker
-            key={m.id}
-            position={{ lat: m.lat, lng: m.lng }}
-            title={`${m.nom} — ${m.distance.toFixed(1)} km`}
-            icon={{
-              path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 8,
-              fillColor:   m.loin ? "#e23" : "#f5f0c0",
-              fillOpacity: 1,
-              strokeColor: "#fff",
-              strokeWeight: 2,
-            }}
-          />
-        ))}
+        {/* Un marqueur par vendeur (position exacte issue de son profil/entreprise) —
+            photo de profil/logo d'entreprise si disponible, sinon le logo du
+            site (voir listerVendeursCarte, Produits/views/produitsViews.py) ;
+            anneau crème = pre (≤10km), rouge = loin (>10km), même code
+            couleur que la légende affichée sous la carte (voir HomePage.jsx) */}
+        {vendeurs.map((v) => {
+          const distance = distanceKm(position, { lat: v.latitude, lng: v.longitude });
+          const loin = distance > SEUIL_LOIN_KM;
+          return (
+            <Marker
+              key={v.vendeur_id}
+              position={{ lat: v.latitude, lng: v.longitude }}
+              title={v.nom}
+              onMouseOver={() => setVendeurSurvole(v.vendeur_id)}
+              onMouseOut={() => setVendeurSurvole((id) => (id === v.vendeur_id ? null : id))}
+              icon={construireIconeVendeur(v.photo || logoSite, loin ? "#e23" : "#f5f0c0")}
+            />
+          );
+        })}
+
+        {vendeurAffiche && (
+          <InfoWindow
+            position={{ lat: vendeurAffiche.latitude, lng: vendeurAffiche.longitude }}
+            onCloseClick={() => setVendeurSurvole(null)}
+          >
+            <div style={{ minWidth: "150px", fontFamily: "inherit", display: "flex", gap: "8px", alignItems: "flex-start" }}>
+              <img
+                src={vendeurAffiche.photo || logoSite}
+                alt={vendeurAffiche.nom}
+                style={{
+                  width: "36px", height: "36px", borderRadius: "50%",
+                  objectFit: vendeurAffiche.photo ? "cover" : "contain",
+                  padding: vendeurAffiche.photo ? 0 : "4px",
+                  background: "#f2f0eb", flexShrink: 0,
+                }}
+              />
+              <div>
+                <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: "13px" }}>{vendeurAffiche.nom}</p>
+                {(vendeurAffiche.commune || vendeurAffiche.departement) && (
+                  <p style={{ margin: "0 0 2px", fontSize: "12px", color: "#555" }}>
+                    {[vendeurAffiche.commune, vendeurAffiche.departement].filter(Boolean).join(", ")}
+                  </p>
+                )}
+                <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>
+                  {t("home.mapSellerProductCount", { nombre: vendeurAffiche.nombre_produits })}
+                </p>
+              </div>
+            </div>
+          </InfoWindow>
+        )}
       </GoogleMap>
 
-      {/* Badge nombre de produits actifs */}
+      {/* Badge nombre de vendeurs actifs */}
       <div style={{
         position: "absolute",
         bottom: "12px", right: "12px",
@@ -135,7 +193,7 @@ export default function MapHaiti() {
         padding: "4px 10px",
         borderRadius: "20px",
       }}>
-        {MARQUEURS.length} pwodikte aktif
+        {t("home.mapActiveSellerCount", { nombre: vendeurs.length })}
       </div>
     </div>
   );

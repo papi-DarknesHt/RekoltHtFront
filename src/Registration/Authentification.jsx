@@ -10,6 +10,8 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { ArrowLeft, Eye, EyeOff, Camera } from 'lucide-react';
 import departementsData from "../assets/Departements/haiti_departements.json";
+import MapSelectionGPS from "../components/MapSelectionGPS.jsx";
+import { fusionnerLocalisationDetectee, niveauDetecteDepuisLoc } from "../utils/geoLookup.js";
 
 export default function RekoltHtAuth() {
 
@@ -39,13 +41,14 @@ export default function RekoltHtAuth() {
 
   const [form, setForm] = useState({
     nom: "", prenom: "", email: "", mot_de_passe: "", telephone: "", role: "acheteur",
-    bio: "", adresse: "", pays: "Haiti", latitude: "", longitude: "",
-    mot_de_passe_confirmation: "", entreprise_nom: "", entreprise_type: "", entreprise_num: "",
+    bio: "", adresse: "", pays: "Haiti", latitude: "", longitude: "", coord: null,
+    mot_de_passe_confirmation: "", entreprise_nom: "", entreprise_type: "",
     departement: "", commune: "", section_communale: "", entreprise_logo: null,
     entreprise_email: "", entreprise_mot_de_passe: "", entreprise_mot_de_passe_confirmation: "",
     entreprise_telephone: "",
   });
   const [logoPreview, setLogoPreview] = useState(null);
+  const [localisationNiveauDetecte, setLocalisationNiveauDetecte] = useState("aucun");
 
   const { t } = useTranslation();
 
@@ -191,7 +194,6 @@ export default function RekoltHtAuth() {
     } else if (tab === "entreprise") {
       if (!form.entreprise_nom.trim()) errors.entreprise_nom = t("auth.messageNameEntrepriseRequired");
       if (!form.entreprise_type) errors.entreprise_type = t("auth.messageTypeEntrepriseRequired");
-      if (!form.entreprise_num.trim()) errors.entreprise_num = t("auth.messageNumEntrepriseRequired");
       if (!form.departement) errors.departement = t("auth.messageDepartementRequired");
       if (!form.commune) errors.commune = t("auth.messageCommuneRequired");
       if (!form.section_communale && sectionsDisponibles.length > 0) errors.section_communale = t("auth.messageSectionRequired");
@@ -236,7 +238,9 @@ export default function RekoltHtAuth() {
   };
 
   useEffect(() => {
-    if (tab !== "register" && tab !== "entreprise") return;
+    // le tab "entreprise" gère sa propre localisation via MapSelectionGPS
+    // (point posé au clic, avec repli sur la géolocalisation navigateur)
+    if (tab !== "register") return;
     if (!navigator.geolocation) { setGpsStatus(t("auth.NotSupported")); return; }
     setGpsStatus(t("auth.loading"));
     navigator.geolocation.getCurrentPosition(
@@ -269,15 +273,14 @@ export default function RekoltHtAuth() {
       } else if (tab === "entreprise") {
         // Inscription autonome : aucun compte personnel préalable — l'entreprise
         // se crée directement avec ses propres email/mot de passe de connexion.
-        const verif = await verifierEntreprise(form.entreprise_nom, form.entreprise_num);
+        const verif = await verifierEntreprise(form.entreprise_nom);
         if (verif?.existe) {
-          setFieldErrors((prev) => ({ ...prev, entreprise_nom: verif.message, entreprise_num: verif.message }));
+          setFieldErrors((prev) => ({ ...prev, entreprise_nom: verif.message }));
           return;
         }
 
         const res = await creerEntreprise({
           nom_Entreprise: form.entreprise_nom,
-          num_Enregistrement: form.entreprise_num,
           secteur: secteurParType[form.entreprise_type] || "autre",
           email: form.entreprise_email,
           mot_de_passe: form.entreprise_mot_de_passe,
@@ -287,8 +290,8 @@ export default function RekoltHtAuth() {
           commune: form.commune,
           section_communale: form.section_communale,
           pays: form.pays,
-          latitude: form.latitude,
-          longitude: form.longitude,
+          latitude: form.coord?.lat ?? form.latitude,
+          longitude: form.coord?.lng ?? form.longitude,
           ...(form.entreprise_logo ? { logo: form.entreprise_logo } : {}),
         });
         if (res && res.token) {
@@ -349,7 +352,7 @@ export default function RekoltHtAuth() {
   const handleVerifierCode = async () => {
     setForgotError(null);
     if (!forgotPin || forgotPin.length !== 4) {
-      setForgotError("Le code PIN à 4 chiffres est requis");
+      setForgotError(t("auth.messagePinRequired"));
       return;
     }
     try {
@@ -433,7 +436,7 @@ export default function RekoltHtAuth() {
       {/* LEFT — panneau fixe */}
       <div className="rk-left">
         <div className="rk-logo-left">
-          <img className="logo" src={logo} alt="Logo" />
+          <img className="logo" src={logo} alt={t("common.logoAlt")} />
         </div>
         <div style={{ width: "100%" }}>
           <p className="rk-avantaj-title">{t("auth.advantagesTitle")}</p>
@@ -487,7 +490,7 @@ export default function RekoltHtAuth() {
                 <label className="rk-label">{t("auth.email")}<span className="red">*</span></label>
                 <input
                   className="rk-input" name="email" type="email"
-                  placeholder="ou@exemple.com"
+                  placeholder={t("auth.emailPlaceholder")}
                   onChange={handleChange} required inputMode="email" autoComplete="email"
                 />
                 {fieldErrors.email && <p className="rk-error"> X {fieldErrors.email}</p>}
@@ -520,13 +523,13 @@ export default function RekoltHtAuth() {
             <div className="rk-forgot-box">
               {forgotResetSuccess ? (
                 <div className="rk-success">
-                  ✓ Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.
+                  ✓ {t("auth.resetSuccessMessage")}
                 </div>
               ) : forgotStep === 3 ? (
                 /* ── Étape 3 : nouveau mot de passe ── */
                 <>
                   <p className="rk-forgot-desc">
-                    Code vérifié. Entrez votre nouveau mot de passe.
+                    {t("auth.pinVerifiedMessage")}
                   </p>
                   <div className="rk-field">
                     <label className="rk-label">{t("auth.password")}<span className="red">*</span></label>
@@ -566,17 +569,17 @@ export default function RekoltHtAuth() {
                   </div>
                   {forgotError && <p className="rk-error">{forgotError}</p>}
                   <button className="rk-btn" onClick={handleConfirmReset} disabled={forgotLoading}>
-                    {forgotLoading ? t("auth.loading") + "..." : "Réinitialiser le mot de passe"}
+                    {forgotLoading ? t("auth.loading") + "..." : t("auth.resetPasswordSubmit")}
                   </button>
                 </>
               ) : forgotStep === 2 ? (
                 /* ── Étape 2 : saisie et vérification du code PIN ── */
                 <>
                   <p className="rk-forgot-desc">
-                    Code envoyé à <strong>{forgotEmail}</strong>. Vérifiez votre boîte mail.
+                    {t("auth.codeSentTo", { email: forgotEmail })}
                   </p>
                   <div className="rk-field">
-                    <label className="rk-label">Code PIN (4 chiffres)<span className="red">*</span></label>
+                    <label className="rk-label">{t("auth.pinLabel")}<span className="red">*</span></label>
                     <input
                       className="rk-input" type="text" placeholder="_ _ _ _"
                       value={forgotPin}
@@ -587,7 +590,7 @@ export default function RekoltHtAuth() {
                   </div>
                   {forgotError && <p className="rk-error">{forgotError}</p>}
                   <button className="rk-btn" onClick={handleVerifierCode} disabled={forgotLoading}>
-                    {forgotLoading ? t("auth.loading") + "..." : "Vérifier le code"}
+                    {forgotLoading ? t("auth.loading") + "..." : t("auth.verifyCodeSubmit")}
                   </button>
                 </>
               ) : (
@@ -598,7 +601,7 @@ export default function RekoltHtAuth() {
                   <div className="rk-field">
                     <label className="rk-label">{t("auth.email")}<span className="red">*</span></label>
                     <input
-                      className="rk-input" type="email" placeholder="ou@exemple.com"
+                      className="rk-input" type="email" placeholder={t("auth.emailPlaceholder")}
                       value={forgotEmail} onChange={(e) => { setForgotEmail(e.target.value); setForgotError(null); }}
                       inputMode="email" autoComplete="email"
                     />
@@ -628,7 +631,7 @@ export default function RekoltHtAuth() {
                         className="rk-input" name="nom" placeholder={t("auth.lastName")}
                         value={form.nom} onChange={handleChange} required
                         inputMode="text" autoComplete="family-name"
-                        title="Se sèlman lèt ak tirè, pa gen chif"
+                        title={t("auth.messageNamePattern")}
                       />
                       {fieldErrors.nom && <p className="rk-error">X {fieldErrors.nom}</p>}
                     </div>
@@ -638,7 +641,7 @@ export default function RekoltHtAuth() {
                         className="rk-input" name="prenom" placeholder={t("auth.firstName")}
                         value={form.prenom} onChange={handleChange} required
                         inputMode="text" autoComplete="given-name"
-                        title="Se sèlman lèt ak tirè, pa gen chif"
+                        title={t("auth.messageFirstNamePattern")}
                       />
                       {fieldErrors.prenom && <p className="rk-error">X {fieldErrors.prenom}</p>}
                     </div>
@@ -648,7 +651,7 @@ export default function RekoltHtAuth() {
                     <label className="rk-label">{t("auth.emailRequired")}<span className="red">*</span></label>
                     <input
                       className="rk-input" name="email" type="email"
-                      placeholder="ou@exemple.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       onChange={handleChange} required inputMode="email" autoComplete="email"
                     />
                     {fieldErrors.email && <p className="rk-error">X {fieldErrors.email}</p>}
@@ -658,7 +661,7 @@ export default function RekoltHtAuth() {
                     <label className="rk-label">{t("auth.phone")}<span className="red">*</span></label>
                     <input
                       className="rk-input" name="telephone" type="tel"
-                      placeholder={"Ex: 3000 1234 " + t("auth.or") + " 509 3000 1234"}
+                      placeholder={t("auth.phonePlaceholder")}
                       value={form.telephone} onChange={handleChange}
                       required inputMode="tel" maxLength={16} autoComplete="tel"
                     />
@@ -713,7 +716,7 @@ export default function RekoltHtAuth() {
                     <label className="rk-label">{t("auth.entrepriseName")}<span className="red">*</span></label>
                     <input
                       className="rk-input" name="entreprise_nom"
-                      placeholder="Eg. Rekolt Haiti S.A."
+                      placeholder={t("auth.entrepriseNamePlaceholder")}
                       onChange={handleChange}
                       required maxLength={120} autoComplete="organization"
                     />
@@ -736,22 +739,12 @@ export default function RekoltHtAuth() {
                     </div>
                     {fieldErrors.entreprise_type && <p className="rk-error">X {fieldErrors.entreprise_type}</p>}
                   </div>
-                  <div className="rk-field">
-                    <label className="rk-label">{t("auth.entrepriseNum")}<span className="red">*</span></label>
-                    <input
-                      className="rk-input" name="entreprise_num"
-                      placeholder="Eg. 123456789"
-                      value={form.entreprise_num} onChange={handleChange}
-                      required maxLength={100} autoComplete="off"
-                    />
-                    {fieldErrors.entreprise_num && <p className="rk-error">X {fieldErrors.entreprise_num}</p>}
-                  </div>
 
                   <div className="rk-field">
                     <label className="rk-label">{t("auth.phone")}<span className="red">*</span></label>
                     <input
                       className="rk-input" name="entreprise_telephone" type="tel"
-                      placeholder={"Ex: 3000 1234 " + t("auth.or") + " 509 3000 1234"}
+                      placeholder={t("auth.phonePlaceholder")}
                       value={form.entreprise_telephone} onChange={handleChange}
                       required inputMode="tel" maxLength={16} autoComplete="tel"
                     />
@@ -762,7 +755,7 @@ export default function RekoltHtAuth() {
                     <label className="rk-label">{t("auth.entrepriseEmail")}<span className="red">*</span></label>
                     <input
                       className="rk-input" name="entreprise_email" type="email"
-                      placeholder="antrepriz@exemple.com"
+                      placeholder={t("auth.entrepriseEmailPlaceholder")}
                       value={form.entreprise_email} onChange={handleChange}
                       required inputMode="email" autoComplete="off"
                     />
@@ -876,13 +869,25 @@ export default function RekoltHtAuth() {
                   </div>
 
                   <div className="rk-field">
-                    <label className="rk-label">{t("auth.city")}</label>
-                    <input
-                      className="rk-input" name="adresse"
-                      placeholder={t("auth.city")}
-                      value={form.adresse} onChange={handleChange}
-                      maxLength={100} autoComplete="address-level2"
+                    <label className="rk-label">{t("auth.location")}</label>
+                    <MapSelectionGPS
+                      value={form.coord}
+                      onChange={(coord) => setForm((prev) => ({ ...prev, coord, latitude: coord.lat, longitude: coord.lng }))}
+                      onLocalisationDetectee={(loc) => {
+                        setForm((prev) => fusionnerLocalisationDetectee(prev, loc).valeurs);
+                        setLocalisationNiveauDetecte(niveauDetecteDepuisLoc(loc));
+                      }}
+                      onAdresseDetectee={(texte) => setForm((prev) => ({ ...prev, adresse: prev.adresse || texte }))}
                     />
+                    {localisationNiveauDetecte === "aucun" && (
+                      <p className="rk-hint">{t("seller.locationDetectNone")}</p>
+                    )}
+                    {localisationNiveauDetecte === "departement" && (
+                      <p className="rk-hint">{t("seller.locationDetectCommuneOnly")}</p>
+                    )}
+                    {localisationNiveauDetecte === "commune" && (
+                      <p className="rk-hint">{t("seller.locationDetectSectionOnly")}</p>
+                    )}
                   </div>
                 </>
               )}

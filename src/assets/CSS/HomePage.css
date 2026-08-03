@@ -328,3 +328,33 @@
   @media (max-width: 480px) {
     .carousel { gap: 8px; }
   }
+
+  /* ── MODE SOMBRE ── */
+  [data-theme="dark"] .produits-etat--succes {
+    color: #6fcf6f;
+  }
+
+  [data-theme="dark"] .carousel-nav-btn {
+    background: var(--rk-card, #1f2422);
+    border-color: var(--rk-border, #343b36);
+    color: var(--text);
+  }
+
+  [data-theme="dark"] .carousel-nav-btn:disabled {
+    background: var(--rk-bg);
+    color: var(--rk-text-light, #8d8a82);
+    border-color: var(--rk-border, #343b36);
+  }
+
+  [data-theme="dark"] .carousel-dot {
+    background: var(--rk-border, #343b36);
+  }
+
+  [data-theme="dark"] .sant-ed-btn {
+    background: var(--rk-card, #1f2422);
+    color: var(--text);
+  }
+
+  [data-theme="dark"] .sant-ed-btn:hover {
+    background: var(--rk-border, #343b36);
+  }

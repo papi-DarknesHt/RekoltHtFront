@@ -48,15 +48,23 @@ export const AuthentificationApi = {
   // bloque/débloque un compte (bascule) — réservé aux admins
   bloquerUtilisateurAdmin: (id) => api.put("/Registration/admin/utilisateurs/bloquer/", { id }),
 
+  // supprime définitivement un compte (CASCADE) — réservé aux admins
+  supprimerUtilisateurAdmin: (id) => api.delete("/Registration/admin/utilisateurs/supprimer/", { id }),
+
+  // lève la suspension automatique d'un vendeur (voir Utilisateur.desactive_par_signalements,
+  // Registration/models.py, et Produits/views/signalementsViews.py::signalerVendeur) —
+  // réservé aux admins ; rend aussi disponibles tous ses produits non bannis individuellement
+  reactiverVendeurAdmin: (id) => api.put("/Registration/admin/utilisateurs/reactiver-vendeur/", { id }),
+
   // nomme un compte administrateur — réservé aux admins
   nommerAdminUtilisateur: (id) => api.put("/Registration/admin/utilisateurs/nommer-admin/", { id }),
 
   // statistiques agrégées pour le tableau de bord admin — réservé aux admins
   obtenirDashboardAdmin: () => api.get("/Registration/admin/dashboard/"),
 
-  // vérifie si une entreprise (nom + numéro d'enregistrement) existe déjà — sans authentification
-  verifierEntreprise: (nom_Entreprise, num_Enregistrement) => api.get(
-    `/Registration/entreprise/verifier/?nom_Entreprise=${encodeURIComponent(nom_Entreprise)}&num_Enregistrement=${encodeURIComponent(num_Enregistrement)}`
+  // vérifie si une entreprise (nom) existe déjà — sans authentification
+  verifierEntreprise: (nom_Entreprise) => api.get(
+    `/Registration/entreprise/verifier/?nom_Entreprise=${encodeURIComponent(nom_Entreprise)}`
   ),
 
   // soumission du dossier de vérification KYC — formData en multipart (fichiers
@@ -80,5 +88,9 @@ export const AuthentificationApi = {
   getUtilisateur: () => {
     const u = localStorage.getItem("utilisateur");
     return u ? JSON.parse(u) : null;
-  }
+  },
+
+  // page "Contactez-nous" — public, aucun compte requis (voir
+  // Registration/views.py::contacterNous, transmis par email à l'équipe)
+  contacterNous: (data) => api.post("/Registration/contact/", data),
 };

@@ -1,0 +1,204 @@
+/* =============================================================
+   RekoltHT — Qui sommes-nous (public)
+   Fichier autonome : ne dépend d'aucune variable/classe définie ailleurs.
+   Toutes les classes sont préfixées "qs-".
+   ============================================================= */
+
+.qs-page {
+  --qs-terracotta: #c1693f;
+  --qs-terracotta-dark: #a85a35;
+  --qs-green: #2f4a3c;
+  --qs-green-light: #e3f3e8;
+  --qs-bg: #f6f4f1;
+  --qs-card: #ffffff;
+  --qs-border: #e7e2dc;
+  --qs-text: #2b2622;
+  --qs-text-muted: #8a8178;
+  --qs-radius: 12px;
+  --qs-radius-sm: 8px;
+  --qs-shadow: 0 1px 3px rgba(43, 38, 34, 0.06);
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--qs-bg);
+  color: var(--qs-text);
+  min-height: 100vh;
+}
+
+.qs-page * {
+  box-sizing: border-box;
+}
+
+.qs-container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+}
+
+/* ===================== En-tête ===================== */
+
+.qs-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.qs-header__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--qs-radius);
+  background: var(--qs-green-light);
+  color: var(--qs-green);
+  flex-shrink: 0;
+}
+
+.qs-header__title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.qs-header__subtitle {
+  color: var(--qs-text-muted);
+  margin: 0;
+}
+
+/* ===================== Mission ===================== */
+
+.qs-mission {
+  background: var(--qs-card);
+  border: 1px solid var(--qs-border);
+  border-radius: var(--qs-radius);
+  box-shadow: var(--qs-shadow);
+  padding: 28px;
+  margin-bottom: 36px;
+}
+
+.qs-mission__title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0 0 12px;
+  color: var(--qs-terracotta-dark);
+}
+
+.qs-mission__text {
+  font-size: 0.96rem;
+  line-height: 1.7;
+  color: var(--qs-text);
+  margin: 0;
+}
+
+/* ===================== Valeurs ===================== */
+
+.qs-values__title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0 0 18px;
+  text-align: center;
+}
+
+.qs-values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-bottom: 40px;
+}
+
+.qs-value-card {
+  background: var(--qs-card);
+  border: 1px solid var(--qs-border);
+  border-radius: var(--qs-radius);
+  box-shadow: var(--qs-shadow);
+  padding: 22px;
+  text-align: center;
+}
+
+.qs-value-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--qs-green-light);
+  color: var(--qs-green);
+}
+
+.qs-value-card__title {
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.qs-value-card__text {
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--qs-text-muted);
+  margin: 0;
+}
+
+/* ===================== Appel à l'action ===================== */
+
+.qs-cta {
+  text-align: center;
+  background: var(--qs-green);
+  border-radius: var(--qs-radius);
+  padding: 36px 28px;
+  color: #fff;
+}
+
+.qs-cta__title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.qs-cta__text {
+  font-size: 0.92rem;
+  opacity: 0.9;
+  margin: 0 0 20px;
+}
+
+.qs-cta__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--qs-radius-sm);
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 12px 26px;
+  cursor: pointer;
+  background: var(--qs-terracotta);
+  color: #fff;
+  transition: opacity 0.15s ease;
+}
+
+.qs-cta__btn:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .qs-container {
+    padding: 20px 16px 48px;
+  }
+
+  .qs-mission {
+    padding: 20px;
+  }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .qs-page {
+  --qs-green-light: #1c2e22;
+  --qs-bg: #14181a;
+  --qs-card: #1f2422;
+  --qs-border: #343b36;
+  --qs-text: #eceae4;
+  --qs-text-muted: #a8a49b;
+  --qs-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

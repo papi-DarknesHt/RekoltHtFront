@@ -24,8 +24,12 @@ function versProduitAffiche(p, texteNonPrecise) {
   return {
     id: p.id,
     nom: p.nom,
+    description: p.description,
     vendeurId: p.vendeur_id,
     vendeurNom: p.vendeur_nom,
+    vendeurTelephone: p.vendeur_telephone,
+    noteMoyenne: p.note_moyenne,
+    nombreAvis: p.nombre_avis,
     lieu: [p.commune, p.departement].filter(Boolean).join(", ") || p.region || texteNonPrecise,
     prix: p.prix,
     devise: p.unitePrix,
@@ -41,7 +45,8 @@ function versProduitAffiche(p, texteNonPrecise) {
 // Carousel réutilisable (produits récents ET, plus bas, "mes produits" pour
 // un vendeur déjà connecté) — encapsule son propre index/nombre visible/
 // écoute du resize, pour que chaque instance défile indépendamment
-function ProduitsCarousel({ produits, onDetails, onContact }) {
+function ProduitsCarousel({ produits, onDetails, onContact, onWhatsapp, utilisateurId }) {
+  const { t } = useTranslation();
   const getVisible = () => {
     if (typeof window === "undefined") return 4;
     if (window.innerWidth <= 480) return 1;
@@ -69,18 +74,18 @@ function ProduitsCarousel({ produits, onDetails, onContact }) {
   return (
     <>
       <div className="carousel">
-        <button className="carousel-nav-btn" onClick={prev} disabled={index === 0} aria-label="Précédent">‹</button>
+        <button className="carousel-nav-btn" onClick={prev} disabled={index === 0} aria-label={t("home.carouselPrev")}>‹</button>
 
         <div
           className="carousel-cards"
           style={{ gridTemplateColumns: `repeat(${visible}, minmax(0, 1fr))` }}
         >
           {produitsVisibles.map((p) => (
-            <ProductCard key={p.id} produit={p} onDetails={onDetails} onContact={onContact} />
+            <ProductCard key={p.id} produit={p} onDetails={onDetails} onContact={onContact} onWhatsapp={onWhatsapp} utilisateurId={utilisateurId} />
           ))}
         </div>
 
-        <button className="carousel-nav-btn" onClick={next} disabled={index + visible >= produits.length} aria-label="Suivant">›</button>
+        <button className="carousel-nav-btn" onClick={next} disabled={index + visible >= produits.length} aria-label={t("home.carouselNext")}>›</button>
       </div>
 
       {produits.length > visible && (
@@ -90,7 +95,7 @@ function ProduitsCarousel({ produits, onDetails, onContact }) {
               key={i}
               className={`carousel-dot${i === index ? " carousel-dot--active" : ""}`}
               onClick={() => setIndex(i)}
-              aria-label={`Page ${i + 1}`}
+              aria-label={t("home.carouselPage", { n: i + 1 })}
             />
           ))}
         </div>
@@ -143,21 +148,26 @@ export default function HomePage() {
   const produitsAffiches = produits.map((p) => versProduitAffiche(p, t("profile.notSpecified")));
 
   // enregistre le clic "Contacter" (alimente nombre_contacts affiché au
-  // vendeur sur "Mes produits") — silencieux en cas d'échec réseau : ne doit
-  // pas empêcher l'acheteur de voir malgré tout les infos du produit. Si
-  // connecté, ouvre directement la messagerie avec ce vendeur (voir
-  // Messagerie.jsx, qui lit ?avec=/?produit= pour démarrer la conversation
-  // et y partager la fiche produit) ; sinon simple confirmation (la
-  // messagerie exige une identité, la home page reste publique).
-  const [messageContact, setMessageContact] = useState(null);
+  // vendeur sur "Mes produits") puis ouvre directement la messagerie avec ce
+  // vendeur (voir Messagerie.jsx, qui lit ?avec=/?produit= pour démarrer la
+  // conversation et y partager la fiche produit). Un visiteur non connecté
+  // ne peut pas contacter un vendeur : il est redirigé vers la connexion
+  // (voir Produits/views/produitsViews.py::contacterProduit, qui refuse
+  // désormais toute requête anonyme).
   const contacterProduit = (produit) => {
-    ProduitsApi.contacterProduit(produit.id).catch(() => {});
-    if (isConnected && produit.vendeurId) {
-      navigate(`/messages?avec=${produit.vendeurId}&produit=${produit.id}`);
+    if (!isConnected) {
+      navigate("/auth");
       return;
     }
-    setMessageContact(t("home.contactRecorded"));
-    setTimeout(() => setMessageContact(null), 3000);
+    ProduitsApi.contacterProduit(produit.id).catch(() => {});
+    if (produit.vendeurId) {
+      navigate(`/messages?avec=${produit.vendeurId}&produit=${produit.id}`);
+    }
+  };
+  // le clic ouvre directement WhatsApp (lien <a>, voir ProductCard.jsx) —
+  // ici on ne fait qu'enregistrer le contact pour les stats du vendeur
+  const contacterViaWhatsapp = (produit) => {
+    ProduitsApi.contacterProduit(produit.id).catch(() => {});
   };
   const ETAPES = [
     { n: "1", texte: t("home.stepCreateAccount") },
@@ -165,10 +175,13 @@ export default function HomePage() {
     { n: "3", texte: t("home.stepContactSeller") },
     { n: "4", texte: t("home.stepMakeDeal") },
   ];
+  // chaque bouton renvoie vers la page Aide (voir pages/aide.jsx) sur la
+  // section correspondante — clés alignées avec aide.sections.<cle> dans les
+  // fichiers de traduction
   const SANT_ED = [
-    t("home.producerGuide"),
-    t("home.howSearchProduct"),
-    t("home.securityTrust"),
+    { label: t("home.producerGuide"), section: "devenirVendeur" },
+    { label: t("home.howSearchProduct"), section: "recherche" },
+    { label: t("home.securityTrust"), section: "securite" },
   ];
 
 
@@ -267,10 +280,10 @@ export default function HomePage() {
             produits={produitsAffiches}
             onDetails={(pr) => navigate(`/produits/detail?id=${pr.id}`)}
             onContact={contacterProduit}
+            onWhatsapp={contacterViaWhatsapp}
+            utilisateurId={utilisateur?.id}
           />
         )}
-
-        {messageContact && <p className="produits-etat produits-etat--succes">{messageContact}</p>}
       </section>
 
       {/* ── PROSESIS — Comment ça marche, remplacée par "Mes produits"
@@ -294,7 +307,7 @@ export default function HomePage() {
               <ProduitsCarousel
                 produits={mesProduitsAffiches}
                 onDetails={(pr) => navigate(`/produits/modifier?id=${pr.id}`)}
-                onContact={() => navigate("/produits/mesProduits")}
+                utilisateurId={utilisateur?.id}
               />
             )}
 
@@ -348,11 +361,11 @@ export default function HomePage() {
             <div className="map-legend">
               <span>
                 <span className="legend-dot" style={{ background: "#e23" }}></span>
-                Lwen
+                {t("home.legendFar")}
               </span>
               <span>
                 <span className="legend-dot" style={{ background: "#f5f0c0" }}></span>
-                Pre
+                {t("home.legendNear")}
               </span>
             </div>
           </div>
@@ -364,8 +377,12 @@ export default function HomePage() {
 
           {/* On itère sur les articles d'aide */}
           {SANT_ED.map((item) => (
-            <button className="sant-ed-btn" key={item}>
-              {item}
+            <button
+              className="sant-ed-btn"
+              key={item.section}
+              onClick={() => navigate(`/aide?section=${item.section}`)}
+            >
+              {item.label}
             </button>
           ))}
         </div>

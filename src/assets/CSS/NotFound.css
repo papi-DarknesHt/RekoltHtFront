@@ -98,3 +98,12 @@
     max-width: 280px;
   }
 }
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .nf-root {
+  background: var(--rk-bg, #14181a);
+}
+
+[data-theme="dark"] .nf-sub {
+  color: var(--rk-text-muted, #a8a49b);
+}

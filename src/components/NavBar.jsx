@@ -11,11 +11,14 @@ import {
     X,
     MessageCircle,
     ShieldCheck,
+    Sun,
+    Moon,
 } from "lucide-react";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { useProfilStore } from "../Profil/ProfilStore";
 import { useGlobalStore } from "../api/globalStore.js";
 import { useMessagerieBadgeStore } from "../api/messagerieBadgeStore.js";
+import { useThemeStore } from "../api/themeStore.js";
 import logo from "../assets/Images/Asset5.svg";
 import "../assets/CSS/NavBar.css";
 
@@ -31,6 +34,9 @@ export default function Navbar() {
     const afficherProfil = useProfilStore((s) => s.afficherProfil);
     const isAdmin = profil?.role === "admin";
     const isVendeur = profil?.role === "vendeur";
+
+    const theme = useThemeStore((s) => s.theme);
+    const toggleTheme = useThemeStore((s) => s.toggleTheme);
 
     // pastille de la sonnette : nombre de messages non lus (voir
     // messagerieBadgeStore.js) — rafraîchi à chaque montage (donc à chaque
@@ -148,7 +154,7 @@ export default function Navbar() {
             <nav className="nav">
                 {/* Logo */}
                 <div className="nav-logo">
-                    <img style={{ width: "50%" }} src={logo} alt="Logo" />
+                    <img style={{ width: "50%" }} src={logo} alt={t("common.logoAlt")} />
                 </div>
 
                 {/* Liens de navigation — desktop */}
@@ -166,6 +172,15 @@ export default function Navbar() {
 
                 {/* Actions — desktop */}
                 <div className="profil-navbar__actions">
+                    <button
+                        type="button"
+                        className="profil-icon-btn nav-theme-btn"
+                        aria-label={t("nav.toggleTheme")}
+                        title={t("nav.toggleTheme")}
+                        onClick={toggleTheme}
+                    >
+                        {theme === "dark" ? <Sun size={20} color="var(--white)" /> : <Moon size={20} color="var(--white)" />}
+                    </button>
                     <Language />
                     {isConnecte ? (
                         <>
@@ -221,7 +236,7 @@ export default function Navbar() {
                                     {avatarAffiche ? (
                                         <img
                                             src={avatarAffiche}
-                                            alt={isEntreprise ? "Logo entreprise" : "Photo profil"}
+                                            alt={isEntreprise ? t("profile.logoTitle") : t("profile.photoTitle")}
                                             className="nav-avatar"
                                         />
                                     ) : (
@@ -240,7 +255,7 @@ export default function Navbar() {
                                                 {avatarAffiche ? (
                                                     <img
                                                         src={avatarAffiche}
-                                                        alt={isEntreprise ? "Logo entreprise" : "Photo profil"}
+                                                        alt={isEntreprise ? t("profile.logoTitle") : t("profile.photoTitle")}
                                                         className="dropdown-avatar"
                                                     />
                                                 ) : (
@@ -284,7 +299,7 @@ export default function Navbar() {
                 <button
                     className="nav-hamburger"
                     onClick={() => setMobileOpen(!mobileOpen)}
-                    aria-label="Menu"
+                    aria-label={t("nav.menuAria")}
                 >
                     {mobileOpen
                         ? <X size={24} color="var(--white)" />
@@ -315,6 +330,14 @@ export default function Navbar() {
                     </ul>
 
                     <div className="nav-mobile-actions">
+                        <button
+                            type="button"
+                            className="nav-mobile-link-btn nav-theme-btn-mobile"
+                            onClick={toggleTheme}
+                        >
+                            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                            {theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}
+                        </button>
                         <Language />
 
                         {isConnecte ? (
@@ -323,7 +346,7 @@ export default function Navbar() {
                                     {avatarAffiche ? (
                                         <img
                                             src={avatarAffiche}
-                                            alt={isEntreprise ? "Logo entreprise" : "Photo profil"}
+                                            alt={isEntreprise ? t("profile.logoTitle") : t("profile.photoTitle")}
                                             className="nav-avatar"
                                         />
                                     ) : (

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package, MessageCircle, Plus, CheckCircle2, XCircle, Pencil } from "lucide-react";
 import NavBar from "../components/NavBar.jsx";
+import BoutonRetour from "../components/BoutonRetour.jsx";
 import Footer from "../components/Footer.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import VendeurTabs from "./VendeurTabs.jsx";
@@ -67,6 +68,7 @@ export default function MesProduits() {
       <NavBar />
 
       <div className="mp-container">
+        <BoutonRetour />
         <VendeurTabs />
 
         <div className="mp-header">
@@ -130,6 +132,7 @@ export default function MesProduits() {
                     onDetails={(pr) => navigate(`/produits/modifier?id=${pr.id}`)}
                     detailsLabel={t("myProducts.editProduct")}
                     detailsIcon={<Pencil size={15} strokeWidth={2.2} />}
+                    utilisateurId={utilisateur?.id}
                   />
                 ))}
               </div>

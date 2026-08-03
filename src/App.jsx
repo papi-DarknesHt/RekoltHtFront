@@ -16,13 +16,19 @@ import AjouterProduit from "./Produits/AjouterProduit.jsx";
 import ModifierProduit from "./Produits/modifierProduits.jsx";
 import Produits from "./Produits/afficherProduits.jsx";
 import DetailProduit from "./Produits/DetailProduit.jsx";
+import ProfilVendeur from "./Produits/ProfilVendeur.jsx";
 import MesProduits from "./Produits/mesProduits.jsx";
 import TableauDeBordVendeur from "./Produits/TableauDeBordVendeur.jsx";
 import SuprimerProduit from "./Produits/suprimerProduit.jsx"
 import copy from "./components/copy.jsx"
 import Aide from "./pages/aide.jsx"
+import ContacterNous from "./pages/ContacterNous.jsx";
+import QuiSommesNous from "./pages/QuiSommesNous.jsx";
+import PolitiqueUtilisation from "./pages/PolitiqueUtilisation.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import ChatbotVendeur from "./components/ChatbotVendeur.jsx";
+import ConfirmModal from "./components/ConfirmModal.jsx";
+import ModalPinE2E from "./components/ModalPinE2E.jsx";
 import AdminDashboard from "./Admin/AdminDashboard.jsx";
 import Messagerie from "./Messagerie/Messagerie.jsx";
 import ContacterAdmin from "./Support/ContacterAdmin.jsx";
@@ -38,6 +44,8 @@ function AppContent() {
           chat, voir ChatbotVendeur.jsx) chevauche le bouton d'envoi de la
           vraie messagerie et n'a plus de raison d'être sur cette page */}
       {location.pathname !== "/messages" && <ChatbotVendeur />}
+      <ConfirmModal />
+      <ModalPinE2E />
       <Routes>
         <Route path="/" element={<HomePage />} />
         {/* <Route path="/test" element={<TestPage />} /> */}
@@ -53,12 +61,22 @@ function AppContent() {
         {/* publique, comme la home page : le détail d'un produit est
             consultable sans compte (voir Produits/views/produitsViews.py::detailProduit) */}
         <Route path="/produits/detail" element={<DetailProduit/>}/>
+        {/* publique : le profil complet d'un vendeur (toutes ses offres) est
+            consultable sans compte, même logique que /produits/detail (voir
+            Produits/views/produitsViews.py::infoVendeur/listerProduits) */}
+        <Route path="/vendeur/detail" element={<ProfilVendeur/>}/>
         <Route path="/produits/modifier" element={<RoutePrivee><ModifierProduit/></RoutePrivee>}/>
         <Route path="/produits/mesProduits" element={<RoutePrivee><MesProduits/></RoutePrivee>}/>
         <Route path="/produits/tableau-de-bord" element={<RoutePrivee><TableauDeBordVendeur/></RoutePrivee>}/>
         <Route path="/produits/suprimerProduits" element={<RoutePrivee><SuprimerProduit/></RoutePrivee>}/>
         {/* publique : un visiteur non connecté doit pouvoir consulter l'aide */}
         <Route path="/aide" element={<Aide/>}/>
+        {/* publique : n'importe qui doit pouvoir contacter l'équipe RekoltHt */}
+        <Route path="/contact" element={<ContacterNous/>}/>
+        {/* publique : page de présentation, accessible sans connexion */}
+        <Route path="/qui-sommes-nous" element={<QuiSommesNous/>}/>
+        {/* publique : n'importe qui doit pouvoir consulter les conditions d'utilisation */}
+        <Route path="/politique-utilisation" element={<PolitiqueUtilisation/>}/>
         <Route path="/admin/dashboard" element={<RoutePrivee><AdminDashboard/></RoutePrivee>}/>
         <Route path="/messages" element={<RoutePrivee><Messagerie/></RoutePrivee>}/>
         <Route path="/contacter-admin" element={<RoutePrivee><ContacterAdmin/></RoutePrivee>}/>

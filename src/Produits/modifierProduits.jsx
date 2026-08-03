@@ -4,10 +4,12 @@ import {
   Package, Info, Coins, MapPin, CheckCircle2, ArrowRight, X, Image, Plus, Trash2, AlertTriangle,
 } from "lucide-react";
 import NavBar from "../components/NavBar.jsx";
+import BoutonRetour from "../components/BoutonRetour.jsx";
 import Footer from "../components/Footer.jsx";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { ProduitsApi } from "../api/produits";
+import { useConfirmStore } from "../api/confirmStore.js";
 import categorieProduitsData from "../assets/Produits/categorieProduits.json";
 import departementsData from "../assets/Departements/haiti_departements.json";
 import "../assets/CSS/ModifierProduit.css";
@@ -34,6 +36,7 @@ export default function ModifierProduit() {
   const produitId = searchParams.get("id");
   const { t } = useTranslation();
   const utilisateur = useAuthStore((s) => s.utilisateur);
+  const demanderConfirmation = useConfirmStore((s) => s.demander);
 
   const [chargement, setChargement] = useState(true);
   const [erreurChargement, setErreurChargement] = useState(null);
@@ -41,6 +44,11 @@ export default function ModifierProduit() {
   const [sousCategories, setSousCategories] = useState([]);
   const [form, setForm] = useState(null);
   const [sousCategorieInitiale, setSousCategorieInitiale] = useState(null);
+  // désactivé automatiquement après 5 signalements (voir
+  // Produits/views/signalementsViews.py::signalerProduit) — seul un admin
+  // peut lever ce blocage, le vendeur ne peut plus rendre le produit
+  // disponible depuis ce formulaire (voir Produits/views/produitsViews.py::modifierProduit)
+  const [desactiveParSignalements, setDesactiveParSignalements] = useState(false);
   const [photos, setPhotos] = useState([]);
 
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
@@ -76,6 +84,7 @@ export default function ModifierProduit() {
         setMesCategories(mesRes.categories || []);
         setSousCategories(sousRes.sous_categories || []);
         setSousCategorieInitiale(p.sous_categorie || null);
+        setDesactiveParSignalements(!!p.desactive_par_signalements);
         setForm({
           categorie_id:      p.categorie?.id ?? "",
           sous_categorie_id: p.sous_categorie?.id ?? "",
@@ -143,6 +152,7 @@ export default function ModifierProduit() {
   };
 
   const retirerPhoto = async (photo) => {
+    if (!(await demanderConfirmation(t("product.removePhotoConfirm"), { danger: true }))) return;
     setErreurPhoto(null);
     try {
       await ProduitsApi.supprimerPhotoProduit(photo.id);
@@ -168,6 +178,7 @@ export default function ModifierProduit() {
       setErreurProduit(t("product.sectionCommunaleRequired"));
       return;
     }
+    if (!(await demanderConfirmation(t("product.editConfirm")))) return;
 
     setEnvoiEnCours(true);
     setErreurProduit(null);
@@ -210,6 +221,7 @@ export default function ModifierProduit() {
       <NavBar />
 
       <div className="mep-container">
+        <BoutonRetour />
         <div className="mep-header">
           <div className="mep-header__icon"><Package size={22} /></div>
           <div className="mep-header__texte">
@@ -348,14 +360,18 @@ export default function ModifierProduit() {
                   </label>
                 </div>
 
-                <label className="mep-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={form.est_disponible}
-                    onChange={(e) => setForm((f) => ({ ...f, est_disponible: e.target.checked }))}
-                  />
-                  {t("product.availableNow")}
-                </label>
+                {desactiveParSignalements ? (
+                  <p className="mep-alert mep-alert--error">{t("product.disabledByReports")}</p>
+                ) : (
+                  <label className="mep-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={form.est_disponible}
+                      onChange={(e) => setForm((f) => ({ ...f, est_disponible: e.target.checked }))}
+                    />
+                    {t("product.availableNow")}
+                  </label>
+                )}
               </div>
 
               <div className="mep-form-section">

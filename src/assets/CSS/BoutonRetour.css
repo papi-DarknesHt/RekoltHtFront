@@ -1,0 +1,26 @@
+/* Bouton "Retour" générique — voir components/BoutonRetour.jsx. Styles avec
+   les variables globales (src/index.css), donc cohérent quel que soit le
+   fond de la page qui l'utilise, et déjà compatible mode sombre. */
+.bouton-retour {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-bottom: 12px;
+  padding: 7px 12px 7px 10px;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted, #666);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.bouton-retour:hover {
+  color: var(--text, #1a1a1a);
+  border-color: rgba(128, 128, 128, 0.45);
+  background: rgba(128, 128, 128, 0.08);
+}

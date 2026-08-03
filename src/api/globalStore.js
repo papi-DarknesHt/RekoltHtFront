@@ -31,10 +31,11 @@ export const useGlobalStore = create((set) => ({
   utilisateurEvent: null,
   profilEvent: null,
 
-  // dernier message reçu (voir Messagerie/signals.py côté backend, groupe
-  // WebSocket personnel "user_<id>" — pas "global") — Messagerie.jsx s'y
-  // abonne pour ajouter le message au fil actif et faire remonter la
-  // conversation concernée en tête de liste
+  // dernier message créé OU supprimé reçu (voir Messagerie/signals.py côté
+  // backend, groupe WebSocket personnel "user_<id>" — pas "global") —
+  // Messagerie.jsx s'y abonne pour ajouter/retirer le message du fil actif
+  // et faire remonter la conversation concernée en tête de liste. "deleted"
+  // ne peut venir que d'un admin (voir supprimerMessageAdmin).
   messageEvent: null,
 
   // dernier contact reçu (voir Produits/signals.py::broadcast_contact_produit
@@ -49,6 +50,36 @@ export const useGlobalStore = create((set) => ({
   // "repondu" à la fois à "admins" (retire le message de leur file) et au
   // vendeur concerné (groupe personnel "user_<id>")
   messageAdminEvent: null,
+
+  // dernier évènement de signalement produit reçu (voir Produits/views/signalementsViews.py
+  // côté backend) — { type: "signalement.created"|"signalement.traite", data }.
+  // "created" diffusé au groupe "admins", "traite" aussi (retire le
+  // signalement de la file des autres admins) — AdminDashboard.jsx s'y abonne.
+  signalementEvent: null,
+
+  // dernier évènement de signalement vendeur reçu (voir Produits/views/signalementsViews.py
+  // côté backend) — { type: "signalement_vendeur.created"|"signalement_vendeur.traite",
+  // data }, même diffusion au groupe "admins" que signalementEvent ci-dessus.
+  signalementVendeurEvent: null,
+
+  // dernier évènement de signalement de message reçu (voir Messagerie/views.py) —
+  // { type: "signalement_message.created"|"signalement_message.traite", data }.
+  // "created" diffusé au groupe "admins", "traite" aussi (retire le
+  // signalement de la file des autres admins, y compris quand le message
+  // lui-même est supprimé) — AdminDashboard.jsx s'y abonne.
+  signalementMessageEvent: null,
+
+  // dernier évènement d'avis produit reçu (voir Produits/views/avisViews.py
+  // + Produits/signals.py côté backend) — { type: "avis.created"|"avis.updated"
+  // |"avis.deleted", data }. Diffusé à "global" : note_moyenne/nombre_avis du
+  // produit concerné se mettent aussi à jour via produitEvent (même broadcast).
+  avisEvent: null,
+
+  // dernier évènement de signalement d'avis reçu (voir Produits/views/
+  // signalementsViews.py::signalerAvis côté backend) — { type:
+  // "signalement_avis.created"|"signalement_avis.traite", data }, même
+  // diffusion au groupe "admins" que signalementEvent ci-dessus.
+  signalementAvisEvent: null,
 
   dispatch: ({ type, data }) => {
     set((state) => {
@@ -75,12 +106,29 @@ export const useGlobalStore = create((set) => ({
         case "profil.deleted":
           return { ...state, profilEvent: { type, data, recu: Date.now() } };
         case "message.created":
+        case "message.deleted":
           return { ...state, messageEvent: { type, data, recu: Date.now() } };
         case "contact.created":
           return { ...state, contactEvent: { type, data, recu: Date.now() } };
         case "message_admin.created":
         case "message_admin.repondu":
           return { ...state, messageAdminEvent: { type, data, recu: Date.now() } };
+        case "signalement.created":
+        case "signalement.traite":
+          return { ...state, signalementEvent: { type, data, recu: Date.now() } };
+        case "signalement_vendeur.created":
+        case "signalement_vendeur.traite":
+          return { ...state, signalementVendeurEvent: { type, data, recu: Date.now() } };
+        case "signalement_message.created":
+        case "signalement_message.traite":
+          return { ...state, signalementMessageEvent: { type, data, recu: Date.now() } };
+        case "avis.created":
+        case "avis.updated":
+        case "avis.deleted":
+          return { ...state, avisEvent: { type, data, recu: Date.now() } };
+        case "signalement_avis.created":
+        case "signalement_avis.traite":
+          return { ...state, signalementAvisEvent: { type, data, recu: Date.now() } };
         default: return state;
       }
     });

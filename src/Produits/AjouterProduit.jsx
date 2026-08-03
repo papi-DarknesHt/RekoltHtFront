@@ -1,21 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Package, Tag, Check, Sprout, Info, Coins, MapPin, CheckCircle2, ArrowRight, X, Image, Plus,
+  Package, Tag, Check, Sprout, Info, Coins, CheckCircle2, ArrowRight, X, Image, Plus,
 } from "lucide-react";
 import NavBar from "../components/NavBar.jsx";
+import BoutonRetour from "../components/BoutonRetour.jsx";
 import Footer from "../components/Footer.jsx";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { useGlobalStore } from "../api/globalStore.js";
 import { applyListEvent } from "../api/applyListEvent.js";
 import { ProduitsApi } from "../api/produits";
 import categorieProduitsData from "../assets/Produits/categorieProduits.json";
-import departementsData from "../assets/Departements/haiti_departements.json";
 import "../assets/CSS/AjouterProduit.css";
 
 const FORM_VIDE = {
   sous_categorie_id: "", nom: "", description: "", prix: "", unitePrix: "HTG", unite_De_Mesure: "",
-  departement: "", commune: "", section_comunale: "", adresse: "",
   // coché par défaut : un produit publié doit être visible immédiatement,
   // sinon il reste invisible sur la page d'accueil (voir listerProduits,
   // Produits/views/produitsViews.py — seuls les produits "disponible" y
@@ -66,7 +65,6 @@ export default function AjouterProduit() {
   const [form, setForm] = useState(FORM_VIDE);
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [erreurProduit, setErreurProduit] = useState(null);
-  const [succes, setSucces] = useState(null);
 
   // photos sélectionnées en attente d'envoi — le produit doit d'abord exister
   // en base (ajouterPhotosProduit référence un produit_id), donc l'upload se
@@ -159,16 +157,6 @@ export default function AjouterProduit() {
   const suggestionsNom   = referenceJSON?.Produit || [];
   const suggestionsUnite = referenceJSON?.Unite_mesure || [];
 
-  // localisation en cascade département → commune → section communale, à
-  // partir du même référentiel que Registration/DevenirVendeur.jsx — chaque
-  // niveau dépend du choix du niveau au-dessus (voir onChange des selects)
-  const communesDisponibles = form.departement
-    ? (departementsData.find((d) => d.departement === form.departement)?.communes || [])
-    : [];
-  const sectionsDisponibles = form.commune
-    ? (communesDisponibles.find((c) => c.commune === form.commune)?.sections_communales || [])
-    : [];
-
   const toggleSelectionCategorie = (id) => {
     setSelectionCategories((liste) =>
       liste.includes(id) ? liste.filter((c) => c !== id) : [...liste, id]
@@ -195,7 +183,6 @@ export default function AjouterProduit() {
 
   const soumettreProduit = async (e) => {
     e.preventDefault();
-    setSucces(null);
 
     // garde-fou client — le vendeur DOIT choisir une sous-catégorie existante
     // (rattachée à une de ses catégories choisies) avant que le produit ne
@@ -212,40 +199,36 @@ export default function AjouterProduit() {
       setErreurProduit(t("product.nameRequired"));
       return;
     }
-    if (!form.section_comunale) {
-      setErreurProduit(t("product.sectionCommunaleRequired"));
-      return;
-    }
 
     setEnvoiEnCours(true);
     setErreurProduit(null);
     try {
+      // pas de localisation par produit : le backend reprend automatiquement
+      // celle du vendeur (profil individuel ou entreprise), voir
+      // Produits/views/produitsViews.py::creerProduit
       const res = await ProduitsApi.creerProduit({
         ...form,
         categorie_id: sousCategorieChoisie.categorie_id,
         prix: form.prix === "" ? null : Number(form.prix),
-        // la section communale remplace la région dans ce formulaire — le
-        // backend exige toujours 'region' (Produits/models/produitsModels.py,
-        // champ non-nullable), on le remplit avec la valeur déjà choisie
-        // plutôt que de redemander une région séparée au vendeur
-        region: form.section_comunale,
       });
 
       // le produit existe déjà en base à ce stade — un échec d'upload des
       // photos ne doit pas être présenté comme un échec de la publication
-      let messageSucces = t("product.createSuccess");
       if (photos.length > 0) {
         try {
           await ProduitsApi.ajouterPhotosProduit(res.produit.id, photos.map((p) => p.fichier));
         } catch {
-          messageSucces = t("product.createSuccessPhotoError");
+          // le produit reste publié ; le vendeur pourra réessayer l'ajout de
+          // photos depuis "Mes produits" (modifierProduits.jsx)
         }
       }
 
       photos.forEach((p) => URL.revokeObjectURL(p.apercu));
       setPhotos([]);
-      setSucces(messageSucces);
-      setForm({ ...FORM_VIDE, sous_categorie_id: form.sous_categorie_id });
+      // publication terminée : direction "Mes produits" (le nouveau produit y
+      // apparaît déjà via l'événement WebSocket produit.created, voir
+      // mesProduits.jsx)
+      navigate("/produits/mesProduits");
     } catch (err) {
       setErreurProduit(err.message);
     } finally {
@@ -260,6 +243,7 @@ export default function AjouterProduit() {
       <NavBar />
 
       <div className="ap-container">
+        <BoutonRetour />
         <div className="ap-header">
           <div className="ap-header__icon"><Sprout size={22} /></div>
           <div>
@@ -445,72 +429,6 @@ export default function AjouterProduit() {
                   </label>
                 </div>
 
-                <div className="ap-form-section">
-                  <p className="ap-form-section__title"><MapPin size={15} />{t("product.sectionLocation")}</p>
-
-                  <div className="ap-form-row">
-                    <label className="ap-field">
-                      {t("product.department")}
-                      <select
-                        className="ap-input"
-                        value={form.departement}
-                        onChange={(e) => {
-                          const departement = e.target.value;
-                          setForm((f) => ({ ...f, departement, commune: "", section_comunale: "" }));
-                        }}
-                      >
-                        <option value="">{t("product.selectDepartment")}</option>
-                        {departementsData.map((d) => (
-                          <option key={d.departement} value={d.departement}>{d.departement}</option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="ap-field">
-                      {t("product.commune")}
-                      <select
-                        className="ap-input"
-                        value={form.commune}
-                        disabled={!form.departement}
-                        onChange={(e) => {
-                          const commune = e.target.value;
-                          setForm((f) => ({ ...f, commune, section_comunale: "" }));
-                        }}
-                      >
-                        <option value="">{t("product.selectCommune")}</option>
-                        {communesDisponibles.map((c) => (
-                          <option key={c.commune} value={c.commune}>{c.commune}</option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="ap-field">
-                      {t("product.sectionCommunale")} *
-                      <select
-                        className="ap-input"
-                        value={form.section_comunale}
-                        disabled={!form.commune || sectionsDisponibles.length === 0}
-                        onChange={(e) => setForm((f) => ({ ...f, section_comunale: e.target.value }))}
-                      >
-                        <option value="">{t("product.selectSection")}</option>
-                        {sectionsDisponibles.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-
-                  <label className="ap-field ap-field--full">
-                    {t("product.address")}
-                    <input
-                      type="text"
-                      className="ap-input"
-                      value={form.adresse}
-                      onChange={(e) => setForm((f) => ({ ...f, adresse: e.target.value }))}
-                    />
-                  </label>
-                </div>
-
                 <div className="ap-form-section ap-form-section--last">
                   <p className="ap-form-section__title"><Image size={15} />{t("product.sectionPhotos")}</p>
                   <p className="ap-hint">{t("product.photosHint")}</p>
@@ -551,7 +469,6 @@ export default function AjouterProduit() {
                 </div>
 
                 {erreurProduit && <p className="ap-alert ap-alert--error"><X size={16} />{erreurProduit}</p>}
-                {succes && <p className="ap-alert ap-alert--success"><CheckCircle2 size={16} />{succes}</p>}
 
                 <div className="ap-form-actions">
                   <button type="submit" className="ap-btn ap-btn--primary" disabled={envoiEnCours}>

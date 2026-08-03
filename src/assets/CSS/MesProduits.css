@@ -234,3 +234,16 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .mp-page {
+  --mp-green-light: #1c2e22;
+  --mp-danger-light: rgba(192, 57, 43, 0.18);
+  --mp-bg: #14181a;
+  --mp-card: #1f2422;
+  --mp-border: #343b36;
+  --mp-text: #eceae4;
+  --mp-text-muted: #a8a49b;
+  --mp-text-light: #8d8a82;
+  --mp-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

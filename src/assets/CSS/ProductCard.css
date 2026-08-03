@@ -35,15 +35,17 @@
   transform: scale(1.04);
 }
 
-.produit-emoji {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 46px;
-  opacity: 0.85;
-  user-select: none;
+/* repli affiché quand le produit n'a aucune photo (voir ProductCard.jsx) —
+   le logo garde ses proportions (object-fit: contain) plutôt que d'être
+   recadré en plein cadre comme une vraie photo produit */
+.produit-photo--logo {
+  object-fit: contain;
+  padding: 32px;
+  background: #f2f0eb;
+}
+
+.produit-card:hover .produit-photo--logo {
+  transform: none;
 }
 
 .produit-prix-badge {
@@ -99,6 +101,57 @@
   opacity: 0.8;
 }
 
+.produit-vendeur__lien {
+  color: inherit;
+  text-decoration: none;
+}
+
+.produit-vendeur__lien:hover {
+  text-decoration: underline;
+}
+
+/* ── NOTE / AVIS (StarRating.jsx) ── */
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: #e8a33d;
+}
+
+.star-rating__etoile {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.star-rating__etoile svg {
+  display: block;
+}
+
+.star-rating__vide {
+  color: rgba(20, 20, 20, 0.2);
+}
+
+.star-rating__remplissage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.produit-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted, #666);
+  margin-bottom: 2px;
+}
+
+.produit-note__compte {
+  font-size: 11px;
+}
+
 .produit-lieu {
   display: flex;
   align-items: center;
@@ -120,8 +173,7 @@
   margin-top: auto;
 }
 
-.btn-detay,
-.btn-kontakte {
+.btn-detay {
   flex: 1;
   display: inline-flex;
   align-items: center;
@@ -134,9 +186,6 @@
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.btn-detay {
   border: 1px solid rgba(20, 20, 20, 0.12);
   background: transparent;
   color: var(--text, #1a1a1a);
@@ -145,6 +194,20 @@
 .btn-detay:hover {
   border-color: rgba(20, 20, 20, 0.28);
   background: rgba(20, 20, 20, 0.03);
+}
+
+.btn-kontakte,
+.btn-appel,
+.btn-whatsapp {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  padding: 9px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .btn-kontakte {
@@ -158,13 +221,72 @@
   color: var(--couleurSecondaire, #1a3d1a);
 }
 
+.btn-appel {
+  border: 1px solid var(--text, #1a1a1a);
+  background: transparent;
+  color: var(--text, #1a1a1a);
+}
+
+.btn-appel:hover {
+  background: rgba(20, 20, 20, 0.06);
+}
+
+.btn-whatsapp {
+  border: 1px solid #25d366;
+  background: #25d366;
+  color: #fff;
+}
+
+.btn-whatsapp:hover {
+  background: transparent;
+  color: #25d366;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .produit-img   { height: 160px; }
-  .produit-emoji { font-size: 40px; }
+  .produit-img { height: 160px; }
+  .produit-photo--logo { padding: 24px; }
 }
 
 @media (max-width: 480px) {
-  .produit-img   { height: 170px; }
-  .produit-emoji { font-size: 42px; }
+  .produit-img { height: 170px; }
+  .produit-photo--logo { padding: 26px; }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .produit-card {
+  background: var(--rk-card, #1f2422);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .produit-card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .produit-img,
+[data-theme="dark"] .produit-photo--logo {
+  background: var(--rk-border, #343b36);
+}
+
+[data-theme="dark"] .produit-prix-badge {
+  background: rgba(31, 36, 34, 0.9);
+}
+
+[data-theme="dark"] .star-rating__vide {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .btn-detay {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="dark"] .btn-detay:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .btn-appel:hover {
+  background: rgba(255, 255, 255, 0.08);
 }

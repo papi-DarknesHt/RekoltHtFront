@@ -205,12 +205,12 @@ export const useAuthStore = create((set, get) => ({
         }
     },
 
-    // vérifie si une entreprise (nom + numéro d'enregistrement) existe déjà
-    // — appelée avant inscription() pour ne pas créer de compte si l'entreprise existe déjà
-    verifierEntreprise: async (nom_Entreprise, num_Enregistrement) => {
+    // vérifie si une entreprise (nom) existe déjà — appelée avant inscription()
+    // pour ne pas créer de compte si l'entreprise existe déjà
+    verifierEntreprise: async (nom_Entreprise) => {
         set({ error: null });
         try {
-            const res = await AuthentificationApi.verifierEntreprise(nom_Entreprise, num_Enregistrement);
+            const res = await AuthentificationApi.verifierEntreprise(nom_Entreprise);
             return res;
         } catch (error) {
             set({ error: error.message });

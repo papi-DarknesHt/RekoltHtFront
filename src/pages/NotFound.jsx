@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
+import { useTranslation } from "../assets/Translate/i18n.jsx";
 import "../assets/CSS/NotFound.css";
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -14,17 +16,17 @@ export default function NotFound() {
 
           <div className="nf-code">404</div>
 
-          <h1 className="nf-title">Paj sa pa egziste</h1>
+          <h1 className="nf-title">{t("notFound.title")}</h1>
           <p className="nf-sub">
-            Paj ou ap chèche a pa jwenn oswa li pa disponib ankò.
+            {t("notFound.subtitle")}
           </p>
 
           <div className="nf-actions">
             <button className="nf-btn-primary" onClick={() => navigate("/")}>
-              Retounen nan paj akèy
+              {t("notFound.backHome")}
             </button>
             <button className="nf-btn-secondary" onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/")}>
-              Retounen dèyè
+              {t("notFound.goBack")}
             </button>
           </div>
 
