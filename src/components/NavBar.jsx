@@ -13,12 +13,14 @@ import {
     ShieldCheck,
     Sun,
     Moon,
+    ShieldAlert,
 } from "lucide-react";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { useProfilStore } from "../Profil/ProfilStore";
 import { useGlobalStore } from "../api/globalStore.js";
 import { useMessagerieBadgeStore } from "../api/messagerieBadgeStore.js";
 import { useThemeStore } from "../api/themeStore.js";
+import { useNotifPushStore } from "../api/notifPushStore.js";
 import logo from "../assets/Images/Asset5.svg";
 import "../assets/CSS/NavBar.css";
 
@@ -34,6 +36,11 @@ export default function Navbar() {
     const afficherProfil = useProfilStore((s) => s.afficherProfil);
     const isAdmin = profil?.role === "admin";
     const isVendeur = profil?.role === "vendeur";
+    // compte bloqué par un admin (voir Utilisateur.bloquer, Registration/models.py)
+    // — accès restreint mais navigable, voir la bannière plus bas et
+    // Messagerie/views.py::demarrerConversation/envoyerMessage,
+    // Produits/views/produitsViews.py::detailProduit/infoVendeur
+    const estBloque = !!utilisateur?.est_bloquer;
 
     const theme = useThemeStore((s) => s.theme);
     const toggleTheme = useThemeStore((s) => s.toggleTheme);
@@ -71,6 +78,30 @@ export default function Navbar() {
     }, [messageAdminEvent, isConnecte, isAdmin, rafraichirSupport]);
 
     const totalNotifications = nonLus + (isAdmin ? messagesSupportEnAttente : 0);
+
+    // commutateur "notifications navigateur", accessible en permanence dans
+    // ce menu (demande explicite : "donner à l'utilisateur de l'activer et
+    // de le désactiver quand il veut", pas seulement via la modale de
+    // première demande — voir NotificationsPermission.jsx). Notification.permission
+    // ("default"/"granted"/"denied") est mémorisé par le NAVIGATEUR, jamais
+    // révocable en JS — recalculé au montage, mis à jour manuellement après
+    // un clic "Activer" ci-dessous ; notifsActivees (voir notifPushStore.js)
+    // est LUI un simple drapeau applicatif que l'utilisateur peut basculer
+    // librement dans un sens comme dans l'autre, une fois la permission déjà accordée.
+    const notifNavigateurSupporte = typeof window !== "undefined" && "Notification" in window;
+    const [permissionNotif, setPermissionNotif] = useState(() => (notifNavigateurSupporte ? Notification.permission : "unsupported"));
+    const notifsActivees = useNotifPushStore((s) => s.activees);
+    const definirNotifsActivees = useNotifPushStore((s) => s.definir);
+
+    const activerNotifsNavigateur = async () => {
+        try {
+            const resultat = await Notification.requestPermission();
+            setPermissionNotif(resultat);
+            if (resultat === "granted") definirNotifsActivees(true);
+        } catch {
+            // API refusée/indisponible — rien de plus à faire
+        }
+    };
 
     // S'assure que le logo de l'entreprise et la photo de profil sont à jour
     // même si la session était déjà ouverte avant le rechargement de la page
@@ -153,9 +184,9 @@ export default function Navbar() {
         <div className={`nav-wrapper${scrolled ? " nav--scrolled" : ""}`}>
             <nav className="nav">
                 {/* Logo */}
-                <div className="nav-logo">
+                <Link to="/" className="nav-logo">
                     <img style={{ width: "50%" }} src={logo} alt={t("common.logoAlt")} />
-                </div>
+                </Link>
 
                 {/* Liens de navigation — desktop */}
                 <ul className="nav-links">
@@ -224,6 +255,34 @@ export default function Navbar() {
                                         )}
                                         {totalNotifications === 0 && (
                                             <p className="nav-notif-vide">{t("nav.noNotifications")}</p>
+                                        )}
+                                        {notifNavigateurSupporte && (
+                                            <div className="nav-notif-footer">
+                                                <span className="nav-notif-footer__label">
+                                                    <Bell size={14} />
+                                                    {t("notifPush.toggleLabel")}
+                                                </span>
+                                                {permissionNotif === "granted" && (
+                                                    <button
+                                                        type="button"
+                                                        className={`nav-notif-toggle ${notifsActivees ? "nav-notif-toggle--on" : ""}`}
+                                                        role="switch"
+                                                        aria-checked={notifsActivees}
+                                                        aria-label={t("notifPush.toggleLabel")}
+                                                        onClick={() => definirNotifsActivees(!notifsActivees)}
+                                                    >
+                                                        <span className="nav-notif-toggle__thumb" />
+                                                    </button>
+                                                )}
+                                                {permissionNotif === "default" && (
+                                                    <button type="button" className="nav-notif-footer__link" onClick={activerNotifsNavigateur}>
+                                                        {t("notifPush.enable")}
+                                                    </button>
+                                                )}
+                                                {permissionNotif === "denied" && (
+                                                    <span className="nav-notif-footer__blocked">{t("notifPush.blockedByBrowser")}</span>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -308,6 +367,15 @@ export default function Navbar() {
                 </button>
             </nav>
 
+            {/* compte bloqué : accès restreint, rappel + lien direct vers Contacter l'administrateur */}
+            {isConnecte && estBloque && (
+                <div className="nav-blocked-banner">
+                    <ShieldAlert size={16} />
+                    <span>{t("nav.blockedBanner")}</span>
+                    <Link to="/contacter-admin" className="nav-blocked-banner__lien">{t("nav.contactAdmin")}</Link>
+                </div>
+            )}
+
             {/* Panneau mobile */}
             {mobileOpen && (
                 <div className="nav-mobile-panel">
@@ -320,9 +388,6 @@ export default function Navbar() {
                         )}
                         {isConnecte && isVendeur && (
                             <li><Link to="/produits/tableau-de-bord" onClick={closeMobile}>{t("nav.vendorDashboard")}</Link></li>
-                        )}
-                        {isConnecte && isVendeur && (
-                            <li><Link to="/contacter-admin" onClick={closeMobile}>{t("nav.contactAdmin")}</Link></li>
                         )}
                         {isConnecte && isAdmin && (
                             <li><Link to="/admin/dashboard" onClick={closeMobile}>{t("nav.dashboard")}</Link></li>

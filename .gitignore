@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# généré par vite-plugin-pwa en mode dev (devOptions.enabled, voir vite.config.js)
+dev-dist
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,13 +1,16 @@
 // Sections de la FAQ (voir src/pages/aide.jsx), réutilisées telles quelles
-// comme base de connaissances par le chatbot (src/components/ChatbotVendeur.jsx)
+// comme base de connaissances par le chatbot (src/components/ChatbotVendeur.jsx
+// — assemblée en un bloc de texte transmis à l'assistant IA comme
+// documentation de référence, voir Messagerie/services/chatbot_ia_service.py)
 // pour répondre aux questions — modifier une réponse dans les fichiers de
 // traduction (aide.sections.<cle>.qN/aN) la met à jour aux deux endroits à
 // la fois, sans dupliquer le contenu.
 export const SECTIONS_AIDE = [
-  { cle: "compte", nombreItems: 4 },
+  { cle: "compte", nombreItems: 5 },
   { cle: "recherche", nombreItems: 3 },
   { cle: "devenirVendeur", nombreItems: 4 },
   { cle: "gererProduits", nombreItems: 3 },
+  { cle: "espaceVendeur", nombreItems: 4 },
   { cle: "contacter", nombreItems: 3 },
   { cle: "securite", nombreItems: 4 },
   { cle: "support", nombreItems: 2 },

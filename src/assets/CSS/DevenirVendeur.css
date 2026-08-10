@@ -158,6 +158,20 @@
   margin-top: 0;
 }
 
+/* petit cercle qui tourne à gauche du texte du bouton "Envoyer ma demande"
+   pendant l'envoi (submitLoading) — montre que le dossier est en cours de
+   traitement côté serveur (soumettreVerification, voir DevenirVendeur.jsx) */
+.dv-btn-spinner {
+  vertical-align: -3px;
+  margin-right: 8px;
+  animation: dv-spin 0.8s linear infinite;
+}
+
+@keyframes dv-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .dv-btn-secondary {
   background: #f5f5f5 !important;
   color: #444 !important;

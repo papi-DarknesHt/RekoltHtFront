@@ -37,11 +37,17 @@
 
 /* repli affiché quand le produit n'a aucune photo (voir ProductCard.jsx) —
    le logo garde ses proportions (object-fit: contain) plutôt que d'être
-   recadré en plein cadre comme une vraie photo produit */
+   recadré en plein cadre comme une vraie photo produit. Le SVG (Asset5.svg)
+   est peint entièrement en blanc (fill: #fff) : sur le fond clair par
+   défaut de .produit-img (#f2f0eb), il devenait quasi invisible (contraste
+   proche de 0) — corrigé en lui donnant son propre fond vert de marque
+   (--rk-green), qui garantit le contraste quel que soit le thème. Le mode
+   sombre a son propre repli ci-dessous, inchangé (déjà suffisamment
+   contrasté sur fond sombre). */
 .produit-photo--logo {
   object-fit: contain;
   padding: 32px;
-  background: #f2f0eb;
+  background: var(--rk-green, #2f4a3c);
 }
 
 .produit-card:hover .produit-photo--logo {

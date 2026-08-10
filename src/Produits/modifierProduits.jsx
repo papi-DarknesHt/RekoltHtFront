@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Package, Info, Coins, MapPin, CheckCircle2, ArrowRight, X, Image, Plus, Trash2, AlertTriangle,
+  Package, Info, Coins, CheckCircle2, ArrowRight, X, Image, Plus, Trash2, AlertTriangle, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import NavBar from "../components/NavBar.jsx";
 import BoutonRetour from "../components/BoutonRetour.jsx";
@@ -10,8 +10,8 @@ import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { ProduitsApi } from "../api/produits";
 import { useConfirmStore } from "../api/confirmStore.js";
+import { useGlobalStore } from "../api/globalStore.js";
 import categorieProduitsData from "../assets/Produits/categorieProduits.json";
-import departementsData from "../assets/Departements/haiti_departements.json";
 import "../assets/CSS/ModifierProduit.css";
 
 // référentiel catégorie/sous-catégories — même principe que AjouterProduit.jsx :
@@ -37,6 +37,7 @@ export default function ModifierProduit() {
   const { t } = useTranslation();
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const demanderConfirmation = useConfirmStore((s) => s.demander);
+  const produitEvent = useGlobalStore((s) => s.produitEvent);
 
   const [chargement, setChargement] = useState(true);
   const [erreurChargement, setErreurChargement] = useState(null);
@@ -85,6 +86,12 @@ export default function ModifierProduit() {
         setSousCategories(sousRes.sous_categories || []);
         setSousCategorieInitiale(p.sous_categorie || null);
         setDesactiveParSignalements(!!p.desactive_par_signalements);
+        // pas de champs de localisation dans ce formulaire (même principe que
+        // AjouterProduit.jsx) : la localisation du produit suit automatiquement
+        // celle du vendeur et se met à jour en cascade dès qu'il change de
+        // localisation dans son profil (voir modifierProfil/modifierEntreprise,
+        // Registration/views.py::_repercuter_localisation_sur_produits) —
+        // l'éditer ici au niveau du produit romprait cette synchronisation.
         setForm({
           categorie_id:      p.categorie?.id ?? "",
           sous_categorie_id: p.sous_categorie?.id ?? "",
@@ -93,10 +100,6 @@ export default function ModifierProduit() {
           prix:              p.prix ?? "",
           unitePrix:         p.unitePrix || "HTG",
           unite_De_Mesure:   p.unite_De_Mesure || "",
-          departement:       p.departement || "",
-          commune:           p.commune || "",
-          section_comunale:  p.section_comunale || "",
-          adresse:           p.adresse || "",
           est_disponible:    p.est_disponible,
         });
         setPhotos(p.photos || []);
@@ -107,6 +110,25 @@ export default function ModifierProduit() {
     // pas relancer le chargement (évite une double requête au premier rendu)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [produitId]);
+
+  // réactivité temps réel (voir Produits/signals.py côté backend) : ce
+  // formulaire n'avait aucun abonnement jusqu'ici — si le produit est
+  // supprimé (par le vendeur depuis un autre onglet, ou par un admin) ou
+  // désactivé par signalements pendant l'édition, l'écran restait
+  // silencieusement périmé jusqu'à un rechargement manuel. Même filtre par id
+  // que DetailProduit.jsx.
+  useEffect(() => {
+    if (!produitEvent || !produitId) return;
+    const { type, data } = produitEvent;
+    if (String(data.id) !== String(produitId)) return;
+    if (type === "produit.deleted") {
+      setErreurChargement(t("product.editDeletedWhileEditing"));
+      return;
+    }
+    if ("desactive_par_signalements" in data) {
+      setDesactiveParSignalements(!!data.desactive_par_signalements);
+    }
+  }, [produitEvent, produitId, t]);
 
   // sous-catégories rattachées aux catégories choisies par ce vendeur (même
   // périmètre que AjouterProduit.jsx) — la sous-catégorie déjà affectée au
@@ -126,13 +148,6 @@ export default function ModifierProduit() {
   const referenceJSON    = sousCategorieChoisie ? _trouverReferenceJSON(sousCategorieChoisie.nom) : null;
   const suggestionsNom   = referenceJSON?.Produit || [];
   const suggestionsUnite = referenceJSON?.Unite_mesure || [];
-
-  const communesDisponibles = form?.departement
-    ? (departementsData.find((d) => d.departement === form.departement)?.communes || [])
-    : [];
-  const sectionsDisponibles = form?.commune
-    ? (communesDisponibles.find((c) => c.commune === form.commune)?.sections_communales || [])
-    : [];
 
   const ajouterPhotos = async (e) => {
     const fichiers = Array.from(e.target.files || []);
@@ -162,6 +177,29 @@ export default function ModifierProduit() {
     }
   };
 
+  // contrairement à AjouterProduit.jsx (photos pas encore envoyées, simple
+  // tableau local), ces photos existent déjà côté serveur — le nouvel ordre
+  // est donc aussi persisté immédiatement (voir ProduitsApi.reordonnerPhotosProduit,
+  // Produits/views/photoProduits.py::reordonnerPhotosProduit), avec retour à
+  // l'ordre précédent en cas d'échec réseau plutôt qu'un état local incohérent
+  // avec le serveur.
+  const deplacerPhoto = async (index, direction) => {
+    const cible = index + direction;
+    if (cible < 0 || cible >= photos.length) return;
+
+    const ancienneListe = photos;
+    const nouvelleListe = [...photos];
+    [nouvelleListe[index], nouvelleListe[cible]] = [nouvelleListe[cible], nouvelleListe[index]];
+    setPhotos(nouvelleListe);
+    setErreurPhoto(null);
+    try {
+      await ProduitsApi.reordonnerPhotosProduit(produitId, nouvelleListe.map((p) => p.id));
+    } catch (err) {
+      setPhotos(ancienneListe);
+      setErreurPhoto(err.message);
+    }
+  };
+
   const soumettreProduit = async (e) => {
     e.preventDefault();
     setSucces(null);
@@ -172,10 +210,6 @@ export default function ModifierProduit() {
     }
     if (!form.nom.trim()) {
       setErreurProduit(t("product.nameRequired"));
-      return;
-    }
-    if (!form.section_comunale) {
-      setErreurProduit(t("product.sectionCommunaleRequired"));
       return;
     }
     if (!(await demanderConfirmation(t("product.editConfirm")))) return;
@@ -189,7 +223,6 @@ export default function ModifierProduit() {
         categorie_id: sousCategorieChoisie.categorie_id,
         sous_categorie_id: sousCategorieChoisie.id,
         prix: form.prix === "" ? null : Number(form.prix),
-        region: form.section_comunale,
       });
       setSucces(t("product.updateSuccess"));
       // laisse le temps de voir le message de succès avant de revenir à la
@@ -374,77 +407,11 @@ export default function ModifierProduit() {
                 )}
               </div>
 
-              <div className="mep-form-section">
-                <p className="mep-form-section__title"><MapPin size={15} />{t("product.sectionLocation")}</p>
-
-                <div className="mep-form-row">
-                  <label className="mep-field">
-                    {t("product.department")}
-                    <select
-                      className="mep-input"
-                      value={form.departement}
-                      onChange={(e) => {
-                        const departement = e.target.value;
-                        setForm((f) => ({ ...f, departement, commune: "", section_comunale: "" }));
-                      }}
-                    >
-                      <option value="">{t("product.selectDepartment")}</option>
-                      {departementsData.map((d) => (
-                        <option key={d.departement} value={d.departement}>{d.departement}</option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="mep-field">
-                    {t("product.commune")}
-                    <select
-                      className="mep-input"
-                      value={form.commune}
-                      disabled={!form.departement}
-                      onChange={(e) => {
-                        const commune = e.target.value;
-                        setForm((f) => ({ ...f, commune, section_comunale: "" }));
-                      }}
-                    >
-                      <option value="">{t("product.selectCommune")}</option>
-                      {communesDisponibles.map((c) => (
-                        <option key={c.commune} value={c.commune}>{c.commune}</option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="mep-field">
-                    {t("product.sectionCommunale")} *
-                    <select
-                      className="mep-input"
-                      value={form.section_comunale}
-                      disabled={!form.commune || sectionsDisponibles.length === 0}
-                      onChange={(e) => setForm((f) => ({ ...f, section_comunale: e.target.value }))}
-                    >
-                      <option value="">{t("product.selectSection")}</option>
-                      {sectionsDisponibles.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <label className="mep-field mep-field--full">
-                  {t("product.address")}
-                  <input
-                    type="text"
-                    className="mep-input"
-                    value={form.adresse}
-                    onChange={(e) => setForm((f) => ({ ...f, adresse: e.target.value }))}
-                  />
-                </label>
-              </div>
-
               <div className="mep-form-section mep-form-section--last">
                 <p className="mep-form-section__title"><Image size={15} />{t("product.sectionPhotos")}</p>
 
                 <div className="mep-photo-grid">
-                  {photos.map((photo) => (
+                  {photos.map((photo, index) => (
                     <div className="mep-photo-thumb" key={photo.id}>
                       <img src={photo.url_photo} alt={form.nom} />
                       <button
@@ -455,6 +422,26 @@ export default function ModifierProduit() {
                       >
                         <X size={14} />
                       </button>
+                      {photos.length > 1 && (
+                        <div className="mep-photo-thumb__reorder">
+                          <button
+                            type="button"
+                            disabled={index === 0}
+                            onClick={() => deplacerPhoto(index, -1)}
+                            aria-label={t("product.movePhotoBefore")}
+                          >
+                            <ChevronLeft size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={index === photos.length - 1}
+                            onClick={() => deplacerPhoto(index, 1)}
+                            aria-label={t("product.movePhotoAfter")}
+                          >
+                            <ChevronRight size={14} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
 

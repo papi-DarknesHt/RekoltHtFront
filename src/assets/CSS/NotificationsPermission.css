@@ -1,0 +1,121 @@
+/* ── MODALE "ACTIVER LES NOTIFICATIONS" (NotificationsPermission.jsx) ───────
+   même schéma que ConfirmModal.css : overlay plein écran + carte centrée,
+   AU-DESSUS DE TOUT (y compris le header sticky de NavBar.css, z-index 100 —
+   une position simplement "en haut de page" se faisait recouvrir par lui,
+   la rendant invisible ; un vrai overlay plein écran règle ça une fois pour
+   toutes, quel que soit ce qu'il y a sur la page en dessous). */
+.notif-perm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 38, 34, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 2000;
+  animation: notif-perm-fade-in 0.15s ease;
+}
+
+@keyframes notif-perm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.notif-perm-modal {
+  background: var(--rk-card, #fff);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(43, 38, 34, 0.25);
+  padding: 26px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+}
+
+.notif-perm-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  background: var(--rk-green-light, #e3f3e8);
+  color: var(--couleurSecondaire, #1a3d1a);
+}
+
+.notif-perm-modal__title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rk-text, #2b2622);
+}
+
+.notif-perm-modal__body {
+  margin: 0 0 22px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--rk-text-light, #6f675f);
+}
+
+.notif-perm-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.notif-perm-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: inherit;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.notif-perm-modal__btn--secondary {
+  background: transparent;
+  color: var(--rk-text-light, #6f675f);
+  border: 1.5px solid var(--rk-border, #e7e2dc);
+}
+
+.notif-perm-modal__btn--secondary:hover {
+  background: var(--rk-bg, #f6f4f1);
+}
+
+.notif-perm-modal__btn--primary {
+  background: var(--couleurSecondaire, #1a3d1a);
+  color: #fff;
+}
+
+.notif-perm-modal__btn--primary:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 480px) {
+  .notif-perm-modal__actions {
+    flex-direction: column-reverse;
+  }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .notif-perm-modal {
+  background: var(--rk-card, #1f2422);
+}
+
+[data-theme="dark"] .notif-perm-modal__title {
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .notif-perm-modal__body {
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .notif-perm-modal__btn--secondary {
+  border-color: var(--rk-border, #343b36);
+  color: var(--rk-text-light, #8d8a82);
+}

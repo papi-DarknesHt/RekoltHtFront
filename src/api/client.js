@@ -38,7 +38,7 @@ async function request(path, options = {}) {
     const erreur = new Error(resoudreMessageErreur(data, res.status));
     // status/code exposés pour les appelants qui doivent distinguer un cas
     // précis (ex: 404 "pas encore configuré" vs une vraie erreur) sans
-    // dépendre du texte du message traduit — voir e2eStore.js::garantirCleE2E
+    // dépendre du texte du message traduit
     erreur.status = res.status;
     erreur.code = data?.error_code;
     throw erreur;

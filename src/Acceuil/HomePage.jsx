@@ -17,10 +17,11 @@ import { useAuthStore } from "../Registration/AuthentificationStore";
 import { useProfilStore } from "../Profil/ProfilStore";
 import { useGlobalStore } from "../api/globalStore.js";
 import { ProduitsApi } from "../api/produits";
+import { formaterLocalisationProduit } from "../utils/localisationProduit.js";
 
 // Convertit un produit tel que renvoyé par l'API (voir _serialiseProduit,
 // Produits/views/produitsViews.py) au format attendu par ProductCard.jsx
-function versProduitAffiche(p, texteNonPrecise) {
+function versProduitAffiche(p, texteNonPrecise, texteHaiti) {
   return {
     id: p.id,
     nom: p.nom,
@@ -30,7 +31,7 @@ function versProduitAffiche(p, texteNonPrecise) {
     vendeurTelephone: p.vendeur_telephone,
     noteMoyenne: p.note_moyenne,
     nombreAvis: p.nombre_avis,
-    lieu: [p.commune, p.departement].filter(Boolean).join(", ") || p.region || texteNonPrecise,
+    lieu: formaterLocalisationProduit(p, texteHaiti) || texteNonPrecise,
     prix: p.prix,
     devise: p.unitePrix,
     image: p.photos?.[0]?.url_photo || null,
@@ -145,7 +146,7 @@ export default function HomePage() {
     });
   }, [produitEvent]);
 
-  const produitsAffiches = produits.map((p) => versProduitAffiche(p, t("profile.notSpecified")));
+  const produitsAffiches = produits.map((p) => versProduitAffiche(p, t("profile.notSpecified"), t("auth.haiti")));
 
   // enregistre le clic "Contacter" (alimente nombre_contacts affiché au
   // vendeur sur "Mes produits") puis ouvre directement la messagerie avec ce
@@ -189,6 +190,11 @@ export default function HomePage() {
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const profil = useProfilStore((s) => s.profil);
   const isVendeur = profil?.role === "vendeur";
+  // un compte admin ne peut pas devenir vendeur (rôles mutuellement
+  // exclusifs, voir DevenirVendeur.jsx et soumettre_verification côté
+  // backend) — l'onboarding acheteur/vendeur "Comment ça marche" ne le
+  // concerne donc pas.
+  const isAdmin = profil?.role === "admin";
 
   // remplace le bouton "Devenir vendeur" par un carousel "Mes produits" une
   // fois que le compte connecté est déjà vendeur — inutile de lui proposer
@@ -222,7 +228,7 @@ export default function HomePage() {
     });
   }, [produitEvent, isVendeur, utilisateur?.id]);
 
-  const mesProduitsAffiches = mesProduits.map((p) => versProduitAffiche(p, t("profile.notSpecified")));
+  const mesProduitsAffiches = mesProduits.map((p) => versProduitAffiche(p, t("profile.notSpecified"), t("auth.haiti")));
 
   return (
     <>
@@ -285,11 +291,8 @@ export default function HomePage() {
           />
         )}
       </section>
-
-      {/* ── PROSESIS — Comment ça marche, remplacée par "Mes produits"
-             quand le compte connecté est déjà vendeur (voir isVendeur plus
-             haut) : ces étapes d'onboarding ne concernent que les futurs
-             acheteurs/vendeurs, pas quelqu'un qui vend déjà sur la plateforme ── */}
+      {/*Section comment devenir vendeur */}
+      {!(isConnected && isAdmin) && (
       <section className="section-brown">
         {isConnected && isVendeur ? (
           <div className="mes-produits-accueil">
@@ -345,36 +348,21 @@ export default function HomePage() {
           </>
         )}
       </section>
+      )}
 
-      {/* ── KAT + SANT ED — Carte & Aide côte à côte ── */}
+      {/* Section carte et centre d'aide*/}
       <div className="section-map-help">
-
-        {/* Colonne gauche : carte de localisation */}
+        {/* carte de localisation */}
         <div>
           <p className="subsection-title">{t("home.mapTitle")}</p>
-
-          {/* Placeholder de Google Maps (à remplacer par un vrai composant Map) */}
           <div>
-            {/* Google Maps réel */}
             <MapHaiti />
-            {/* Légende */}
-            <div className="map-legend">
-              <span>
-                <span className="legend-dot" style={{ background: "#e23" }}></span>
-                {t("home.legendFar")}
-              </span>
-              <span>
-                <span className="legend-dot" style={{ background: "#f5f0c0" }}></span>
-                {t("home.legendNear")}
-              </span>
-            </div>
           </div>
         </div>
-
+        
         {/* Colonne droite : articles d'aide */}
         <div>
           <p className="subsection-title">{t("home.helpCenter")}</p>
-
           {/* On itère sur les articles d'aide */}
           {SANT_ED.map((item) => (
             <button

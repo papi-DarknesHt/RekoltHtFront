@@ -15,7 +15,6 @@ import {
   Trash2,
   MessageCircle,
   Globe,
-  HeartCrack,
   Save,
   Image,
   Truck,
@@ -35,7 +34,6 @@ import { useTranslation } from "../assets/Translate/i18n.jsx";
 import departementsData from "../assets/Departements/haiti_departements.json";
 import { fusionnerLocalisationDetectee, niveauDetecteDepuisLoc } from "../utils/geoLookup.js";
 import { useConfirmStore } from "../api/confirmStore.js";
-import { useE2eStore } from "../api/e2eStore.js";
 
 
 
@@ -102,14 +100,6 @@ export default function ModifierProfil() {
     confirmation: "",
   });
 
-  // ── état du formulaire "Code de sécurité des messages" (changement du PIN
-  // de chiffrement de bout en bout — voir api/e2eStore.js)
-  const [pinForm, setPinForm] = useState({ ancien: "", nouveau: "", confirmation: "" });
-  const [pinSaving, setPinSaving] = useState(false);
-  const [pinMessage, setPinMessage] = useState(null);
-  const changerPin = useE2eStore((s) => s.changerPin);
-  const regenererCleVolontairement = useE2eStore((s) => s.regenererCleVolontairement);
-
   // ── photo de profil : aperçu local + données à envoyer au backend
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoData, setPhotoData] = useState(null);
@@ -163,20 +153,35 @@ export default function ModifierProfil() {
     }));
   }, [entreprise]);
 
+  // même filtrage à la saisie que Registration/Authentification.jsx, pour que
+  // ces champs se comportent de façon cohérente sur toute la plateforme : le
+  // nom/prénom ne doit jamais pouvoir contenir de chiffre, et le téléphone
+  // rien d'autre que des chiffres/espaces/+ (le format complet — 8 chiffres,
+  // ou 509 + 8 chiffres — n'est vérifié qu'à l'enregistrement, voir
+  // isValidTelephone/handleSave : on ne peut pas juger un numéro incomplet
+  // "invalide" pendant que l'utilisateur est encore en train de le taper).
+  const filtrerSaisie = (field, valeur) => {
+    if (field === "nom" || field === "prenom") {
+      return valeur.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s-]/g, "");
+    }
+    if (field === "telephone") {
+      return valeur.replace(/[^\d+\s]/g, "");
+    }
+    return valeur;
+  };
+
   const handleChange = (field) => (event) => {
-    setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    const valeur = filtrerSaisie(field, event.target.value);
+    setForm((prev) => ({ ...prev, [field]: valeur }));
   };
 
   const handleEntrepriseChange = (field) => (event) => {
-    setEntrepriseForm((prev) => ({ ...prev, [field]: event.target.value }));
+    const valeur = filtrerSaisie(field, event.target.value);
+    setEntrepriseForm((prev) => ({ ...prev, [field]: valeur }));
   };
 
   const handlePasswordChange = (field) => (event) => {
     setPasswordForm((prev) => ({ ...prev, [field]: event.target.value }));
-  };
-
-  const handlePinFormChange = (field) => (event) => {
-    setPinForm((prev) => ({ ...prev, [field]: event.target.value }));
   };
 
   // ── sélection d'une nouvelle photo de profil : on la convertit en base64
@@ -236,11 +241,72 @@ export default function ModifierProfil() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // même format que Registration/Authentification.jsx, pour que ces champs
+  // soient jugés valides ou non de la même façon partout sur la plateforme.
+  const isValidName = (n) => /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[ -][A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(n.trim());
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isValidTelephone = (tel) => {
+    const digits = tel.replace(/\D/g, "");
+    return digits.length === 8 || (digits.length === 11 && digits.startsWith("509"));
+  };
+  // normalise en +509XXXXXXXX avant envoi, quel que soit le format saisi
+  // (8 chiffres locaux, ou déjà préfixé 509/+509)
+  const formatTelephone = (tel) => {
+    const digits = tel.replace(/\D/g, "");
+    if (digits.startsWith("509") && digits.length === 11) return `+${digits}`;
+    return `+509${digits}`;
+  };
+
+  // le nom/prénom (voir isVendeurVerifie plus bas) et le nom d'entreprise
+  // (voir entrepriseVerifiee) sont figés après vérification — inutile, et
+  // même risqué, de valider leur format ici : une valeur déjà en base avant
+  // l'ajout de cette validation (ex: un caractère non couvert par le motif
+  // actuel) resterait inchangée (le champ est en lecture seule) mais
+  // bloquerait alors à tort l'enregistrement du reste du formulaire (bio,
+  // photo, localisation...).
+  const isVendeurVerifie = profil?.role === "vendeur";
+  const entrepriseVerifiee = isEntreprise && !!entreprise?.est_verifiee;
+
   // ── enregistre les informations personnelles + le profil (et la photo si modifiée)
   const handleSave = async () => {
+    setMessage(null);
+
+    if (isEntreprise) {
+      if (!entrepriseVerifiee && !entrepriseForm.nom_Entreprise.trim()) {
+        setMessage({ type: "error", text: t("profile.invalidCompanyName") });
+        return;
+      }
+      if (!entrepriseForm.email.trim() || !isValidEmail(entrepriseForm.email)) {
+        setMessage({ type: "error", text: t("profile.invalidEmail") });
+        return;
+      }
+      if (!entrepriseForm.telephone.trim() || !isValidTelephone(entrepriseForm.telephone)) {
+        setMessage({ type: "error", text: t("profile.invalidPhone") });
+        return;
+      }
+    } else {
+      if (!isVendeurVerifie) {
+        if (!form.nom.trim() || !isValidName(form.nom)) {
+          setMessage({ type: "error", text: t("profile.invalidName") });
+          return;
+        }
+        if (!form.prenom.trim() || !isValidName(form.prenom)) {
+          setMessage({ type: "error", text: t("profile.invalidFirstName") });
+          return;
+        }
+      }
+      if (!form.email.trim() || !isValidEmail(form.email)) {
+        setMessage({ type: "error", text: t("profile.invalidEmail") });
+        return;
+      }
+      if (!form.telephone.trim() || !isValidTelephone(form.telephone)) {
+        setMessage({ type: "error", text: t("profile.invalidPhone") });
+        return;
+      }
+    }
+
     if (!(await demanderConfirmation(t("profile.saveConfirm")))) return;
     setSaving(true);
-    setMessage(null);
     try {
       if (isEntreprise) {
         await modifierEntreprise({
@@ -249,7 +315,7 @@ export default function ModifierProfil() {
           secteur: entrepriseForm.secteur,
           description: entrepriseForm.description,
           email: entrepriseForm.email,
-          telephone: entrepriseForm.telephone,
+          telephone: formatTelephone(entrepriseForm.telephone),
           adresse: entrepriseForm.adresse,
           departement: entrepriseForm.departement,
           commune: entrepriseForm.commune,
@@ -263,7 +329,7 @@ export default function ModifierProfil() {
           nom: form.nom,
           prenom: form.prenom,
           email: form.email,
-          telephone: form.telephone,
+          telephone: formatTelephone(form.telephone),
         });
 
         await modifierProfil({
@@ -305,47 +371,6 @@ export default function ModifierProfil() {
       setPasswordForm({ ancien: "", nouveau: "", confirmation: "" });
     } catch (error) {
       setMessage({ type: "error", text: error.message });
-    }
-  };
-
-  // ── changement du code PIN de la messagerie chiffrée de bout en bout (voir
-  // api/e2eStore.js) — indépendant du mot de passe du compte
-  const handleChangerPin = async () => {
-    setPinMessage(null);
-    if (!/^\d{4,8}$/.test(pinForm.nouveau)) {
-      setPinMessage({ type: "error", text: t("e2e.pinFormatInvalide") });
-      return;
-    }
-    if (pinForm.nouveau !== pinForm.confirmation) {
-      setPinMessage({ type: "error", text: t("e2e.pinMismatch") });
-      return;
-    }
-    if (!(await demanderConfirmation(t("e2e.confirmChangerPin")))) return;
-
-    setPinSaving(true);
-    try {
-      await changerPin(pinForm.ancien, pinForm.nouveau);
-      setPinMessage({ type: "success", text: t("e2e.pinChangeSuccess") });
-      setPinForm({ ancien: "", nouveau: "", confirmation: "" });
-    } catch {
-      // dechiffrerClePrivee échoue silencieusement (OperationError) sur un
-      // mauvais ancien PIN — pas d'autre cause probable ici
-      setPinMessage({ type: "error", text: t("e2e.pinIncorrect") });
-    } finally {
-      setPinSaving(false);
-    }
-  };
-
-  // ── régénération complète de la clé de chiffrement (PIN oublié) — rend
-  // tous les anciens messages chiffrés définitivement illisibles, voir
-  // e2eStore.js::regenererCleVolontairement
-  const handleRegenererCle = async () => {
-    setPinMessage(null);
-    try {
-      const resultat = await regenererCleVolontairement();
-      if (resultat) setPinMessage({ type: "success", text: t("e2e.pinChangeSuccess") });
-    } catch (error) {
-      setPinMessage({ type: "error", text: error.message });
     }
   };
 
@@ -471,7 +496,11 @@ export default function ModifierProfil() {
                           className="edit-input"
                           value={entrepriseForm.nom_Entreprise}
                           onChange={handleEntrepriseChange("nom_Entreprise")}
+                          disabled={entrepriseVerifiee}
                         />
+                        {entrepriseVerifiee && (
+                          <p className="edit-field-hint">{t("profile.companyNameLocked")}</p>
+                        )}
                       </div>
 
                       <div className="edit-field">
@@ -520,9 +549,13 @@ export default function ModifierProfil() {
                               type="email"
                               className="edit-input"
                               value={entrepriseForm.email}
-                              onChange={handleEntrepriseChange("email")}
+                              disabled
+                              readOnly
+                              title={t("profile.emailLockedHint")}
                             />
+                            <Lock size={14} className="edit-input-icon edit-input-icon--right" />
                           </div>
+                          <p className="edit-field__hint">{t("profile.emailLockedHint")}</p>
                         </div>
 
                         <div className="edit-field">
@@ -638,6 +671,7 @@ export default function ModifierProfil() {
                             className="edit-input"
                             value={form.nom}
                             onChange={handleChange("nom")}
+                            disabled={isVendeurVerifie}
                           />
                         </div>
 
@@ -651,9 +685,13 @@ export default function ModifierProfil() {
                             className="edit-input"
                             value={form.prenom}
                             onChange={handleChange("prenom")}
+                            disabled={isVendeurVerifie}
                           />
                         </div>
                       </div>
+                      {isVendeurVerifie && (
+                        <p className="edit-field-hint">{t("profile.nameLocked")}</p>
+                      )}
                     </div>
 
                     {/* ----- Contact & Localisation ----- */}
@@ -675,9 +713,13 @@ export default function ModifierProfil() {
                               type="email"
                               className="edit-input"
                               value={form.email}
-                              onChange={handleChange("email")}
+                              disabled
+                              readOnly
+                              title={t("profile.emailLockedHint")}
                             />
+                            <Lock size={14} className="edit-input-icon edit-input-icon--right" />
                           </div>
+                          <p className="edit-field__hint">{t("profile.emailLockedHint")}</p>
                         </div>
 
                         <div className="edit-field">
@@ -833,98 +875,12 @@ export default function ModifierProfil() {
                     </div>
                   </div>
                 </div>
-
-                {/* ----- Code de sécurité des messages (chiffrement de bout en bout) ----- */}
-                <div className="edit-card">
-                  <h3 className="edit-card__title">
-                    <KeyRound size={18} className="edit-card__icon" />
-                    {t("e2e.securityCardTitle")}
-                  </h3>
-                  <p style={{ margin: "0 0 16px", fontSize: "0.85rem", opacity: 0.75 }}>{t("e2e.securityCardHint")}</p>
-
-                  <div className="edit-field">
-                    <label className="edit-label" htmlFor="currentPin">{t("e2e.currentPin")}</label>
-                    <div className="edit-input-with-icon">
-                      <Lock size={16} className="edit-input-icon" />
-                      <input
-                        id="currentPin"
-                        type="password"
-                        inputMode="numeric"
-                        className="edit-input"
-                        value={pinForm.ancien}
-                        onChange={handlePinFormChange("ancien")}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="edit-field-row">
-                    <div className="edit-field">
-                      <label className="edit-label" htmlFor="newPin">{t("e2e.newPin")}</label>
-                      <div className="edit-input-with-icon">
-                        <Lock size={16} className="edit-input-icon" />
-                        <input
-                          id="newPin"
-                          type="password"
-                          inputMode="numeric"
-                          className="edit-input"
-                          value={pinForm.nouveau}
-                          onChange={handlePinFormChange("nouveau")}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="edit-field">
-                      <label className="edit-label" htmlFor="confirmPin">{t("e2e.confirmNewPin")}</label>
-                      <div className="edit-input-with-icon">
-                        <KeyRound size={16} className="edit-input-icon" />
-                        <input
-                          id="confirmPin"
-                          type="password"
-                          inputMode="numeric"
-                          className="edit-input"
-                          value={pinForm.confirmation}
-                          onChange={handlePinFormChange("confirmation")}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {pinMessage && (
-                    <div
-                      style={{
-                        margin: "0 0 16px",
-                        padding: "10px 14px",
-                        borderRadius: "8px",
-                        fontSize: "0.9rem",
-                        color: pinMessage.type === "success" ? "#1f5e2e" : "#a02b2b",
-                        background: pinMessage.type === "success" ? "#e3f3e8" : "#fbe7e7",
-                      }}
-                    >
-                      {pinMessage.text}
-                    </div>
-                  )}
-
-                  <div className="edit-actions__buttons">
-                    <button type="button" className="edit-btn edit-btn--primary" onClick={handleChangerPin} disabled={pinSaving}>
-                      <Save size={16} />
-                      {pinSaving ? t("profile.saving") : t("e2e.changePinButton")}
-                    </button>
-                    <button type="button" className="edit-link edit-link--danger" onClick={handleRegenererCle}>
-                      {t("e2e.lienOublie")}
-                    </button>
-                  </div>
-                </div>
               </>
             )}
           </div>
 
           {/* ----- Actions finales ----- */}
           <div className="edit-actions">
-            <button className="edit-link edit-link--danger edit-link--deactivate">
-              <HeartCrack size={16} />
-              {t("profile.deactivateAccount")}
-            </button>
-
             <div className="edit-actions__buttons">
               <button className="edit-btn edit-btn--outline" onClick={() => navigate("/profil")}>{t("profile.cancel")}</button>
               {tab === "initialProfile" ? (

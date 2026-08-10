@@ -1,25 +1,14 @@
-# React + Vite
+# RekoltHt — Frontend (React + Vite)
 
-<<<<<<< Updated upstream
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-=======
 Frontend React (Vite) de **RekoltHt**, une plateforme qui met en relation
 acheteurs et vendeurs de produits agricoles en Haïti. Propose une page
 d'accueil multilingue (Kreyòl / Français / English), l'authentification
 (classique ou Google), la gestion du profil utilisateur, un parcours de
-vérification vendeur (KYC), une carte Google Maps et des notifications en
-temps réel. Consomme une API REST + WebSocket externe (URL configurée via
+vérification vendeur (KYC), une carte Google Maps, des notifications en
+temps réel et une installation en PWA (voir section dédiée plus bas).
+Consomme une API REST + WebSocket externe (URL configurée via
 `VITE_API_URL`).
->>>>>>> Stashed changes
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-<<<<<<< Updated upstream
-## React Compiler
-=======
 ## Prérequis
 
 - Node.js 18+ et npm
@@ -29,15 +18,11 @@ Currently, two official plugins are available:
 ## Installation étape par étape
 
 ### 1. Installer les dépendances
->>>>>>> Stashed changes
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+```
 
-<<<<<<< Updated upstream
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-=======
 ### 2. Configurer les variables d'environnement
 
 Créer un fichier `.env` à la racine du projet (non commité) :
@@ -90,6 +75,77 @@ src/
 ├── pages/
 └── hooks/
 ```
+
+---
+
+## PWA (Progressive Web App)
+
+L'application est installable depuis le navigateur (bureau et mobile),
+fonctionne partiellement hors-ligne, et apparaît sur l'écran d'accueil du
+téléphone comme une app native. Mis en place via
+[`vite-plugin-pwa`](https://vite-pwa-org.netlify.app/) (Workbox), voir
+`vite.config.js`.
+
+### Ce que ça couvre
+
+- **Installable** : icône + bannière "Installer l'application" dans Chrome/Edge
+  (desktop et Android) et "Ajouter à l'écran d'accueil" sur Safari iOS. Ouvre
+  l'app en plein écran (`display: standalone`), sans barre d'adresse.
+- **Fonctionne partiellement hors-ligne** : le service worker précache l'app
+  shell (JS/CSS/HTML/icônes) au premier chargement, donc l'app se réouvre
+  même sans connexion. Les appels à l'API backend (`VITE_API_URL`) sont mis en
+  cache en `NetworkFirst` (réseau si dispo, sinon la dernière réponse connue),
+  et les images servies par le backend (photos produits, profils, ...) en
+  `CacheFirst`. **Limite assumée** : seul ce qui a déjà été vu une fois reste
+  consultable hors-ligne — envoyer un message, publier un produit, se
+  connecter, etc. nécessitent toujours une connexion.
+- **Mise à jour automatique** : `registerType: 'autoUpdate'` — une nouvelle
+  version déployée est appliquée toute seule au prochain chargement, sans
+  bannière "mettre à jour" à gérer côté UI.
+
+### Fichiers concernés
+
+- `vite.config.js` — configuration du plugin (`manifest`, règles de cache
+  `workbox.runtimeCaching`, précaching de l'app shell).
+- `src/main.jsx` — enregistrement du service worker
+  (`import('virtual:pwa-register')`).
+- `index.html` — balises `theme-color`, `apple-touch-icon`,
+  `apple-mobile-web-app-*` (le `<link rel="manifest">` est injecté
+  automatiquement au build).
+- `public/pwa-192x192.png`, `public/pwa-512x512.png`,
+  `public/maskable-icon-512x512.png`, `public/apple-touch-icon.png` — icônes
+  générées à partir de `src/assets/Images/Icon.jpg` (logo "RH").
+
+### Comment tester
+
+⚠️ **`npm run dev` seul ne suffit pas pour un vrai test d'installabilité** :
+`devOptions.enabled: true` permet bien d'avoir un service worker actif en dev
+(pratique pour développer), mais il ne précache pas le build de production —
+pour tester l'installation et le mode hors-ligne dans les conditions réelles,
+utiliser le build de production :
+
+```bash
+npm run build
+npm run preview
+```
+
+Puis ouvrir l'URL affichée (par défaut **http://localhost:4173**) :
+
+- **Desktop (Chrome/Edge)** : icône d'installation dans la barre d'adresse,
+  ou menu ⋮ → "Installer RekoltHt".
+- **Android (Chrome)** : bannière "Ajouter à l'écran d'accueil" ou menu ⋮ →
+  "Installer l'application".
+- **iOS (Safari)** : bouton Partager → "Sur l'écran d'accueil" (Safari
+  n'affiche jamais de bannière automatique — c'est une limite d'iOS, pas de
+  cette configuration).
+- **Tester le hors-ligne** : une fois l'app ouverte au moins une fois,
+  couper le réseau (onglet Réseau des DevTools → "Offline", ou mode avion sur
+  mobile) puis recharger : l'app shell doit toujours s'afficher.
+
+**Sur un téléphone physique** : un service worker exige HTTPS, sauf sur
+`localhost`. Pour tester `npm run preview` depuis un téléphone sur le même
+réseau Wi-Fi, soit servir l'app derrière un tunnel HTTPS (ex. `ngrok`), soit
+tester directement sur le domaine de déploiement (déjà en HTTPS).
 
 ---
 
@@ -149,4 +205,3 @@ wizard à 6 étapes, branché sur les vrais endpoints KYC du backend
 - Si la vérification (reconnaissance faciale, patente) échoue côté serveur,
   le frontend affiche simplement le motif d'échec renvoyé par l'API — il n'y
   a pas de logique de repli ou de nouvelle tentative automatique côté client.
->>>>>>> Stashed changes

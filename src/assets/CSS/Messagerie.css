@@ -230,6 +230,26 @@
 .msg-chat__nom {
   font-weight: 700;
   margin: 0;
+  flex: 1;
+}
+
+.msg-chat__supprimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--msg-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.msg-chat__supprimer:hover {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.1);
 }
 
 .msg-chat__messages {
@@ -246,6 +266,11 @@
   padding: 10px 14px;
   border-radius: var(--msg-radius);
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: default;
+  user-select: text;
 }
 
 .msg-bulle--autre {
@@ -259,6 +284,82 @@
   align-self: flex-end;
   background: var(--msg-green-light);
   border-bottom-right-radius: 4px;
+}
+
+.msg-bulle--mode-selection {
+  cursor: pointer;
+  user-select: none;
+}
+
+.msg-bulle--selectionnee {
+  outline: 2px solid var(--msg-terracotta);
+  outline-offset: 2px;
+}
+
+.msg-bulle__contenu {
+  min-width: 0;
+  flex: 1;
+}
+
+.msg-bulle__case {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 4px;
+  border: 1.5px solid var(--msg-text-muted);
+  background: var(--msg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--msg-terracotta);
+}
+
+.msg-bulle--selectionnee .msg-bulle__case {
+  border-color: var(--msg-terracotta);
+}
+
+.msg-bulle__citation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border-left: 3px solid var(--msg-terracotta);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* miniature du produit/photo cité — voir Messagerie.jsx, citation dans une
+   bulle de réponse : le texte seul ("📦 nom") ne suffisait pas à montrer la
+   photo elle-même */
+.msg-bulle__citation-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.msg-bulle__citation-texte-bloc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.msg-bulle__citation-nom {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--msg-terracotta);
+}
+
+.msg-bulle__citation-texte {
+  font-size: 0.78rem;
+  color: var(--msg-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .msg-bulle__texte {
@@ -276,30 +377,152 @@
   text-align: right;
 }
 
-.msg-bulle__signaler {
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+/* ===================== Menu contextuel (clic droit sur une bulle) ===================== */
+
+.msg-context-menu {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 10px;
   border: 1px solid var(--msg-border);
   background: var(--msg-card);
-  color: var(--msg-text-muted);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
-.msg-bulle--autre:hover .msg-bulle__signaler {
+.msg-context-menu button {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  background: transparent;
+  color: var(--msg-text);
+  font-size: 0.85rem;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-.msg-bulle__signaler:hover {
+.msg-context-menu button:hover {
+  background: var(--msg-bg);
+}
+
+.msg-context-menu__danger {
   color: #c0392b;
-  border-color: #c0392b;
+}
+
+/* ===================== Barre de sélection multiple ===================== */
+
+.msg-selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 20px;
+  background: var(--msg-bg);
+  border-top: 1px solid var(--msg-border);
+  border-bottom: 1px solid var(--msg-border);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.msg-selection-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.msg-selection-bar__annuler {
+  border: none;
+  background: transparent;
+  color: var(--msg-text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.msg-selection-bar__supprimer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: #c0392b;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.msg-selection-bar__supprimer:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ===================== Bandeau de récupération de la clé E2E ===================== */
+/* voir Messagerie.jsx (cleE2eRecuperable) et e2eStore.js::garantirCleE2E —
+   corrige définitivement "Message illisible sur cet appareil" en offrant un
+   moyen d'agir directement depuis la messagerie plutôt que de rester bloqué
+   silencieusement jusqu'à une déconnexion/reconnexion complète */
+.msg-cle-bandeau {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--msg-green-light);
+  border-top: 1px solid var(--msg-border);
+  border-bottom: 1px solid var(--msg-border);
+}
+
+.msg-cle-bandeau__texte {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--msg-green);
+}
+
+.msg-cle-bandeau__champ {
+  display: flex;
+  gap: 8px;
+}
+
+.msg-cle-bandeau__champ input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--msg-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: var(--msg-card);
+  color: var(--msg-text);
+}
+
+.msg-cle-bandeau__champ button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  background: var(--msg-green);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.msg-cle-bandeau__champ button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.msg-cle-bandeau__erreur {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--msg-danger);
 }
 
 /* ===================== Fiche produit partagée dans un message ===================== */
@@ -399,6 +622,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.msg-reply-preview__img--icone {
+  background: var(--msg-green-light);
+  color: var(--msg-terracotta);
 }
 
 .msg-reply-preview__info {

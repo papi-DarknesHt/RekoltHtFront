@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { MapPin, Store, BadgeCheck, CalendarDays, Package, Phone, MessageCircle, Flag, X } from "lucide-react";
 import NavBar from "../components/NavBar.jsx";
 import BoutonRetour from "../components/BoutonRetour.jsx";
@@ -10,13 +10,14 @@ import { useGlobalStore } from "../api/globalStore.js";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { ProduitsApi } from "../api/produits";
 import { applyListEvent } from "../api/applyListEvent.js";
+import { formaterLocalisationProduit } from "../utils/localisationProduit.js";
 import "../assets/CSS/DetailProduit.css";
 
 const TYPES_PROBLEME_VENDEUR = ["arnaque_fraude", "produits_non_conformes", "comportement_inapproprie", "non_reponse", "autre"];
 
 // même conversion que DetailProduit.jsx/afficherProduits.jsx (voir
 // _serialiseProduit, Produits/views/produitsViews.py)
-function versProduitAffiche(p, texteNonPrecise) {
+function versProduitAffiche(p, texteNonPrecise, texteHaiti) {
   return {
     id: p.id,
     nom: p.nom,
@@ -26,7 +27,7 @@ function versProduitAffiche(p, texteNonPrecise) {
     vendeurTelephone: p.vendeur_telephone,
     noteMoyenne: p.note_moyenne,
     nombreAvis: p.nombre_avis,
-    lieu: [p.commune, p.departement].filter(Boolean).join(", ") || p.region || texteNonPrecise,
+    lieu: formaterLocalisationProduit(p, texteHaiti) || texteNonPrecise,
     prix: p.prix,
     devise: p.unitePrix,
     image: p.photos?.[0]?.url_photo || null,
@@ -42,11 +43,17 @@ export default function ProfilVendeur() {
   const isConnected = useAuthStore((s) => s.isConnected);
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const produitEvent = useGlobalStore((s) => s.produitEvent);
+  const profilEvent = useGlobalStore((s) => s.profilEvent);
+  const utilisateurEvent = useGlobalStore((s) => s.utilisateurEvent);
 
   const [vendeur, setVendeur] = useState(null);
   const [produits, setProduits] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
+  // true si l'erreur vient d'un compte bloqué (voir Utilisateur.bloquer,
+  // Registration/models.py) — affiche un renvoi vers "Contacter admin"
+  // plutôt qu'une simple erreur générique
+  const [accesRestreint, setAccesRestreint] = useState(false);
 
   // signalement du vendeur — même principe que le signalement produit de
   // DetailProduit.jsx (modal, transmis directement aux admins)
@@ -65,6 +72,7 @@ export default function ProfilVendeur() {
 
     setChargement(true);
     setErreur(null);
+    setAccesRestreint(false);
 
     Promise.all([
       ProduitsApi.infoVendeur(id),
@@ -74,7 +82,10 @@ export default function ProfilVendeur() {
         setVendeur(venRes.vendeur);
         setProduits(produitsRes.produits || []);
       })
-      .catch((err) => setErreur(err.message))
+      .catch((err) => {
+        setErreur(err.message);
+        setAccesRestreint(err.code === "COMPTE_BLOQUE");
+      })
       .finally(() => setChargement(false));
   }, [id]);
 
@@ -92,6 +103,26 @@ export default function ProfilVendeur() {
     }
     setProduits((liste) => applyListEvent(liste, produitEvent));
   }, [produitEvent, vendeur]);
+
+  // réactivité temps réel de la fiche vendeur elle-même (nom, photo, bio,
+  // localisation, blocage...) — voir Registration/signals.py::broadcast_profil
+  // (individuel : commune/pays/photo) et broadcast_utilisateur (nom/prenom/
+  // telephone/est_bloquer). Les champs affichés (voir infoVendeur,
+  // Produits/views/produitsViews.py) ne correspondent pas 1:1 au payload de
+  // ces évènements (nom combiné prénom+nom, photo/logo selon compte
+  // entreprise ou non...) — un simple rechargement de infoVendeur() sur
+  // évènement matché par id reste plus fiable qu'un patch champ par champ,
+  // même principe que le rechargement de mesConversations() dans
+  // Messagerie.jsx sur messageEvent.
+  useEffect(() => {
+    if (!vendeur) return;
+    const idConcerne =
+      (profilEvent && String(profilEvent.data.user_id) === String(vendeur.id)) ||
+      (utilisateurEvent && String(utilisateurEvent.data.id) === String(vendeur.id));
+    if (!idConcerne) return;
+    ProduitsApi.infoVendeur(vendeur.id).then((res) => setVendeur(res.vendeur)).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profilEvent, utilisateurEvent]);
 
   const voirDetail = (p) => navigate(`/produits/detail?id=${p.id}`);
 
@@ -149,7 +180,7 @@ export default function ProfilVendeur() {
     }
   };
 
-  const produitsAffiches = produits.map((p) => versProduitAffiche(p, t("profile.notSpecified")));
+  const produitsAffiches = produits.map((p) => versProduitAffiche(p, t("profile.notSpecified"), t("auth.haiti")));
   const estMonProfil = !!vendeur && !!utilisateur && String(vendeur.id) === String(utilisateur.id);
 
   return (
@@ -159,7 +190,13 @@ export default function ProfilVendeur() {
       <div className="pd-container">
         <BoutonRetour />
         {chargement && <p className="pd-hint">{t("home.loadingProducts")}</p>}
-        {!chargement && erreur && <p className="pd-alert pd-alert--error">{t(erreur)}</p>}
+        {!chargement && erreur && accesRestreint && (
+          <div className="pd-alert pd-alert--error pd-alert--restreint">
+            <p>{t(erreur)}</p>
+            <Link to="/contacter-admin" className="rk-btn">{t("nav.contactAdmin")}</Link>
+          </div>
+        )}
+        {!chargement && erreur && !accesRestreint && <p className="pd-alert pd-alert--error">{t(erreur)}</p>}
 
         {!chargement && !erreur && vendeur && (
           <>
@@ -258,7 +295,7 @@ export default function ProfilVendeur() {
                 </button>
               </>
             ) : signalementEnvoye ? (
-              <p className="pd-modal__texte">{t("productDetail.reportSent")}</p>
+              <p className="pd-modal__texte pd-alert pd-alert--succes">{t("productDetail.reportSent")}</p>
             ) : (
               <form onSubmit={soumettreSignalement}>
                 <p className="pd-modal__texte">{t("productDetail.reportSellerIntro")}</p>

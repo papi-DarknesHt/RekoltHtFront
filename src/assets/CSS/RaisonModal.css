@@ -1,0 +1,42 @@
+/* ── POPUP DE JUSTIFICATION (voir api/raisonStore.js) ──
+   Réutilise .confirm-modal / .confirm-modal-overlay (ConfirmModal.css) pour
+   rester visuellement cohérent — n'ajoute que le textarea et sa largeur. */
+
+.raison-modal {
+  max-width: 440px;
+}
+
+.raison-modal__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 90px;
+  border-radius: 8px;
+  border: 1.5px solid var(--rk-border, #e7e2dc);
+  background: var(--rk-bg, #fff);
+  color: var(--rk-text, #2b2622);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+}
+
+.raison-modal__textarea:focus {
+  outline: none;
+  border-color: var(--rk-green, #2f4a3c);
+}
+
+.confirm-modal--danger .raison-modal__textarea:focus {
+  border-color: var(--rk-danger, #c0392b);
+}
+
+.confirm-modal__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .raison-modal__textarea {
+  background: var(--rk-bg, #171b19);
+  border-color: var(--rk-border, #343b36);
+  color: var(--rk-text, #eceae4);
+}

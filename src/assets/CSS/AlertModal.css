@@ -1,0 +1,120 @@
+/* ── POPUP D'INFORMATION GLOBAL (voir api/alertStore.js) ──
+   Même structure visuelle que ConfirmModal.css, mais un seul bouton
+   principal (+ une action secondaire optionnelle) au lieu d'Annuler/Confirmer. */
+
+.alert-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 38, 34, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 2100;
+  animation: alert-modal-fade-in 0.15s ease;
+}
+
+@keyframes alert-modal-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.alert-modal {
+  background: var(--rk-card, #fff);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(43, 38, 34, 0.25);
+  padding: 26px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.alert-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-bottom: 14px;
+  background: var(--rk-green-light, #e3f3e8);
+  color: var(--rk-green, #2f4a3c);
+}
+
+.alert-modal--danger .alert-modal__icon {
+  background: rgba(192, 57, 43, 0.08);
+  color: var(--rk-danger, #c0392b);
+}
+
+.alert-modal__titre {
+  font-size: 1.05rem;
+  color: var(--rk-text, #2b2622);
+  margin: 0 0 10px;
+}
+
+.alert-modal__text {
+  font-size: 0.92rem;
+  color: var(--rk-text, #2b2622);
+  margin: 0 0 22px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.alert-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.alert-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: inherit;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.alert-modal__btn--secondary {
+  background: transparent;
+  color: var(--rk-text-light, #6f675f);
+  border: 1.5px solid var(--rk-border, #e7e2dc);
+}
+
+.alert-modal__btn--secondary:hover {
+  background: var(--rk-bg, #f6f4f1);
+}
+
+.alert-modal__btn--primary {
+  background: var(--rk-green, #2f4a3c);
+  color: #fff;
+}
+
+.alert-modal__btn--primary:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 480px) {
+  .alert-modal__actions {
+    flex-direction: column-reverse;
+  }
+}
+
+/* ── MODE SOMBRE ── */
+[data-theme="dark"] .alert-modal {
+  background: var(--rk-card, #1f2422);
+}
+
+[data-theme="dark"] .alert-modal__titre,
+[data-theme="dark"] .alert-modal__text {
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .alert-modal__btn--secondary {
+  border-color: var(--rk-border, #343b36);
+  color: var(--rk-text-light, #8d8a82);
+}

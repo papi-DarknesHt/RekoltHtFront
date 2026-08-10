@@ -1,6 +1,14 @@
 import { api } from "./client";
 export const AuthentificationApi = {
+  // étape 1 — envoie l'email d'activation, ne connecte PAS encore (voir
+  // Registration/views.py::sinscrire) ; réponse : {message, email}
   inscription: (data) => api.post("/Registration/inscription/", data),
+  // étape 2 — valide le token du lien d'activation reçu par email, crée
+  // enfin le compte et connecte (voir confirmerInscription) ; réponse :
+  // {message, token, utilisateur}, comme l'ancienne réponse de inscription()
+  confirmerInscription: (token) => api.post("/Registration/inscription/confirmer/", { token }),
+  // renvoie l'email d'activation si le premier lien a expiré
+  renvoyerActivation: (email) => api.post("/Registration/inscription/renvoyer/", { email }),
   // connexion — sauvegarde le token
   connexion: async (data) => {
     const res = await api.post("/Registration/connexion/", data);
@@ -46,21 +54,54 @@ export const AuthentificationApi = {
   listerUtilisateursAdmin: () => api.get("/Registration/admin/utilisateurs/"),
 
   // bloque/débloque un compte (bascule) — réservé aux admins
-  bloquerUtilisateurAdmin: (id) => api.put("/Registration/admin/utilisateurs/bloquer/", { id }),
+  // raison obligatoire pour bloquer (email envoyé au compte, voir
+  // Registration/views.py::toggleBloquerUtilisateur) — optionnelle pour débloquer
+  bloquerUtilisateurAdmin: (id, raison) => api.put("/Registration/admin/utilisateurs/bloquer/", { id, raison }),
 
   // supprime définitivement un compte (CASCADE) — réservé aux admins
-  supprimerUtilisateurAdmin: (id) => api.delete("/Registration/admin/utilisateurs/supprimer/", { id }),
+  supprimerUtilisateurAdmin: (id, raison) => api.delete("/Registration/admin/utilisateurs/supprimer/", { id, raison }),
+
+  // demandes administratives (objet + description, distinct de la messagerie
+  // support libre — voir Registration/models.py::DemandeAdministrative)
+  creerDemandeAdministrative: (objet, description) => api.post("/Registration/demandes-administratives/", { objet, description }),
+  mesDemandesAdministratives: () => api.get("/Registration/demandes-administratives/mes-demandes/"),
+  listerDemandesAdministrativesAdmin: () => api.get("/Registration/admin/demandes-administratives/"),
+  approuverDemandeAdministrative: (id, reponse) => api.put("/Registration/admin/demandes-administratives/approuver/", { id, reponse }),
+  rejeterDemandeAdministrative: (id, motif) => api.put("/Registration/admin/demandes-administratives/rejeter/", { id, motif }),
 
   // lève la suspension automatique d'un vendeur (voir Utilisateur.desactive_par_signalements,
   // Registration/models.py, et Produits/views/signalementsViews.py::signalerVendeur) —
   // réservé aux admins ; rend aussi disponibles tous ses produits non bannis individuellement
   reactiverVendeurAdmin: (id) => api.put("/Registration/admin/utilisateurs/reactiver-vendeur/", { id }),
 
-  // nomme un compte administrateur — réservé aux admins
-  nommerAdminUtilisateur: (id) => api.put("/Registration/admin/utilisateurs/nommer-admin/", { id }),
-
   // statistiques agrégées pour le tableau de bord admin — réservé aux admins
   obtenirDashboardAdmin: () => api.get("/Registration/admin/dashboard/"),
+  // vues profils/produits/catégories, globales (tous vendeurs confondus),
+  // filtrables par période (dateDebut/dateFin AAAA-MM-JJ, défaut serveur :
+  // 7 derniers jours si omis — voir Produits/views/vuesViews.py::statistiquesVuesAdmin)
+  statistiquesVuesAdmin: (dateDebut, dateFin) => {
+    const params = dateDebut && dateFin ? `?date_debut=${dateDebut}&date_fin=${dateFin}` : "";
+    return api.get(`/Registration/admin/statistiques-vues/${params}`);
+  },
+
+  // ── GESTION DES ADMs (droits granulaires, voir DroitsAdmin côté backend) —
+  // toutes réservées au super admin (voir Registration/views.py)
+  listerAdmins:        () => api.get("/Registration/admin/adms/"),
+  creerAdmin:           (data) => api.post("/Registration/admin/adms/creer/", data),
+  promouvoirAdmin:      (data) => api.put("/Registration/admin/adms/promouvoir/", data),
+  modifierDroitsAdmin:  (data) => api.put("/Registration/admin/adms/modifier-droits/", data),
+  revoquerAdmin:        (id) => api.put("/Registration/admin/adms/revoquer/", { id }),
+  modifierInfosAdmin:   (data) => api.put("/Registration/admin/adms/modifier-infos/", data),
+  // ne change PAS le mot de passe — force seulement un changement à la
+  // prochaine connexion de l'admin visé (voir doit_changer_mot_de_passe)
+  reinitialiserMotDePasseAdmin: (id) => api.put("/Registration/admin/adms/reinitialiser-mdp/", { id }),
+
+  // rapport PDF du journal d'audit — admin_id omis = tous les admins
+  genererRapportAudit: (dateDebut, dateFin, adminId) => {
+    const params = new URLSearchParams({ date_debut: dateDebut, date_fin: dateFin });
+    if (adminId) params.set("admin_id", adminId);
+    return api.getBlob(`/Registration/admin/adms/rapport-audit/?${params.toString()}`);
+  },
 
   // vérifie si une entreprise (nom) existe déjà — sans authentification
   verifierEntreprise: (nom_Entreprise) => api.get(

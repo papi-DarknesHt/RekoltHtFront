@@ -4,11 +4,13 @@ import logo from "../assets/Images/Asset5.svg";
 import ReCAPTCHA from "react-google-recaptcha";
 import { api } from "../api/client";
 import { useAuthStore } from "./AuthentificationStore";
+import { AuthentificationApi } from "../api/auth";
+import { useAlertStore } from "../api/alertStore.js";
 import { useProfilStore } from "../Profil/ProfilStore";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
-import { ArrowLeft, Eye, EyeOff, Camera } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Camera, Mail } from 'lucide-react';
 import departementsData from "../assets/Departements/haiti_departements.json";
 import MapSelectionGPS from "../components/MapSelectionGPS.jsx";
 import { fusionnerLocalisationDetectee, niveauDetecteDepuisLoc } from "../utils/geoLookup.js";
@@ -18,6 +20,13 @@ export default function RekoltHtAuth() {
   const navigate = useNavigate();
   const { inscription, connexion, creerEntreprise, verifierEntreprise, loading, error, clearError } = useAuthStore();
   const [success, setSuccess] = useState(null);
+  // email pour lequel l'email d'activation vient d'être envoyé (voir
+  // sinscrire, Registration/views.py) — non null = affiche l'écran "vérifiez
+  // votre boîte mail" à la place du formulaire d'inscription, tant que le
+  // lien reçu n'a pas été cliqué (voir ActiverCompte.jsx)
+  const [activationEmailEnvoye, setActivationEmailEnvoye] = useState(null);
+  const [renvoiActivationEnCours, setRenvoiActivationEnCours] = useState(false);
+  const [erreurRenvoiActivation, setErreurRenvoiActivation] = useState(null);
   const [tab, setTab] = useState("login");
   const googleConnexion = useAuthStore((s) => s.googleConnexion);
   const googleInscription = useAuthStore((s) => s.googleInscription);
@@ -91,6 +100,8 @@ export default function RekoltHtAuth() {
     setForgotError(null);
     setForgotEmail("");
     setForgotResetSuccess(false);
+    setActivationEmailEnvoye(null);
+    setErreurRenvoiActivation(null);
     setShowMdp(false);
     setShowMdpConfirm(false);
     setShowEntrepriseMdp(false);
@@ -319,14 +330,46 @@ export default function RekoltHtAuth() {
         };
         const res = await inscription(payload);
         if (res) {
-          setSuccess(t("auth.messageCreateCompteSuccess"));
+          // pas de connexion immédiate : le compte n'existe pas encore côté
+          // serveur, voir sinscrire (Registration/views.py) — l'utilisateur
+          // doit cliquer le lien reçu par email (voir ActiverCompte.jsx)
           recaptchaRef.current?.reset();
           setRecaptchaToken(null);
-          setTimeout(() => navigate("/"), 1000);
+          setActivationEmailEnvoye(res.email || form.email);
         }
       }
     } catch (err) {
       console.error("Erreur soumission :", err.message);
+      // compte bloqué/supprimé : la connexion n'a jamais lieu (voir
+      // Registration/views.py::seConnecter), demande explicite d'expliquer
+      // clairement ce qui s'est passé via un modal plutôt que le bandeau
+      // d'erreur générique inline, avec un lien vers le seul recours
+      // possible sans être connecté (formulaire "Contactez-nous", voir
+      // le message renvoyé par le backend qui y fait déjà référence)
+      if (tab === "login" && (err.code === "COMPTE_BLOQUE" || err.code === "COMPTE_SUPPRIME")) {
+        clearError();
+        useAlertStore.getState().afficher({
+          titre: err.code === "COMPTE_BLOQUE" ? t("auth.accountBlockedTitle") : t("auth.accountDeletedTitle"),
+          message: err.message,
+          actionLabel: t("auth.contactAdminAction"),
+          actionHref: "/contact",
+          danger: true,
+        });
+      }
+    }
+  };
+
+  const handleRenvoyerActivation = async () => {
+    if (!activationEmailEnvoye) return;
+    setRenvoiActivationEnCours(true);
+    setErreurRenvoiActivation(null);
+    try {
+      await AuthentificationApi.renvoyerActivation(activationEmailEnvoye);
+      setSuccess(t("auth.activationEmailResent"));
+    } catch (err) {
+      setErreurRenvoiActivation(err.message);
+    } finally {
+      setRenvoiActivationEnCours(false);
     }
   };
 
@@ -407,6 +450,20 @@ export default function RekoltHtAuth() {
         }
       } catch (err) {
         console.error("Erreur Google :", err.message);
+        // même bug côté connexion directe (email/mot de passe) corrigé plus
+        // haut : un compte bloqué/supprimé ne doit pas passer non plus via
+        // Google — voir Registration/views.py::google_connection, et le même
+        // modal que handleSubmit ci-dessus (pas de bandeau générique)
+        if (tab === "login" && (err.code === "COMPTE_BLOQUE" || err.code === "COMPTE_SUPPRIME")) {
+          clearError();
+          useAlertStore.getState().afficher({
+            titre: err.code === "COMPTE_BLOQUE" ? t("auth.accountBlockedTitle") : t("auth.accountDeletedTitle"),
+            message: err.message,
+            actionLabel: t("auth.contactAdminAction"),
+            actionHref: "/contact",
+            danger: true,
+          });
+        }
       }
     },
     onError: () => console.error(t("auth.messageConnectionGoogleCancel")),
@@ -621,7 +678,11 @@ export default function RekoltHtAuth() {
           {/* ——— INSCRIPTION (individuel & entreprise) ——— */}
           {isRegisterTab && (
             <>
-              {/* Informations personnelles — uniquement pour un compte individuel */}
+              {/* Informations personnelles — uniquement pour un compte individuel.
+                  L'écran "vérifiez votre boîte mail" (activationEmailEnvoye) est
+                  désormais un modal centré au-dessus de toute la page (voir plus
+                  bas) plutôt qu'affiché ici à la place du formulaire — demande
+                  explicite : doit apparaître comme une alerte, bien visible. */}
               {tab === "register" && (
                 <>
                   <div className="rk-row">
@@ -958,6 +1019,41 @@ export default function RekoltHtAuth() {
           </div>
         </div>
       </div>
+
+      {/* écran "vérifiez votre boîte mail" — modal centré au-dessus de toute
+          la page (même patron que ConfirmModal.jsx/NotificationsPermission.jsx :
+          overlay z-index élevé, jamais caché derrière le header sticky) plutôt
+          qu'affiché à la place du formulaire, demande explicite : doit
+          apparaître comme une alerte, bien visible */}
+      {activationEmailEnvoye && (
+        <div className="rk-activation-overlay">
+          <div className="rk-activation-modal">
+            <div className="rk-activation-modal__icon"><Mail size={22} /></div>
+            <p className="rk-activation-modal__title">{t("auth.activationCheckEmailTitle")}</p>
+            <p className="rk-activation-modal__body">
+              {t("auth.activationCheckEmailSubtitle").replace("{email}", activationEmailEnvoye)}
+            </p>
+            {erreurRenvoiActivation && <p className="rk-error">✗ {erreurRenvoiActivation}</p>}
+            <div className="rk-activation-modal__actions">
+              <button
+                type="button"
+                className="rk-activation-modal__btn rk-activation-modal__btn--secondary"
+                onClick={() => { setActivationEmailEnvoye(null); setErreurRenvoiActivation(null); }}
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                type="button"
+                className="rk-activation-modal__btn rk-activation-modal__btn--primary"
+                disabled={renvoiActivationEnCours}
+                onClick={handleRenvoyerActivation}
+              >
+                {renvoiActivationEnCours ? t("auth.loading") : t("auth.resendActivationEmail")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

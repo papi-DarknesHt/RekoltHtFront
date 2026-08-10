@@ -55,6 +55,13 @@
   background: var(--pd-green-light);
 }
 
+.pd-alert--restreint {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
 /* ===================== Bloc principal ===================== */
 
 .pd-main {
@@ -84,6 +91,14 @@
 .pd-gallery__main img.pd-gallery__logo {
   object-fit: contain;
   padding: 15%;
+}
+
+/* le logo est blanc (voir assets/Images/Asset5.svg) — sur le fond clair par
+   défaut de .pd-gallery__main il devenait quasi invisible en mode clair
+   (demande explicite : manque de visibilité) ; fond vert de marque garanti
+   pour un contraste correct, dans les deux thèmes */
+.pd-gallery__main:has(.pd-gallery__logo) {
+  background: var(--pd-green);
 }
 
 .pd-gallery__thumbs {
@@ -530,6 +545,10 @@
 
 [data-theme="dark"] .pd-gallery__main {
   background: var(--pd-border);
+}
+
+[data-theme="dark"] .pd-gallery__main:has(.pd-gallery__logo) {
+  background: var(--pd-green);
 }
 
 [data-theme="dark"] .pd-alert--error,

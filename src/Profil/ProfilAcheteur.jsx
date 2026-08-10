@@ -14,7 +14,6 @@ import {
   Pencil,
   History,
   Shield,
-  ClipboardEdit,
   Building2,
   Users,
 } from "lucide-react";
@@ -28,6 +27,10 @@ import { useProfilStore } from "./ProfilStore.js"
 import Footer from "../components/Footer.jsx"
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { AuthentificationApi } from "../api/auth";
+import { ProduitsApi } from "../api/produits";
+import StarRating from "../components/StarRating.jsx";
+import { useGlobalStore } from "../api/globalStore.js";
+import { applyListEvent } from "../api/applyListEvent.js";
 
 
 export default function ProfilAcheteur() {
@@ -52,9 +55,24 @@ export default function ProfilAcheteur() {
     ? entreprise.logo
     : profil?.photo_profil;
 
+  // Adresse affichée au format "Section Communale, Commune, Département,
+  // Haïti" (champs cascade renseignés via ModifierProfil.jsx) plutôt que le
+  // champ libre "adresse" seul — plus complet et cohérent avec la saisie
+  // structurée du formulaire de modification.
+  const partiesAdresse = [profil?.section_communale, profil?.commune, profil?.departement].filter(Boolean);
+  const adresseComplete = partiesAdresse.length > 0
+    ? [...partiesAdresse, t("auth.haiti")].join(", ")
+    : t("profile.notSpecified");
+
   // Un admin (profil.role === 'admin') voit deux onglets supplémentaires :
   // la liste de tous les utilisateurs et celle de toutes les entreprises créées.
   const isAdmin = profil?.role === "admin";
+  // détermine la section "Avis et commentaires" affichée dans l'onglet
+  // "personal" ci-dessous : un vendeur voit les avis REÇUS sur ses produits
+  // (demande explicite : produit concerné, date, auteur), un acheteur n'a
+  // pas cette section du tout (ni "rechercher des produits", retiré pour les
+  // deux rôles).
+  const isVendeur = profil?.role === "vendeur";
 
   // L'onglet par défaut dépend du type de compte : un compte entreprise/admin
   // n'a pas d'onglet "personal" dans la sidebar, donc on ne peut pas démarrer
@@ -73,6 +91,39 @@ export default function ProfilAcheteur() {
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminError, setAdminError] = useState(null);
 
+  // avis reçus sur mes produits (vendeur uniquement, voir isVendeur plus
+  // haut) — Produits/views/avisViews.py::listerAvisRecusVendeur
+  const [avisRecus, setAvisRecus] = useState([]);
+  const [chargementAvisRecus, setChargementAvisRecus] = useState(false);
+
+  const chargerAvisRecus = () => {
+    setChargementAvisRecus(true);
+    ProduitsApi.listerAvisRecusVendeur()
+      .then((res) => setAvisRecus(res.avis || []))
+      .catch(() => {})
+      .finally(() => setChargementAvisRecus(false));
+  };
+
+  useEffect(() => {
+    if (activeTab !== "personal" || !isVendeur) return;
+    chargerAvisRecus();
+  }, [activeTab, isVendeur]);
+
+  // réactivité temps réel (voir Produits/signals.py::broadcast_avis côté
+  // backend) : le payload avisEvent ne porte que produit_id (pas produit_nom
+  // ni le vendeur concerné, voir _serialiser_avis) — pas assez pour patcher
+  // la liste en place sans un aller-retour supplémentaire ; un simple
+  // rechargement de listerAvisRecusVendeur() sur chaque évènement reste
+  // largement assez léger ici (liste courte, onglet peu visité) et suit le
+  // même principe que Messagerie.jsx (refetch de mesConversations() sur
+  // messageEvent plutôt qu'un patch en place)
+  const avisEvent = useGlobalStore((s) => s.avisEvent);
+  useEffect(() => {
+    if (!avisEvent || activeTab !== "personal" || !isVendeur) return;
+    chargerAvisRecus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [avisEvent]);
+
   // au montage : on récupère le profil à jour (photo de profil, adresse, ...)
   useEffect(() => {
     afficherProfil().catch(() => {
@@ -88,7 +139,9 @@ export default function ProfilAcheteur() {
     if (isEntreprise) {
       setActiveTab("entreprise");
     } else if (isAdmin) {
-      setActiveTab((prev) => (prev === "admin_users" || prev === "admin_entreprises" ? prev : "admin_users"));
+      setActiveTab((prev) => (
+        prev === "admin_users" || prev === "admin_entreprises" || prev === "personal" ? prev : "admin_users"
+      ));
     }
   }, [isEntreprise, isAdmin]);
 
@@ -110,6 +163,25 @@ export default function ProfilAcheteur() {
         .finally(() => setAdminLoading(false));
     }
   }, [activeTab, isAdmin]);
+
+  // réactivité temps réel de la liste "Comptes utilisateurs" (voir
+  // Registration/signals.py::broadcast_utilisateur côté backend) — même
+  // mécanisme que AdminDashboard.jsx (applyListEvent + utilisateurEvent) :
+  // un compte créé/modifié/supprimé par un autre admin (ou depuis
+  // AdminDashboard) se reflète ici sans rechargement de page
+  const utilisateurEvent = useGlobalStore((s) => s.utilisateurEvent);
+  useEffect(() => {
+    if (!utilisateurEvent || activeTab !== "admin_users" || !isAdmin) return;
+    setAdminUsers((liste) => applyListEvent(liste, utilisateurEvent));
+  }, [utilisateurEvent, activeTab, isAdmin]);
+
+  // même principe pour la liste "Entreprises" (voir Registration/signals.py::
+  // broadcast_entreprise côté backend)
+  const entrepriseEvent = useGlobalStore((s) => s.entrepriseEvent);
+  useEffect(() => {
+    if (!entrepriseEvent || activeTab !== "admin_entreprises" || !isAdmin) return;
+    setAdminEntreprises((liste) => applyListEvent(liste, entrepriseEvent));
+  }, [entrepriseEvent, activeTab, isAdmin]);
 
   const handleDeconnexion2 = async () => {
     await deconnexion();
@@ -164,6 +236,14 @@ export default function ProfilAcheteur() {
               </a>
             ) : isAdmin ? (
               <>
+                <a
+                  href="#"
+                  className={`profil-sidebar__item ${activeTab === "personal" ? "profil-sidebar__item--active" : ""}`}
+                  onClick={(e) => { e.preventDefault(); setActiveTab("personal"); }}
+                >
+                  <User size={18} />
+                  {t("profile.personalInfoTab")}
+                </a>
                 <a
                   href="#"
                   className={`profil-sidebar__item ${activeTab === "admin_users" ? "profil-sidebar__item--active" : ""}`}
@@ -243,7 +323,7 @@ export default function ProfilAcheteur() {
                   <span className="profil-badge">{profil?.role}</span>
                   <p className="profil-identity__location">
                     <MapPin size={14} />
-                    {profil?.adresse || t("profile.notSpecified")}
+                    {adresseComplete}
                   </p>
                 </div>
 
@@ -260,57 +340,74 @@ export default function ProfilAcheteur() {
                       <p className="profil-field-value">{utilisateur.telephone}</p>
                     </div>
                   </div>
-
-                  <hr className="profil-divider" />
-
-                  <div className="profil-contact-grid profil-contact-grid--bottom">
-                    <div>
-                      <p className="profil-field-label">{t("profile.deliveryAddress")}</p>
-                      <p className="profil-field-value">{profil?.adresse || t("profile.notSpecified")}</p>
-                    </div>
-
-                  </div>
                 </div>
               </section>
 
               {/* ----- Vendeurs contactés + Avis ----- */}
-              <section className="profil-cards profil-cards--bottom">
-                <div className="profil-card">
-                  <h3 className="profil-card__title profil-card__title--accent">
-                    {t("profile.contactedSellers")}
-                  </h3>
+              {/* sans objet pour un compte admin (pas d'achats/avis) — voir isAdmin plus haut */}
+              {!isAdmin && (
+                <section className="profil-cards profil-cards--bottom">
+                  <div className="profil-card">
+                    <h3 className="profil-card__title profil-card__title--accent">
+                      {t("profile.contactedSellers")}
+                    </h3>
 
-                  <ul className="profil-seller-list">
-                    {contactedSellers.map((seller) => (
-                      <li className="profil-seller" key={seller.id}>
-                        <div className="profil-seller__avatar">{seller.initials}</div>
-                        <div className="profil-seller__info">
-                          <p className="profil-seller__name">{seller.name}</p>
-                          <p className="profil-seller__contact">{seller.lastContact}</p>
-                        </div>
-                        <button className="profil-icon-btn" aria-label={t("profile.messageToAria", { nom: seller.name })}>
-                          <MessageSquare size={18} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="profil-card profil-card--empty">
-                  <div className="profil-empty">
-                    <div className="profil-empty__icon">
-                      <ClipboardEdit size={28} />
-                    </div>
-                    <h3 className="profil-empty__title">{t("profile.reviewsTitle")}</h3>
-                    <p className="profil-empty__text">
-                      {t("profile.reviewsText")}
-                    </p>
-                    <button className="profil-btn profil-btn--secondary">
-                      {t("profile.searchProducts")}
-                    </button>
+                    <ul className="profil-seller-list">
+                      {contactedSellers.map((seller) => (
+                        <li className="profil-seller" key={seller.id}>
+                          <div className="profil-seller__avatar">{seller.initials}</div>
+                          <div className="profil-seller__info">
+                            <p className="profil-seller__name">{seller.name}</p>
+                            <p className="profil-seller__contact">{seller.lastContact}</p>
+                          </div>
+                          <button className="profil-icon-btn" aria-label={t("profile.messageToAria", { nom: seller.name })}>
+                            <MessageSquare size={18} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
-              </section>
+
+                  {/* "Avis et commentaires" : réservé au vendeur (avis REÇUS
+                      sur ses produits — voir listerAvisRecusVendeur) ; retiré
+                      entièrement côté acheteur, de même que "Rechercher des
+                      produits" pour les deux rôles (demande explicite) */}
+                  {isVendeur && (
+                    <div className="profil-card">
+                      <h3 className="profil-card__title profil-card__title--accent">
+                        {t("profile.reviewsTitle")}
+                      </h3>
+
+                      {chargementAvisRecus && <p className="profil-field-value">{t("auth.loading")}</p>}
+
+                      {!chargementAvisRecus && avisRecus.length === 0 ? (
+                        <p className="profil-field-value">{t("profile.noReviewsReceived")}</p>
+                      ) : (
+                        <ul className="profil-seller-list">
+                          {avisRecus.map((a) => (
+                            <li className="profil-seller" key={a.id}>
+                              <div className="profil-seller__avatar">
+                                <StarRating note={a.note} taille={13} />
+                              </div>
+                              <div className="profil-seller__info">
+                                <p className="profil-seller__name">{a.produit_nom}</p>
+                                <p className="profil-seller__contact">
+                                  {t("profile.reviewBy", { nom: a.auteur_nom || t("profile.notSpecified") })}
+                                  {" — "}
+                                  {new Date(a.date_avis).toLocaleDateString()}
+                                </p>
+                                {a.commentaire && (
+                                  <p className="profil-seller__contact">{a.commentaire}</p>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </section>
+              )}
             </>
           )}
 
@@ -398,7 +495,7 @@ export default function ProfilAcheteur() {
                   {t("profile.adminUsersTitle")}
                 </h3>
 
-                {adminLoading && <p className="profil-field-value">{t("profile.loading")}</p>}
+                {adminLoading && <p className="profil-field-value">{t("auth.loading")}</p>}
                 {adminError && <p className="rk-error">✗ {adminError}</p>}
 
                 {!adminLoading && !adminError && (
@@ -435,7 +532,7 @@ export default function ProfilAcheteur() {
                   {t("profile.adminCompaniesTitle")}
                 </h3>
 
-                {adminLoading && <p className="profil-field-value">{t("profile.loading")}</p>}
+                {adminLoading && <p className="profil-field-value">{t("auth.loading")}</p>}
                 {adminError && <p className="rk-error">✗ {adminError}</p>}
 
                 {!adminLoading && !adminError && (

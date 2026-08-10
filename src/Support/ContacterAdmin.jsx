@@ -8,7 +8,7 @@ import { useAuthStore } from "../Registration/AuthentificationStore";
 import { useGlobalStore } from "../api/globalStore.js";
 import { MessagerieApi } from "../api/messagerie";
 import { useE2eStore } from "../api/e2eStore.js";
-import { chiffrerEnEnveloppe, dechiffrerEnveloppe } from "../utils/e2eCrypto.js";
+import { dechiffrerEnveloppe } from "../utils/e2eCrypto.js";
 import "../assets/CSS/ContacterAdmin.css";
 
 function formaterDate(iso) {
@@ -35,23 +35,25 @@ export default function ContacterAdmin() {
   const [brouillon, setBrouillon] = useState("");
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
-  // chiffrement de bout en bout en enveloppe (voir api/e2eStore.js) — le
-  // destinataire de `contenu` n'est pas connu à l'avance (n'importe quel
-  // admin peut répondre), donc chaque destinataire potentiel a sa propre
-  // copie chiffrée de la clé du message (cle_contenu_moi/cle_reponse_moi,
-  // voir Registration/views.py::_serialiseMessageAdmin)
+  // Deux formats coexistent pour contenu/reponse (voir Messagerie/views.py::
+  // _serialiseMessageAdmin) : 'coffre_serveur' (nouveau, par défaut) — le
+  // serveur a déjà déchiffré, le texte en clair est directement dans
+  // m.contenu/m.reponse ; 'e2e_client' (legacy, messages envoyés avant
+  // l'introduction du coffre support) — ciphertext, déchiffré ici même,
+  // uniquement possible si j'ai toujours la bonne clé E2E.
   const garantirCleE2E = useE2eStore((s) => s.garantirCleE2E);
   const clePriveeCryptoKey = useE2eStore((s) => s.clePriveeCryptoKey);
   const clePubliqueJwk = useE2eStore((s) => s.clePubliqueJwk);
   const obtenirClePubliqueDe = useE2eStore((s) => s.obtenirClePubliqueDe);
-  const obtenirClesAdmins = useE2eStore((s) => s.obtenirClesAdmins);
-  // id -> { contenu?, reponse? } déjà déchiffrés — undefined/null, voir texteChamp
+  // id -> { contenu?, reponse? } déjà déchiffrés (messages legacy uniquement)
+  // — undefined/null, voir texteChamp
   const [dechiffres, setDechiffres] = useState({});
 
   useEffect(() => {
-    garantirCleE2E().catch((err) => {
-      if (err.message !== "annule") setErreur(err.message);
-    });
+    // uniquement nécessaire pour déchiffrer d'éventuels messages LEGACY
+    // encore au format E2E client — échec silencieux, ne doit jamais
+    // bloquer cette page pour une raison qui ne la concerne plus vraiment
+    garantirCleE2E().catch(() => {});
     MessagerieApi.mesMessagesAdmin()
       .then((res) => setMessages(res.messages_admin || []))
       .catch((err) => setErreur(err.message))
@@ -60,16 +62,19 @@ export default function ContacterAdmin() {
   }, []);
 
   // déchiffre contenu (chiffré pour moi-même, l'auteur) et reponse (chiffrée
-  // par l'admin qui a répondu — il faut sa clé publique, pas la mienne)
+  // par l'admin qui a répondu — il faut sa clé publique, pas la mienne) —
+  // uniquement pour les messages encore au format legacy 'e2e_client'
   useEffect(() => {
-    if (!clePriveeCryptoKey || !clePubliqueJwk || messages.length === 0) return;
+    if (messages.length === 0) return;
     let annule = false;
     (async () => {
       const resultats = {};
       for (const m of messages) {
         const entree = {};
-        if (m.chiffre) {
-          if (m.cle_contenu_moi) {
+        if (m.chiffre && m.format_chiffrement === "e2e_client") {
+          if (!clePriveeCryptoKey || !clePubliqueJwk) {
+            // pas encore prête — retentera au prochain passage de cet effet
+          } else if (m.cle_contenu_moi) {
             try {
               entree.contenu = await dechiffrerEnveloppe(
                 clePriveeCryptoKey, clePubliqueJwk, m.contenu, m.iv_contenu, m.cle_contenu_moi, m.iv_cle_contenu_moi
@@ -79,8 +84,10 @@ export default function ContacterAdmin() {
             entree.contenu = null;
           }
         }
-        if (m.reponse && m.iv_reponse) {
-          if (m.cle_reponse_moi) {
+        if (m.reponse && m.reponse_format_chiffrement === "e2e_client") {
+          if (!clePriveeCryptoKey) {
+            // pas encore prête
+          } else if (m.cle_reponse_moi) {
             try {
               const clePubliqueAdmin = await obtenirClePubliqueDe(m.admin_repondant_id);
               entree.reponse = await dechiffrerEnveloppe(
@@ -114,14 +121,10 @@ export default function ContacterAdmin() {
     setEnvoiEnCours(true);
     setErreur(null);
     try {
-      const clePrivee = await garantirCleE2E();
-      const admins = await obtenirClesAdmins();
-      // + moi-même, pour pouvoir relire mon propre envoi (voir e2eCrypto.js::chiffrerEnEnveloppe)
-      const destinataires = [...admins, { utilisateur_id: utilisateur.id, cle_publique: clePubliqueJwk }];
-      const { contenu: contenuChiffre, iv, cles } = await chiffrerEnEnveloppe(clePrivee, contenu, destinataires);
-      const res = await MessagerieApi.contacterAdmin(contenuChiffre, iv, cles);
+      // chiffré côté serveur ("coffre support") — aucun chiffrement client
+      // requis, voir Messagerie/services/support_chiffrement_service.py
+      const res = await MessagerieApi.contacterAdmin(contenu);
       setMessages((liste) => [res.message_admin, ...liste]);
-      setDechiffres((prev) => ({ ...prev, [res.message_admin.id]: { contenu } }));
       setBrouillon("");
     } catch (err) {
       setErreur(err.message);
@@ -170,7 +173,9 @@ export default function ContacterAdmin() {
             {messages.map((m) => (
               <li className="ca-item" key={m.id}>
                 <div className="ca-item__bulle ca-item__bulle--envoye">
-                  <p className="ca-item__texte">{m.chiffre ? texteChamp(dechiffres[m.id]?.contenu, t) : m.contenu}</p>
+                  <p className="ca-item__texte">
+                    {m.format_chiffrement === "e2e_client" ? texteChamp(dechiffres[m.id]?.contenu, t) : m.contenu}
+                  </p>
                   <span className="ca-item__date">{formaterDate(m.date_envoi)}</span>
                 </div>
 
@@ -180,7 +185,9 @@ export default function ContacterAdmin() {
                       <ShieldCheck size={14} />
                       {m.admin_repondant_nom}
                     </p>
-                    <p className="ca-item__texte">{m.iv_reponse ? texteChamp(dechiffres[m.id]?.reponse, t) : m.reponse}</p>
+                    <p className="ca-item__texte">
+                      {m.reponse_format_chiffrement === "e2e_client" ? texteChamp(dechiffres[m.id]?.reponse, t) : m.reponse}
+                    </p>
                     <span className="ca-item__date">{formaterDate(m.date_reponse)}</span>
                   </div>
                 ) : (

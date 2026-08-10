@@ -17,11 +17,29 @@ export const useAuthStore = create((set, get) => ({
     isConnected: !!AuthentificationApi.isConnected(),
     loading: false,
     error: null,
-    // inscription — enregistre l'utilisateur et met à jour le store
+    // inscription — étape 1 seulement : envoie l'email d'activation, ne
+    // connecte PAS (voir Registration/views.py::sinscrire) — le compte n'existe
+    // pas encore tant que confirmerInscription() n'a pas été appelée (lien
+    // cliqué, voir ActiverCompte.jsx)
     inscription: async (data) => {
         set({ loading: true, error: null });
         try {
             const res = await AuthentificationApi.inscription(data);
+            return res;
+        } catch (error) {
+            set({ error: error.message });
+            throw error;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // inscription — étape 2 : valide le token du lien d'activation, connecte
+    // enfin l'utilisateur (même effet que l'ancienne inscription() directe)
+    confirmerInscription: async (token) => {
+        set({ loading: true, error: null });
+        try {
+            const res = await AuthentificationApi.confirmerInscription(token);
             localStorage.setItem("token", res.token);
             localStorage.setItem("utilisateur", JSON.stringify(res.utilisateur));
             set({ utilisateur: res.utilisateur, isConnected: true });
@@ -87,7 +105,7 @@ export const useAuthStore = create((set, get) => ({
             set({ loading: false });
         }
     },
-    
+
     // Authentification avec google pour l'inscription
     googleInscription: async (token, role = "acheteur") => {
         set({ loading: true, error: null });

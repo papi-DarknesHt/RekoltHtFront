@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 import "../assets/CSS/Authentification.css";
 import "../assets/CSS/DevenirVendeur.css";
 import { AuthentificationApi } from "../api/auth";
 import { useAuthStore } from "./AuthentificationStore";
 import { useProfilStore } from "../Profil/ProfilStore.js";
 import { useGlobalStore } from "../api/globalStore.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import departementsData from "../assets/Departements/haiti_departements.json";
 import CaptureSelfie from "../components/CaptureSelfie.jsx";
@@ -495,6 +496,15 @@ export default function DevenirVendeur() {
         );
     }
 
+    // rôles mutuellement exclusifs par conception (voir Profil.ROLES côté
+    // backend) — un admin ne peut pas devenir vendeur, refusé aussi côté
+    // serveur par soumettre_verification (Registration/views.py). Attend que
+    // le profil soit chargé avant de trancher, pour ne pas rediriger à tort
+    // un admin dont le profil n'a pas encore fini de charger.
+    if (profil?.role === "admin") {
+        return <Navigate to="/" replace />;
+    }
+
     return (
         <div className="dv-root">
             <div className="dv-container">
@@ -867,6 +877,7 @@ export default function DevenirVendeur() {
                                 </button>
                             )}
                             <button type="button" className="rk-btn" onClick={goNext} disabled={submitLoading}>
+                                {etape === 5 && submitLoading && <Loader2 size={16} className="dv-btn-spinner" />}
                                 {etape === 5 ? (submitLoading ? t("seller.saving") : t("seller.submit")) : t("seller.continue")}
                             </button>
                         </div>

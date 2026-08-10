@@ -35,7 +35,12 @@ export const useGlobalStore = create((set) => ({
   // backend, groupe WebSocket personnel "user_<id>" — pas "global") —
   // Messagerie.jsx s'y abonne pour ajouter/retirer le message du fil actif
   // et faire remonter la conversation concernée en tête de liste. "deleted"
-  // ne peut venir que d'un admin (voir supprimerMessageAdmin).
+  // ne peut venir que d'un admin (voir supprimerMessageAdmin). "supprime_pour_moi"
+  // (message ou conversation) vient d'une suppression volontaire de
+  // l'utilisateur connecté lui-même (voir supprimerMessagePourMoi/
+  // supprimerConversationPourMoi, Messagerie/views.py) — sert à synchroniser
+  // ses propres autres onglets/sessions ouverts, jamais diffusé à l'autre
+  // participant.
   messageEvent: null,
 
   // dernier contact reçu (voir Produits/signals.py::broadcast_contact_produit
@@ -81,6 +86,25 @@ export const useGlobalStore = create((set) => ({
   // diffusion au groupe "admins" que signalementEvent ci-dessus.
   signalementAvisEvent: null,
 
+  // dernier évènement de demande administrative reçu (voir
+  // Registration/signals.py::broadcast_demande_administrative côté backend) —
+  // { type: "demande_administrative.created"|"demande_administrative.traitee",
+  // data }. "created" diffusé au groupe "admins" (AdminDashboard.jsx, file
+  // "Demandes administratives en attente"), "traitee" à la fois à "admins"
+  // (retire la demande de la file des autres admins, payload {id} seulement)
+  // et au demandeur lui-même via son groupe personnel "user_<id>" (payload
+  // complet — Support/DemandeAdministrative.jsx, page "Mes demandes").
+  demandeAdministrativeEvent: null,
+
+  // dernier évènement entreprise reçu (voir Registration/signals.py::
+  // broadcast_entreprise côté backend, groupe "admins" uniquement) — { type:
+  // "entreprise.created"|"entreprise.updated", data }. ProfilAcheteur.jsx
+  // (onglet admin "Entreprises") s'y abonne pour patcher sa liste sans
+  // rechargement de page. Distinct de utilisateurEvent (broadcast_utilisateur
+  // couvre aussi Entreprise, mais avec les champs génériques Utilisateur, pas
+  // nom_Entreprise/secteur/logo/statut_verification).
+  entrepriseEvent: null,
+
   dispatch: ({ type, data }) => {
     set((state) => {
       switch (type) {
@@ -107,6 +131,8 @@ export const useGlobalStore = create((set) => ({
           return { ...state, profilEvent: { type, data, recu: Date.now() } };
         case "message.created":
         case "message.deleted":
+        case "message.supprime_pour_moi":
+        case "conversation.supprime_pour_moi":
           return { ...state, messageEvent: { type, data, recu: Date.now() } };
         case "contact.created":
           return { ...state, contactEvent: { type, data, recu: Date.now() } };
@@ -129,6 +155,12 @@ export const useGlobalStore = create((set) => ({
         case "signalement_avis.created":
         case "signalement_avis.traite":
           return { ...state, signalementAvisEvent: { type, data, recu: Date.now() } };
+        case "demande_administrative.created":
+        case "demande_administrative.traitee":
+          return { ...state, demandeAdministrativeEvent: { type, data, recu: Date.now() } };
+        case "entreprise.created":
+        case "entreprise.updated":
+          return { ...state, entrepriseEvent: { type, data, recu: Date.now() } };
         default: return state;
       }
     });
