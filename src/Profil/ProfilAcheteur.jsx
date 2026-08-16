@@ -52,6 +52,15 @@ export default function ProfilAcheteur() {
     ? entreprise.logo
     : profil?.photo_profil;
 
+  // Adresse affichée au format "Section Communale, Commune, Département,
+  // Haïti" (champs cascade renseignés via ModifierProfil.jsx) plutôt que le
+  // champ libre "adresse" seul — plus complet et cohérent avec la saisie
+  // structurée du formulaire de modification.
+  const partiesAdresse = [profil?.section_communale, profil?.commune, profil?.departement].filter(Boolean);
+  const adresseComplete = partiesAdresse.length > 0
+    ? [...partiesAdresse, t("auth.haiti")].join(", ")
+    : t("profile.notSpecified");
+
   // Un admin (profil.role === 'admin') voit deux onglets supplémentaires :
   // la liste de tous les utilisateurs et celle de toutes les entreprises créées.
   const isAdmin = profil?.role === "admin";
@@ -243,7 +252,7 @@ export default function ProfilAcheteur() {
                   <span className="profil-badge">{profil?.role}</span>
                   <p className="profil-identity__location">
                     <MapPin size={14} />
-                    {profil?.adresse || t("profile.notSpecified")}
+                    {adresseComplete}
                   </p>
                 </div>
 
@@ -259,16 +268,6 @@ export default function ProfilAcheteur() {
                       <p className="profil-field-label">{t("profile.phone")}</p>
                       <p className="profil-field-value">{utilisateur.telephone}</p>
                     </div>
-                  </div>
-
-                  <hr className="profil-divider" />
-
-                  <div className="profil-contact-grid profil-contact-grid--bottom">
-                    <div>
-                      <p className="profil-field-label">{t("profile.deliveryAddress")}</p>
-                      <p className="profil-field-value">{profil?.adresse || t("profile.notSpecified")}</p>
-                    </div>
-
                   </div>
                 </div>
               </section>

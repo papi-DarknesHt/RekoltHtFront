@@ -56,11 +56,27 @@ export const AuthentificationApi = {
   // réservé aux admins ; rend aussi disponibles tous ses produits non bannis individuellement
   reactiverVendeurAdmin: (id) => api.put("/Registration/admin/utilisateurs/reactiver-vendeur/", { id }),
 
-  // nomme un compte administrateur — réservé aux admins
-  nommerAdminUtilisateur: (id) => api.put("/Registration/admin/utilisateurs/nommer-admin/", { id }),
-
   // statistiques agrégées pour le tableau de bord admin — réservé aux admins
   obtenirDashboardAdmin: () => api.get("/Registration/admin/dashboard/"),
+
+  // ── GESTION DES ADMs (droits granulaires, voir DroitsAdmin côté backend) —
+  // toutes réservées au super admin (voir Registration/views.py)
+  listerAdmins:        () => api.get("/Registration/admin/adms/"),
+  creerAdmin:           (data) => api.post("/Registration/admin/adms/creer/", data),
+  promouvoirAdmin:      (data) => api.put("/Registration/admin/adms/promouvoir/", data),
+  modifierDroitsAdmin:  (data) => api.put("/Registration/admin/adms/modifier-droits/", data),
+  revoquerAdmin:        (id) => api.put("/Registration/admin/adms/revoquer/", { id }),
+  modifierInfosAdmin:   (data) => api.put("/Registration/admin/adms/modifier-infos/", data),
+  // ne change PAS le mot de passe — force seulement un changement à la
+  // prochaine connexion de l'admin visé (voir doit_changer_mot_de_passe)
+  reinitialiserMotDePasseAdmin: (id) => api.put("/Registration/admin/adms/reinitialiser-mdp/", { id }),
+
+  // rapport PDF du journal d'audit — admin_id omis = tous les admins
+  genererRapportAudit: (dateDebut, dateFin, adminId) => {
+    const params = new URLSearchParams({ date_debut: dateDebut, date_fin: dateFin });
+    if (adminId) params.set("admin_id", adminId);
+    return api.getBlob(`/Registration/admin/adms/rapport-audit/?${params.toString()}`);
+  },
 
   // vérifie si une entreprise (nom) existe déjà — sans authentification
   verifierEntreprise: (nom_Entreprise) => api.get(

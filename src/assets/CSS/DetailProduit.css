@@ -55,6 +55,13 @@
   background: var(--pd-green-light);
 }
 
+.pd-alert--restreint {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
 /* ===================== Bloc principal ===================== */
 
 .pd-main {

@@ -13,6 +13,7 @@ import { useAuthStore } from "../Registration/AuthentificationStore";
 import { ProduitsApi } from "../api/produits";
 import { useConfirmStore } from "../api/confirmStore.js";
 import { construireLienWhatsApp, construireMessageWhatsApp } from "../utils/whatsapp.js";
+import { formaterLocalisationProduit } from "../utils/localisationProduit.js";
 import "../assets/CSS/DetailProduit.css";
 
 const TYPES_PROBLEME = ["information_incorrecte", "produit_obsolete", "contenu_inapproprie", "autre"];
@@ -21,7 +22,7 @@ const TYPES_PROBLEME_AVIS = ["contenu_inapproprie", "faux_avis", "hors_sujet", "
 // même conversion que afficherProduits.jsx/HomePage.jsx (voir _serialiseProduit,
 // Produits/views/produitsViews.py) pour réutiliser ProductCard dans les
 // sections "produits similaires"
-function versProduitAffiche(p, texteNonPrecise) {
+function versProduitAffiche(p, texteNonPrecise, texteHaiti) {
   return {
     id: p.id,
     nom: p.nom,
@@ -31,7 +32,7 @@ function versProduitAffiche(p, texteNonPrecise) {
     vendeurTelephone: p.vendeur_telephone,
     noteMoyenne: p.note_moyenne,
     nombreAvis: p.nombre_avis,
-    lieu: [p.commune, p.departement].filter(Boolean).join(", ") || p.region || texteNonPrecise,
+    lieu: formaterLocalisationProduit(p, texteHaiti) || texteNonPrecise,
     prix: p.prix,
     devise: p.unitePrix,
     image: p.photos?.[0]?.url_photo || null,
@@ -57,6 +58,10 @@ export default function DetailProduit() {
   const [photoActive, setPhotoActive] = useState(0);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
+  // true si l'erreur vient d'un compte bloqué (voir Utilisateur.bloquer,
+  // Registration/models.py) — affiche un renvoi vers "Contacter admin"
+  // plutôt qu'une simple erreur générique
+  const [accesRestreint, setAccesRestreint] = useState(false);
 
   // signalement d'un produit incorrect/obsolète OU d'un avis — transmis
   // directement aux admins (jamais au vendeur/auteur concerné), réservé aux
@@ -89,6 +94,7 @@ export default function DetailProduit() {
 
     setChargement(true);
     setErreur(null);
+    setAccesRestreint(false);
     setPhotoActive(0);
 
     ProduitsApi.detailProduit(id)
@@ -111,7 +117,10 @@ export default function DetailProduit() {
           setAvis(avisRes.avis || []);
         });
       })
-      .catch((err) => setErreur(err.message))
+      .catch((err) => {
+        setErreur(err.message);
+        setAccesRestreint(err.code === "COMPTE_BLOQUE");
+      })
       .finally(() => setChargement(false));
   }, [id]);
 
@@ -243,7 +252,7 @@ export default function DetailProduit() {
 
   const photos = produit?.photos || [];
   const lieu = produit
-    ? [produit.commune, produit.departement].filter(Boolean).join(", ") || produit.region || t("profile.notSpecified")
+    ? formaterLocalisationProduit(produit, t("auth.haiti")) || t("profile.notSpecified")
     : "";
 
   // un vendeur consultant sa propre fiche ne doit pas pouvoir se contacter
@@ -264,8 +273,8 @@ export default function DetailProduit() {
       }))
     : null;
 
-  const produitsVendeurAffiches = produitsVendeur.map((p) => versProduitAffiche(p, t("profile.notSpecified")));
-  const produitsSimilairesAffiches = produitsSimilaires.map((p) => versProduitAffiche(p, t("profile.notSpecified")));
+  const produitsVendeurAffiches = produitsVendeur.map((p) => versProduitAffiche(p, t("profile.notSpecified"), t("auth.haiti")));
+  const produitsSimilairesAffiches = produitsSimilaires.map((p) => versProduitAffiche(p, t("profile.notSpecified"), t("auth.haiti")));
 
   return (
     <div className="pd-page">
@@ -274,7 +283,13 @@ export default function DetailProduit() {
       <div className="pd-container">
         <BoutonRetour />
         {chargement && <p className="pd-hint">{t("home.loadingProducts")}</p>}
-        {!chargement && erreur && <p className="pd-alert pd-alert--error">{t(erreur)}</p>}
+        {!chargement && erreur && accesRestreint && (
+          <div className="pd-alert pd-alert--error pd-alert--restreint">
+            <p>{t(erreur)}</p>
+            <Link to="/contacter-admin" className="rk-btn">{t("nav.contactAdmin")}</Link>
+          </div>
+        )}
+        {!chargement && erreur && !accesRestreint && <p className="pd-alert pd-alert--error">{t(erreur)}</p>}
 
         {!chargement && !erreur && produit && (
           <>
@@ -334,7 +349,7 @@ export default function DetailProduit() {
 
                 <p className="pd-meta">
                   <MapPin size={15} />
-                  {[lieu, produit.adresse].filter(Boolean).join(" — ")}
+                  {lieu}
                 </p>
 
                 <div className="pd-actions">
@@ -549,7 +564,7 @@ export default function DetailProduit() {
                 </button>
               </>
             ) : signalementEnvoye ? (
-              <p className="pd-modal__texte">{t("productDetail.reportSent")}</p>
+              <p className="pd-modal__texte pd-alert pd-alert--succes">{t("productDetail.reportSent")}</p>
             ) : (
               <form onSubmit={soumettreSignalement}>
                 <p className="pd-modal__texte">{t("productDetail.reportIntro")}</p>

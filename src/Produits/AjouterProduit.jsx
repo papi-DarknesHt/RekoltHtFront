@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Package, Tag, Check, Sprout, Info, Coins, CheckCircle2, ArrowRight, X, Image, Plus,
+  Package, Tag, Check, Sprout, Info, Coins, CheckCircle2, ArrowRight, X, Image, Plus, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import NavBar from "../components/NavBar.jsx";
 import BoutonRetour from "../components/BoutonRetour.jsx";
@@ -99,6 +99,21 @@ export default function AjouterProduit() {
     setPhotos((liste) => {
       URL.revokeObjectURL(liste[index].apercu);
       return liste.filter((_, i) => i !== index);
+    });
+  };
+
+  // ordre purement local à ce stade (les photos ne sont pas encore envoyées
+  // au serveur) : l'ordre du tableau `photos` détermine directement l'ordre
+  // d'upload dans soumettreProduit (ProduitsApi.ajouterPhotosProduit envoie
+  // les fichiers dans l'ordre du tableau reçu, voir Produits/views/
+  // photoProduits.py::ajouterPhotosProduit, qui les numérote dans cet ordre)
+  const deplacerPhoto = (index, direction) => {
+    setPhotos((liste) => {
+      const cible = index + direction;
+      if (cible < 0 || cible >= liste.length) return liste;
+      const copie = [...liste];
+      [copie[index], copie[cible]] = [copie[cible], copie[index]];
+      return copie;
     });
   };
 
@@ -445,6 +460,26 @@ export default function AjouterProduit() {
                         >
                           <X size={14} />
                         </button>
+                        {photos.length > 1 && (
+                          <div className="ap-photo-thumb__reorder">
+                            <button
+                              type="button"
+                              disabled={index === 0}
+                              onClick={() => deplacerPhoto(index, -1)}
+                              aria-label={t("product.movePhotoBefore")}
+                            >
+                              <ChevronLeft size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={index === photos.length - 1}
+                              onClick={() => deplacerPhoto(index, 1)}
+                              aria-label={t("product.movePhotoAfter")}
+                            >
+                              <ChevronRight size={14} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
 

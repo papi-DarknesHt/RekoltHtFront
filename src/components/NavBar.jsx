@@ -13,6 +13,7 @@ import {
     ShieldCheck,
     Sun,
     Moon,
+    ShieldAlert,
 } from "lucide-react";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { useProfilStore } from "../Profil/ProfilStore";
@@ -34,6 +35,11 @@ export default function Navbar() {
     const afficherProfil = useProfilStore((s) => s.afficherProfil);
     const isAdmin = profil?.role === "admin";
     const isVendeur = profil?.role === "vendeur";
+    // compte bloqué par un admin (voir Utilisateur.bloquer, Registration/models.py)
+    // — accès restreint mais navigable, voir la bannière plus bas et
+    // Messagerie/views.py::demarrerConversation/envoyerMessage,
+    // Produits/views/produitsViews.py::detailProduit/infoVendeur
+    const estBloque = !!utilisateur?.est_bloquer;
 
     const theme = useThemeStore((s) => s.theme);
     const toggleTheme = useThemeStore((s) => s.toggleTheme);
@@ -153,9 +159,9 @@ export default function Navbar() {
         <div className={`nav-wrapper${scrolled ? " nav--scrolled" : ""}`}>
             <nav className="nav">
                 {/* Logo */}
-                <div className="nav-logo">
+                <Link to="/" className="nav-logo">
                     <img style={{ width: "50%" }} src={logo} alt={t("common.logoAlt")} />
-                </div>
+                </Link>
 
                 {/* Liens de navigation — desktop */}
                 <ul className="nav-links">
@@ -308,6 +314,15 @@ export default function Navbar() {
                 </button>
             </nav>
 
+            {/* compte bloqué : accès restreint, rappel + lien direct vers Contacter l'administrateur */}
+            {isConnecte && estBloque && (
+                <div className="nav-blocked-banner">
+                    <ShieldAlert size={16} />
+                    <span>{t("nav.blockedBanner")}</span>
+                    <Link to="/contacter-admin" className="nav-blocked-banner__lien">{t("nav.contactAdmin")}</Link>
+                </div>
+            )}
+
             {/* Panneau mobile */}
             {mobileOpen && (
                 <div className="nav-mobile-panel">
@@ -320,9 +335,6 @@ export default function Navbar() {
                         )}
                         {isConnecte && isVendeur && (
                             <li><Link to="/produits/tableau-de-bord" onClick={closeMobile}>{t("nav.vendorDashboard")}</Link></li>
-                        )}
-                        {isConnecte && isVendeur && (
-                            <li><Link to="/contacter-admin" onClick={closeMobile}>{t("nav.contactAdmin")}</Link></li>
                         )}
                         {isConnecte && isAdmin && (
                             <li><Link to="/admin/dashboard" onClick={closeMobile}>{t("nav.dashboard")}</Link></li>

@@ -15,9 +15,17 @@ export const MessagerieApi = {
     api.get(`/messagerie/messages/?conversation_id=${conversation_id}`),
 
   // iv : présent uniquement pour un message chiffré de bout en bout (voir
-  // src/utils/e2eCrypto.js) — contenu porte alors le ciphertext base64
-  envoyerMessage: (conversation_id, contenu, produit_id, iv) =>
-    api.post("/messagerie/messages/envoyer/", { conversation_id, contenu, produit_id, iv }),
+  // src/utils/e2eCrypto.js) — contenu porte alors le ciphertext base64.
+  // repond_a_id : id du message auquel celui-ci répond (voir bouton
+  // "Répondre" du menu contextuel, Messagerie.jsx), optionnel
+  envoyerMessage: (conversation_id, contenu, produit_id, iv, repond_a_id) =>
+    api.post("/messagerie/messages/envoyer/", { conversation_id, contenu, produit_id, iv, repond_a_id }),
+
+  // suppression "pour moi seulement" (voir Messagerie/views.py::
+  // supprimerMessagePourMoi/supprimerConversationPourMoi) — l'autre
+  // participant continue de tout voir normalement, rien n'est supprimé en base
+  supprimerMessagePourMoi: (id) => api.delete("/messagerie/messages/supprimer-pour-moi/", { id }),
+  supprimerConversationPourMoi: (id) => api.delete("/messagerie/conversations/supprimer-pour-moi/", { id }),
 
   // messages vendeur -> administrateurs (pas de destinataire précis, voir
   // Messagerie/models.py::MessageSupport) : contacterAdmin (vendeur),

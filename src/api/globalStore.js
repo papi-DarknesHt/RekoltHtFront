@@ -35,7 +35,12 @@ export const useGlobalStore = create((set) => ({
   // backend, groupe WebSocket personnel "user_<id>" — pas "global") —
   // Messagerie.jsx s'y abonne pour ajouter/retirer le message du fil actif
   // et faire remonter la conversation concernée en tête de liste. "deleted"
-  // ne peut venir que d'un admin (voir supprimerMessageAdmin).
+  // ne peut venir que d'un admin (voir supprimerMessageAdmin). "supprime_pour_moi"
+  // (message ou conversation) vient d'une suppression volontaire de
+  // l'utilisateur connecté lui-même (voir supprimerMessagePourMoi/
+  // supprimerConversationPourMoi, Messagerie/views.py) — sert à synchroniser
+  // ses propres autres onglets/sessions ouverts, jamais diffusé à l'autre
+  // participant.
   messageEvent: null,
 
   // dernier contact reçu (voir Produits/signals.py::broadcast_contact_produit
@@ -107,6 +112,8 @@ export const useGlobalStore = create((set) => ({
           return { ...state, profilEvent: { type, data, recu: Date.now() } };
         case "message.created":
         case "message.deleted":
+        case "message.supprime_pour_moi":
+        case "conversation.supprime_pour_moi":
           return { ...state, messageEvent: { type, data, recu: Date.now() } };
         case "contact.created":
           return { ...state, contactEvent: { type, data, recu: Date.now() } };

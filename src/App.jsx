@@ -1,6 +1,6 @@
 
 
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useGlobalSocket } from "./api/useGlobalSocket.js";
 import { useInactivityTimeout } from "./hooks/useInactivityTimeout.js";
 import TestPage from "./testpage.jsx";
@@ -17,7 +17,6 @@ import ModifierProduit from "./Produits/modifierProduits.jsx";
 import Produits from "./Produits/afficherProduits.jsx";
 import DetailProduit from "./Produits/DetailProduit.jsx";
 import ProfilVendeur from "./Produits/ProfilVendeur.jsx";
-import MesProduits from "./Produits/mesProduits.jsx";
 import TableauDeBordVendeur from "./Produits/TableauDeBordVendeur.jsx";
 import SuprimerProduit from "./Produits/suprimerProduit.jsx"
 import copy from "./components/copy.jsx"
@@ -28,7 +27,7 @@ import PolitiqueUtilisation from "./pages/PolitiqueUtilisation.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import ChatbotVendeur from "./components/ChatbotVendeur.jsx";
 import ConfirmModal from "./components/ConfirmModal.jsx";
-import ModalPinE2E from "./components/ModalPinE2E.jsx";
+import ForcerChangementMotDePasse from "./components/ForcerChangementMotDePasse.jsx";
 import AdminDashboard from "./Admin/AdminDashboard.jsx";
 import Messagerie from "./Messagerie/Messagerie.jsx";
 import ContacterAdmin from "./Support/ContacterAdmin.jsx";
@@ -45,7 +44,7 @@ function AppContent() {
           vraie messagerie et n'a plus de raison d'être sur cette page */}
       {location.pathname !== "/messages" && <ChatbotVendeur />}
       <ConfirmModal />
-      <ModalPinE2E />
+      <ForcerChangementMotDePasse />
       <Routes>
         <Route path="/" element={<HomePage />} />
         {/* <Route path="/test" element={<TestPage />} /> */}
@@ -66,7 +65,11 @@ function AppContent() {
             Produits/views/produitsViews.py::infoVendeur/listerProduits) */}
         <Route path="/vendeur/detail" element={<ProfilVendeur/>}/>
         <Route path="/produits/modifier" element={<RoutePrivee><ModifierProduit/></RoutePrivee>}/>
-        <Route path="/produits/mesProduits" element={<RoutePrivee><MesProduits/></RoutePrivee>}/>
+        {/* "Mes produits" est désormais un onglet intégré au tableau de bord
+            (voir TableauDeBordVendeur.jsx) — cette route ne survit que pour
+            les liens/redirections existants (AjouterProduit.jsx,
+            modifierProduits.jsx, HomePage.jsx) qui y renvoyaient encore */}
+        <Route path="/produits/mesProduits" element={<Navigate to="/produits/tableau-de-bord?tab=produits" replace />}/>
         <Route path="/produits/tableau-de-bord" element={<RoutePrivee><TableauDeBordVendeur/></RoutePrivee>}/>
         <Route path="/produits/suprimerProduits" element={<RoutePrivee><SuprimerProduit/></RoutePrivee>}/>
         {/* publique : un visiteur non connecté doit pouvoir consulter l'aide */}
