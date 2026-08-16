@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { AuthentificationApi } from "../api/auth";
 import { useProfilStore } from "../Profil/ProfilStore";
+import { useE2eStore } from "../api/e2eStore";
 
 // Nettoie les valeurs corrompues du localStorage au démarrage
 ["profil", "utilisateur", "entreprise"].forEach((key) => {
@@ -25,6 +26,9 @@ export const useAuthStore = create((set, get) => ({
             localStorage.setItem("token", res.token);
             localStorage.setItem("utilisateur", JSON.stringify(res.utilisateur));
             set({ utilisateur: res.utilisateur, isConnected: true });
+            // met en place la messagerie chiffrée pendant que le mot de passe est
+            // encore en mémoire (voir e2eStore.js::garantirCleE2E) — jamais persisté
+            useE2eStore.getState().garantirCleE2E(data.mot_de_passe).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -42,6 +46,11 @@ export const useAuthStore = create((set, get) => ({
             get().chargerEntreprise();
             // charge le profil (dont la photo) immédiatement après la connexion
             useProfilStore.getState().afficherProfil().catch(() => {});
+            // restaure/configure la messagerie chiffrée pendant que le mot de
+            // passe est encore en mémoire (voir e2eStore.js::garantirCleE2E) —
+            // c'est ce qui permet de retrouver sa clé sur un nouvel appareil
+            // sans rien avoir à saisir de plus ; jamais persisté au-delà de cet appel
+            useE2eStore.getState().garantirCleE2E(data.mot_de_passe).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -79,6 +88,11 @@ export const useAuthStore = create((set, get) => ({
             get().chargerEntreprise();
             // charge le profil (dont la photo) immédiatement après la connexion
             useProfilStore.getState().afficherProfil().catch(() => {});
+            // un compte Google n'a pas de mot de passe : on utilise le "sub"
+            // Google (identifiant stable, jamais affiché publiquement,
+            // renvoyé une seule fois par le backend) comme secret de
+            // dérivation de la sauvegarde E2E — voir e2eStore.js::garantirCleE2E
+            useE2eStore.getState().garantirCleE2E(res.google_sub).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -87,7 +101,7 @@ export const useAuthStore = create((set, get) => ({
             set({ loading: false });
         }
     },
-    
+
     // Authentification avec google pour l'inscription
     googleInscription: async (token, role = "acheteur") => {
         set({ loading: true, error: null });
@@ -97,6 +111,8 @@ export const useAuthStore = create((set, get) => ({
             localStorage.setItem("utilisateur", JSON.stringify(res.utilisateur));
             // set({ utilisateur: res.utilisateur,profil: res.profil, isConnected: true });
             set({ utilisateur: res.utilisateur, isConnected: true });
+            // voir googleConnexion ci-dessus : secret de dérivation de la sauvegarde E2E
+            useE2eStore.getState().garantirCleE2E(res.google_sub).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -127,7 +143,12 @@ export const useAuthStore = create((set, get) => ({
     modifierMotDePasse: async (data) => {
         set({ loading: true, error: null });
         try {
-            const res = await AuthentificationApi.modifierMotDePasse(data);
+            // l'ancien ET le nouveau mot de passe sont connus ici (contrairement
+            // à la réinitialisation par code) : on peut ré-envelopper la clé E2E
+            // déjà active sous le nouveau mot de passe dans la même requête,
+            // pour ne jamais perdre l'accès à l'historique des messages
+            const cleRenveloppee = await useE2eStore.getState().reChiffrerPourNouveauMotDePasse(data.nouveau_mot_de_passe);
+            const res = await AuthentificationApi.modifierMotDePasse({ ...data, ...cleRenveloppee });
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -149,6 +170,9 @@ export const useAuthStore = create((set, get) => ({
             localStorage.setItem("utilisateur", JSON.stringify(res.utilisateur));
             localStorage.setItem("entreprise", JSON.stringify(res.entreprise));
             set({ utilisateur: res.utilisateur, entreprise: res.entreprise, isConnected: true });
+            // met en place la messagerie chiffrée pendant que le mot de passe est
+            // encore en mémoire (voir e2eStore.js::garantirCleE2E) — jamais persisté
+            useE2eStore.getState().garantirCleE2E(data.mot_de_passe).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });

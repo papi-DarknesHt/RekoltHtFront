@@ -169,9 +169,13 @@ export default function MapHaiti() {
               />
               <div>
                 <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: "13px" }}>{vendeurAffiche.nom}</p>
-                {(vendeurAffiche.commune || vendeurAffiche.departement) && (
+                {(vendeurAffiche.section_communale || vendeurAffiche.commune || vendeurAffiche.departement) && (
                   <p style={{ margin: "0 0 2px", fontSize: "12px", color: "#555" }}>
-                    {[vendeurAffiche.commune, vendeurAffiche.departement].filter(Boolean).join(", ")}
+                    {/* même format que la localisation d'un produit/profil
+                        (voir utils/localisationProduit.js) : "Section
+                        Communale, Commune, Département, Haïti" */}
+                    {[vendeurAffiche.section_communale, vendeurAffiche.commune, vendeurAffiche.departement, t("auth.haiti")]
+                      .filter(Boolean).join(", ")}
                   </p>
                 )}
                 <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>

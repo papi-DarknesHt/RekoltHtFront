@@ -414,6 +414,38 @@
   background: var(--ap-danger);
 }
 
+.ap-photo-thumb__reorder {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ap-photo-thumb__reorder button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(43, 38, 34, 0.65);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ap-photo-thumb__reorder button:hover:not(:disabled) {
+  background: rgba(43, 38, 34, 0.9);
+}
+
+.ap-photo-thumb__reorder button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .ap-photo-add {
   display: flex;
   flex-direction: column;

@@ -1,20 +1,34 @@
 // Primitives Web Crypto pour le chiffrement de bout en bout de la messagerie
 // (voir Messagerie.jsx, ContacterAdmin.jsx, AdminDashboard.jsx, e2eStore.js).
-// Le serveur ne voit jamais de clé privée ni de texte en clair — tout se
-// passe ici, dans le navigateur, avec l'API SubtleCrypto native.
+// Le serveur ne voit jamais de clé privée en clair ni de texte en clair —
+// tout se passe ici, dans le navigateur, avec l'API SubtleCrypto native.
 //
-// Schéma : chaque utilisateur a une paire de clés ECDH (P-256), la clé
-// publique est stockée côté serveur (CleChiffrementUtilisateur), la clé
-// privée n'existe qu'enveloppée (chiffrée avec une clé dérivée d'un code PIN
-// via PBKDF2). Une conversation privée 1:1 dérive un secret AES-GCM partagé
-// via ECDH(ma clé privée, sa clé publique) = ECDH(sa clé privée, ma clé
+// Schéma : chaque utilisateur a une paire de clés ECDH (P-256). La clé
+// publique est stockée côté serveur (CleChiffrementUtilisateur). La clé
+// privée est mise en cache dans ce navigateur (IndexedDB, voir
+// e2eKeyStore.js) et une copie de secours CHIFFRÉE est aussi sauvegardée
+// côté serveur, protégée par une clé dérivée via PBKDF2 (voir
+// deriverCleEnveloppe/chiffrerClePrivee/dechiffrerClePrivee ci-dessous) d'un
+// secret que seul l'utilisateur peut fournir et que le serveur ne stocke
+// jamais : le mot de passe du compte, ou pour un compte connecté uniquement
+// via Google (pas de mot de passe), le "sub" Google (identifiant stable du
+// compte, transmis une seule fois à la connexion — voir google_connection/
+// google_inscription, Registration/views.py). Ce secret est déjà obtenu par
+// le simple fait de se connecter, donc cette sauvegarde/restauration se
+// fait automatiquement (voir e2eStore.js::garantirCleE2E), sans code PIN ni
+// saisie supplémentaire, et permet de retrouver sa messagerie sur un
+// nouvel appareil. Le serveur ne peut jamais déchiffrer ce blob lui-même :
+// il ne voit ni le secret en clair au repos, ni la clé dérivée, ni la clé
+// privée.
+// Une conversation privée 1:1 dérive un secret AES-GCM partagé via
+// ECDH(ma clé privée, sa clé publique) = ECDH(sa clé privée, ma clé
 // publique) — même valeur des deux côtés. Pour un destinataire non connu à
 // l'avance (messagerie support, plusieurs admins possibles), voir
 // chiffrerEnEnveloppe/dechiffrerEnveloppe plus bas : chiffrement hybride,
 // une clé de message aléatoire chiffrée séparément pour chaque destinataire.
 
 const COURBE = "P-256";
-const ITERATIONS_PBKDF2_DEFAUT = 210000;
+const ITERATIONS_PBKDF2_DEFAUT = 210000;   // recommandation OWASP 2023 pour PBKDF2-SHA256
 
 function versBase64(buffer) {
   return btoa(String.fromCharCode(...new Uint8Array(buffer)));
@@ -44,14 +58,22 @@ export function importerClePrivee(jwk) {
   return crypto.subtle.importKey("jwk", jwk, { name: "ECDH", namedCurve: COURBE }, true, ["deriveKey", "deriveBits"]);
 }
 
-// ── Enveloppe de la clé privée avec un secret (code PIN) ──────────────────────
+// ── Sauvegarde chiffrée de la clé privée (dérivée d'un secret propre au compte) ──
+// Permet de restaurer automatiquement la clé privée sur un nouvel appareil,
+// sans code PIN ni saisie supplémentaire : voir e2eStore.js::garantirCleE2E.
 export function genererSel() {
   return versBase64(crypto.getRandomValues(new Uint8Array(16)));
 }
 
-async function deriverCleEnveloppe(secret, selBase64, iterations) {
+// Dérive une clé d'enveloppe AES-GCM à partir d'un secret en clair propre au
+// compte — le mot de passe pour un compte classique, le "sub" Google pour un
+// compte connecté uniquement via Google (jamais transmis à un tiers, jamais
+// stocké) — même secret + même sel + mêmes itérations ⇒ même clé, ce qui
+// permet de re-déchiffrer la sauvegarde depuis n'importe quel appareil après
+// une connexion normale.
+export async function deriverCleEnveloppe(secretTexte, selBase64, iterations = ITERATIONS_PBKDF2_DEFAUT) {
   const materiau = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(secret), "PBKDF2", false, ["deriveKey"]
+    "raw", new TextEncoder().encode(secretTexte), "PBKDF2", false, ["deriveKey"]
   );
   return crypto.subtle.deriveKey(
     { name: "PBKDF2", salt: depuisBase64(selBase64), iterations, hash: "SHA-256" },
@@ -62,25 +84,13 @@ async function deriverCleEnveloppe(secret, selBase64, iterations) {
   );
 }
 
-export async function chiffrerClePrivee(pin, clePriveeJwk, selBase64, iterations = ITERATIONS_PBKDF2_DEFAUT) {
-  const cleEnveloppe = await deriverCleEnveloppe(pin, selBase64, iterations);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const donnees = new TextEncoder().encode(JSON.stringify(clePriveeJwk));
-  const chiffre = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cleEnveloppe, donnees);
-  return { cle_privee_chiffree: versBase64(chiffre), iv_cle_privee: versBase64(iv) };
+export async function chiffrerClePrivee(clePriveeJwk, cleEnveloppe) {
+  return chiffrerTexte(cleEnveloppe, JSON.stringify(clePriveeJwk));   // { contenu, iv }
 }
 
-// Lève une erreur (OperationError) si le PIN est incorrect — AES-GCM
-// authentifie le contenu, un mauvais secret ne produit jamais un résultat
-// silencieusement faux.
-export async function dechiffrerClePrivee(pin, cle_privee_chiffree, iv_cle_privee, selBase64, iterations = ITERATIONS_PBKDF2_DEFAUT) {
-  const cleEnveloppe = await deriverCleEnveloppe(pin, selBase64, iterations);
-  const dechiffre = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: depuisBase64(iv_cle_privee) },
-    cleEnveloppe,
-    depuisBase64(cle_privee_chiffree)
-  );
-  return JSON.parse(new TextDecoder().decode(dechiffre));
+export async function dechiffrerClePrivee(clePriveeChiffreeBase64, ivBase64, cleEnveloppe) {
+  const json = await dechiffrerTexte(cleEnveloppe, clePriveeChiffreeBase64, ivBase64);
+  return JSON.parse(json);
 }
 
 // ── Secret partagé par conversation 1:1 ────────────────────────────────────────

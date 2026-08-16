@@ -522,6 +522,18 @@
   font-weight: 600;
 }
 
+/* bandeau "action automatique" — remplace visuellement les N signalements
+   ayant déclenché le seuil par une seule explication au-dessus du dernier */
+.admin-auto-banner {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(192, 57, 43, 0.1);
+  color: var(--admin-danger);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .admin-badge--blocked {
   background: var(--admin-danger);
   color: #fff;
@@ -714,6 +726,58 @@
 
 .admin-action-btn:hover {
   opacity: 0.9;
+}
+
+/* modal auto-suffisant (voir formulaire "Créer un compte ADM") — n'utilise
+   que les variables --admin-* déjà définies sur .admin-shell ci-dessus,
+   contrairement à pd-modal/pd-modal-overlay (DetailProduit.css) dont les
+   variables --pd-* ne sont pas chargées sur cette page et laissaient le
+   fond de la carte transparent */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 38, 34, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.admin-modal {
+  background: var(--admin-card);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow);
+  padding: 24px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.admin-modal__entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.admin-modal__entete h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--admin-text);
+}
+
+.admin-modal__fermer {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--admin-text-muted);
+  padding: 4px;
+}
+
+[data-theme="dark"] .admin-modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .admin-action-btn--primary,

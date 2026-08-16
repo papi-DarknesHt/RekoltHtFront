@@ -45,6 +45,10 @@ export const ProduitsApi = {
   // réactive un produit désactivé automatiquement après 5 signalements —
   // réservé aux admins (voir Produits/views/produitsViews.py::reactiverProduitAdmin)
   reactiverProduitAdmin: (id) => api.put("/produits/admin/reactiver/", { id }),
+
+  // désactivation manuelle depuis un signalement — réservé aux admins (voir
+  // Produits/views/produitsViews.py::desactiverProduitAdmin)
+  desactiverProduitAdmin: (id) => api.put("/produits/admin/desactiver/", { id }),
   // enregistre qu'un acheteur connecté a manifesté son intérêt pour un
   // produit — nécessite d'être connecté, alimente nombre_contacts affiché
   // au vendeur (voir mesProduits.jsx)
@@ -63,6 +67,10 @@ export const ProduitsApi = {
     return api.post("/produits/photos/ajouter/", formData);
   },
   listerPhotosProduit: (produitId) => api.get(`/produits/photos/lister/?produit_id=${produitId}`),
+  // ordre : liste COMPLÈTE des id de photos du produit dans le nouvel ordre
+  // voulu (voir Produits/views/photoProduits.py::reordonnerPhotosProduit)
+  reordonnerPhotosProduit: (produitId, ordre) =>
+    api.put("/produits/photos/reordonner/", { produit_id: produitId, ordre }),
   supprimerPhotoProduit: (id) => api.delete("/produits/photos/supprimer/", { id }),
 
   // signalements — signaler un produit incorrect/obsolète (connecté,

@@ -8,6 +8,7 @@ import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { useGlobalStore } from "../api/globalStore.js";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { ProduitsApi } from "../api/produits";
+import { formaterLocalisationProduit } from "../utils/localisationProduit.js";
 import "../assets/CSS/AfficherProduits.css";
 
 // nombre de produits affichés au départ, et incrément du bouton "Afficher plus"
@@ -17,7 +18,7 @@ const TAILLE_PAGE = 10;
 // Produits/views/produitsViews.py) au format attendu par ProductCard.jsx +
 // aux filtres de cette page (categorieId/sousCategorieId/departement/commune/
 // sectionComunale bruts, en plus des champs déjà attendus par ProductCard)
-function versProduitAffiche(p, texteNonPrecise) {
+function versProduitAffiche(p, texteNonPrecise, texteHaiti) {
   return {
     id: p.id,
     nom: p.nom,
@@ -27,7 +28,7 @@ function versProduitAffiche(p, texteNonPrecise) {
     vendeurTelephone: p.vendeur_telephone,
     noteMoyenne: p.note_moyenne,
     nombreAvis: p.nombre_avis,
-    lieu: [p.commune, p.departement].filter(Boolean).join(", ") || p.region || texteNonPrecise,
+    lieu: formaterLocalisationProduit(p, texteHaiti) || texteNonPrecise,
     prix: p.prix,
     devise: p.unitePrix,
     image: p.photos?.[0]?.url_photo || null,
@@ -192,7 +193,7 @@ export default function AfficherProduits() {
   }, [produitEvent]);
 
   const produitsAffiches = useMemo(
-    () => produits.map((p) => versProduitAffiche(p, t("profile.notSpecified"))),
+    () => produits.map((p) => versProduitAffiche(p, t("profile.notSpecified"), t("auth.haiti"))),
     [produits, t]
   );
 
