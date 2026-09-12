@@ -35,13 +35,10 @@
   transform: scale(1.04);
 }
 
-/* repli affiché quand le produit n'a aucune photo (voir ProductCard.jsx) —
-   le logo garde ses proportions (object-fit: contain) plutôt que d'être
-   recadré en plein cadre comme une vraie photo produit */
 .produit-photo--logo {
   object-fit: contain;
   padding: 32px;
-  background: #f2f0eb;
+  background: var(--couleurFond, #f6f4f1);
 }
 
 .produit-card:hover .produit-photo--logo {
@@ -244,13 +241,23 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .produit-img { height: 160px; }
-  .produit-photo--logo { padding: 24px; }
+  .produit-img {
+    height: 160px;
+  }
+
+  .produit-photo--logo {
+    padding: 24px;
+  }
 }
 
 @media (max-width: 480px) {
-  .produit-img { height: 170px; }
-  .produit-photo--logo { padding: 26px; }
+  .produit-img {
+    height: 170px;
+  }
+
+  .produit-photo--logo {
+    padding: 26px;
+  }
 }
 
 /* ── MODE SOMBRE ── */

@@ -170,7 +170,7 @@ export default function MapSelectionGPS({ value, onChange, onLocalisationDetecte
           </button>
         </div>
       )}
-      {erreurManuelle && <p className="rk-error">✗ {erreurManuelle}</p>}
+      {erreurManuelle && <p className="rk-error"><XCircle size={20}/> {erreurManuelle}</p>}
     </div>
   );
 }

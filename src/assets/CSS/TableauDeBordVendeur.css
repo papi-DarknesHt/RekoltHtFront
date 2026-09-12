@@ -1,15 +1,3 @@
-/* =============================================================
-   RekoltHT — Tableau de bord (vendeur)
-   Fichier autonome : ne dépend d'aucune variable/classe définie dans un
-   autre fichier CSS de page (voir --tdb-* ci-dessous, propres à ce
-   fichier — même principe d'isolation qu'AdminDashboard.css/Aide.css, pour
-   qu'aucune des deux pages ne puisse casser l'autre en modifiant son propre
-   CSS). Même structure visuelle que le shell admin (sidebar sombre fixe +
-   topbar + cartes), dupliquée ici sous le préfixe "tdb-" plutôt que partagée.
-   Le chrome des graphiques (admin-chart-card, admin-charts-grid) reste dans
-   Charts.css : bibliothèque de composants partagée à part entière, pas le
-   CSS d'une page précise.
-   ============================================================= */
 
 .tdb-shell {
   --tdb-terracotta: #c1693f;
@@ -318,6 +306,26 @@
   gap: 6px;
   margin-left: auto;
   flex-shrink: 0;
+}
+
+.tdb-topbar__actions .lang-btn {
+  background: transparent;
+  border: none;
+  color: var(--tdb-text-muted);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+}
+
+.tdb-topbar__actions .lang-btn:hover {
+  background: rgba(128, 128, 128, 0.14);
+  color: var(--tdb-text);
+}
+
+.tdb-topbar__actions .lang-btn svg:last-child {
+  display: none;   /* chevron — superflu dans ce format icône ronde compacte */
 }
 
 .tdb-topbar__icon-btn {

@@ -8,14 +8,26 @@ import { create } from "zustand";
 // stylé cohérent avec le reste de l'app.
 export const useConfirmStore = create((set, get) => ({
   requete: null, // { message, danger, resolve }
+  // demandes reçues pendant qu'une confirmation est déjà affichée — sans
+  // cette file, une deuxième demander() écrasait "requete" avant que
+  // repondre() n'ait résolu la première (ex. double-clic rapide sur deux
+  // boutons "Supprimer" différents), et la Promise du premier appel ne se
+  // résolvait alors plus jamais (bouton bloqué indéfiniment)
+  file: [],
 
   demander: (message, { danger = false } = {}) =>
     new Promise((resolve) => {
-      set({ requete: { message, danger, resolve } });
+      const nouvelle = { message, danger, resolve };
+      if (get().requete) {
+        set((s) => ({ file: [...s.file, nouvelle] }));
+      } else {
+        set({ requete: nouvelle });
+      }
     }),
 
   repondre: (reponse) => {
     get().requete?.resolve(reponse);
-    set({ requete: null });
+    const [suivante, ...reste] = get().file;
+    set({ requete: suivante ?? null, file: reste });
   },
 }));

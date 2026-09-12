@@ -1,9 +1,3 @@
-/* =============================================================
-   RekoltHT — Centre d'aide
-   Fichier autonome, mêmes conventions que ModifierProduit.css :
-   variables préfixées "aide-" propres à .aide-page, classes préfixées
-   "aide-".
-   ============================================================= */
 
 .aide-page {
   --aide-terracotta: #c1693f;

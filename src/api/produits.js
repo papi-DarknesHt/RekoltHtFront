@@ -32,6 +32,13 @@ export const ProduitsApi = {
   // consultés/contactés, détail par produit) — voir Produits/views/
   // produitsViews.py::statistiquesVendeurPdf et Produits/services/rapport_service.py
   statistiquesVendeurPdf: () => api.getBlob("/produits/statistiques/rapport-pdf/"),
+  // vues profil/produits/catégories du vendeur connecté, filtrables par
+  // période (dateDebut/dateFin AAAA-MM-JJ, défaut serveur : 7 derniers
+  // jours si omis — voir Produits/views/vuesViews.py::statistiquesVuesVendeur)
+  statistiquesVuesVendeur: (dateDebut, dateFin) => {
+    const params = dateDebut && dateFin ? `?date_debut=${dateDebut}&date_fin=${dateFin}` : "";
+    return api.get(`/produits/vendeur/statistiques-vues/${params}`);
+  },
   detailProduit:   (id) => api.get(`/produits/detail/?id=${id}`),
   // infos publiques d'un vendeur (page détail produit) — pas d'email/téléphone,
   // le contact passe par contacterProduit/la messagerie (voir Produits/views/produitsViews.py::infoVendeur)
@@ -39,6 +46,11 @@ export const ProduitsApi = {
   // vendeurs à positionner sur la carte d'accueil (public, voir MapHaiti.jsx
   // et Produits/views/produitsViews.py::listerVendeursCarte)
   listerVendeursCarte: () => api.get("/produits/vendeurs-carte/"),
+
+  // tous les vendeurs (au moins un produit disponible), aucune position GPS
+  // requise — alimente le carousel "Nos vendeurs" de la page d'accueil (voir
+  // HomePage.jsx et Produits/views/produitsViews.py::listerVendeursPublics)
+  listerVendeursPublics: () => api.get("/produits/vendeurs-publics/"),
   modifierProduit: (data) => api.put("/produits/modifier/", data),
   supprimerProduit: (id) => api.delete("/produits/supprimer/", { id }),
   toggleDisponibiliteProduit: (id) => api.put("/produits/toggle-disponibilite/", { id }),
@@ -48,7 +60,11 @@ export const ProduitsApi = {
 
   // désactivation manuelle depuis un signalement — réservé aux admins (voir
   // Produits/views/produitsViews.py::desactiverProduitAdmin)
-  desactiverProduitAdmin: (id) => api.put("/produits/admin/desactiver/", { id }),
+  desactiverProduitAdmin: (id, raison) => api.put("/produits/admin/desactiver/", { id, raison }),
+  // suppression définitive de N'IMPORTE QUEL produit — réservé aux admins
+  // (voir Produits/views/produitsViews.py::supprimerProduitAdmin), distinct
+  // de supprimerProduit ci-dessus qui reste réservé au vendeur propriétaire
+  supprimerProduitAdmin: (id, raison) => api.delete("/produits/admin/supprimer/", { id, raison }),
   // enregistre qu'un acheteur connecté a manifesté son intérêt pour un
   // produit — nécessite d'être connecté, alimente nombre_contacts affiché
   // au vendeur (voir mesProduits.jsx)
@@ -79,7 +95,23 @@ export const ProduitsApi = {
   signalerProduit: (produit_id, type_probleme, motif) =>
     api.post("/produits/signaler/", { produit_id, type_probleme, motif }),
   listerSignalementsAdmin: () => api.get("/produits/signalements/en-attente/"),
-  traiterSignalement: (id) => api.post("/produits/signalements/traiter/", { id }),
+  // historique — MOI SEUL, sauf "Tous les droits"/propriétaire qui voient
+  // aussi les décisions des autres admins (voir Produits/views/signalementsViews.py)
+  listerSignalementsTraites: () => api.get("/produits/signalements/traites/"),
+  supprimerHistoriqueSignalements: (ids) => api.delete("/produits/signalements/traites/supprimer/", { ids }),
+  // traitement groupé — ids = tous les signalements du bloc (même produit,
+  // voir regrouperParCible, AdminDashboard.jsx), explication obligatoire
+  // (voir RaisonModal.jsx), conservée dans l'historique et le rapport PDF
+  traiterSignalement: (ids, explication) => api.post("/produits/signalements/traiter/", { ids, explication }),
+  // rapport PDF d'audit — signalements produits/vendeurs/messages/avis
+  // confondus, sur une période, filtrable par admin (admin_id omis = tous) —
+  // réservé à "Tous les droits"/propriétaire (voir Produits/views/
+  // signalementsViews.py::genererRapportSignalements)
+  genererRapportSignalements: (dateDebut, dateFin, adminId) => {
+    const params = new URLSearchParams({ date_debut: dateDebut, date_fin: dateFin });
+    if (adminId) params.set("admin_id", adminId);
+    return api.getBlob(`/produits/signalements/rapport-audit/?${params.toString()}`);
+  },
 
   // signalements vendeur — signaler un vendeur (connecté, transmis
   // directement aux admins) ; au-delà de 5 signalements pour le même motif,
@@ -89,14 +121,22 @@ export const ProduitsApi = {
   signalerVendeur: (vendeur_id, type_probleme, motif) =>
     api.post("/produits/signaler-vendeur/", { vendeur_id, type_probleme, motif }),
   listerSignalementsVendeursAdmin: () => api.get("/produits/signalements-vendeurs/en-attente/"),
-  traiterSignalementVendeur: (id) => api.post("/produits/signalements-vendeurs/traiter/", { id }),
+  listerSignalementsVendeursTraites: () => api.get("/produits/signalements-vendeurs/traites/"),
+  supprimerHistoriqueSignalementsVendeurs: (ids) => api.delete("/produits/signalements-vendeurs/traites/supprimer/", { ids }),
+  // traitement groupé — voir traiterSignalement ci-dessus, même principe
+  traiterSignalementVendeur: (ids, explication) => api.post("/produits/signalements-vendeurs/traiter/", { ids, explication }),
 
   // avis produit — poser/modifier son avis (connecté, sauf sur son propre
   // produit), lecture publique (voir Produits/views/avisViews.py)
   listerAvisProduit: (produitId) => api.get(`/produits/avis/lister/?produit_id=${produitId}`),
+  // tous les avis reçus sur MES produits, tous confondus (vendeur connecté) —
+  // profil vendeur, section "Avis et commentaires" (voir ProfilAcheteur.jsx)
+  listerAvisRecusVendeur: () => api.get("/produits/avis/recus/"),
   creerModifierAvis: (produit_id, note, commentaire) =>
     api.post("/produits/avis/creer/", { produit_id, note, commentaire }),
-  supprimerAvis: (id) => api.delete("/produits/avis/supprimer/", { id }),
+  // raison obligatoire seulement quand un admin supprime l'avis de
+  // quelqu'un d'autre (voir Produits/views/avisViews.py::supprimerAvis)
+  supprimerAvis: (id, raison) => api.delete("/produits/avis/supprimer/", { id, raison }),
 
   // signalements avis — signaler un avis (connecté, transmis directement aux
   // admins, voir Produits/views/signalementsViews.py::signalerAvis) ;
@@ -104,5 +144,8 @@ export const ProduitsApi = {
   signalerAvis: (avis_id, type_probleme, motif) =>
     api.post("/produits/avis/signaler/", { avis_id, type_probleme, motif }),
   listerSignalementsAvisAdmin: () => api.get("/produits/avis/signalements/en-attente/"),
-  traiterSignalementAvis: (id) => api.post("/produits/avis/signalements/traiter/", { id }),
+  listerSignalementsAvisTraites: () => api.get("/produits/avis/signalements/traites/"),
+  supprimerHistoriqueSignalementsAvis: (ids) => api.delete("/produits/avis/signalements/traites/supprimer/", { ids }),
+  // traitement groupé — voir traiterSignalement ci-dessus, même principe
+  traiterSignalementAvis: (ids, explication) => api.post("/produits/avis/signalements/traiter/", { ids, explication }),
 };

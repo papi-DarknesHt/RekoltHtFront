@@ -1,9 +1,3 @@
-/* =============================================================
-   RekoltHT — Modifier un produit (vendeur)
-   Fichier autonome : ne dépend d'aucune variable/classe définie dans
-   AjouterProduit.css ou MesProduits.css (modifierProduits.jsx n'importe
-   plus que ce fichier). Toutes les classes sont préfixées "mep-".
-   ============================================================= */
 
 .mep-page {
   --mep-terracotta: #c1693f;

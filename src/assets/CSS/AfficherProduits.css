@@ -1,9 +1,3 @@
-/* =============================================================
-   RekoltHT — Catalogue des produits (tous vendeurs, public)
-   Fichier autonome, même principe que AjouterProduit.css/MesProduits.css :
-   ne dépend d'aucune variable/classe définie ailleurs. Classes préfixées "ap2-".
-   ============================================================= */
-
 .ap2-page {
   --ap2-green: #2f4a3c;
   --ap2-green-light: #e3f3e8;
@@ -219,7 +213,7 @@
   border-top: 1px solid var(--ap2-border);
 }
 
-.ap2-sidebar__header + .ap2-filtre-section {
+.ap2-sidebar__header+.ap2-filtre-section {
   border-top: none;
   padding-top: 4px;
 }
@@ -353,6 +347,29 @@
   color: var(--ap2-green);
 }
 
+.ap2-voir-plus__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ap2-voir-plus__btn:disabled:hover {
+  border-color: var(--ap2-border);
+  color: var(--ap2-text);
+}
+
+.ap2-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.ap2-pagination__indicateur {
+  font-size: 0.85rem;
+  color: var(--ap2-text-light, var(--ap2-text));
+}
+
 @media (max-width: 640px) {
   .ap2-container {
     padding: 20px 16px 40px;
@@ -363,9 +380,6 @@
     gap: 14px;
   }
 
-  /* la sidebar n'est montée dans le DOM que lorsque filtresOuverts est vrai
-     (voir afficherProduits.jsx) — en dessous de 640px, ce même état bascule
-     l'affichage en panneau plein écran plutôt qu'en colonne latérale */
   .ap2-sidebar {
     position: fixed;
     inset: 0;
@@ -397,8 +411,6 @@
   }
 }
 
-/* ── MODE SOMBRE ── toutes les couleurs de ce fichier passant par les
-   variables --ap2-* définies sur .ap2-page, il suffit de les redéfinir ici */
 [data-theme="dark"] .ap2-page {
   --ap2-green-light: #1c2e22;
   --ap2-danger-light: rgba(192, 57, 43, 0.15);

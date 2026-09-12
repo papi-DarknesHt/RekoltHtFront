@@ -1,6 +1,3 @@
-/* ── POPUP DE CONFIRMATION GLOBAL (voir api/confirmStore.js) ──
-   Remplace window.confirm() partout dans l'app — monté une seule fois
-   dans App.jsx, au-dessus de tout le reste (z-index le plus haut). */
 
 .confirm-modal-overlay {
   position: fixed;

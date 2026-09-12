@@ -1,8 +1,3 @@
-/* =============================================================
-   RekoltHT — Contacter un administrateur (vendeur)
-   Fichier autonome : ne dépend d'aucune variable/classe définie ailleurs.
-   Toutes les classes sont préfixées "ca-".
-   ============================================================= */
 
 .ca-page {
   --ca-terracotta: #c1693f;
@@ -120,6 +115,13 @@
 
 .ca-btn--primary:hover:not(:disabled) {
   opacity: 0.9;
+}
+
+.ca-compteur-caracteres {
+  align-self: flex-end;
+  color: var(--ca-text-muted);
+  font-size: 0.78rem;
+  margin: -8px 0 0;
 }
 
 .ca-alert {

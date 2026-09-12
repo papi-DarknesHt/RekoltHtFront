@@ -158,6 +158,20 @@
   margin-top: 0;
 }
 
+/* petit cercle qui tourne à gauche du texte du bouton "Envoyer ma demande"
+   pendant l'envoi (submitLoading) — montre que le dossier est en cours de
+   traitement côté serveur (soumettreVerification, voir DevenirVendeur.jsx) */
+.dv-btn-spinner {
+  vertical-align: -3px;
+  margin-right: 8px;
+  animation: dv-spin 0.8s linear infinite;
+}
+
+@keyframes dv-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .dv-btn-secondary {
   background: #f5f5f5 !important;
   color: #444 !important;
@@ -248,6 +262,87 @@
   color: #888;
   text-align: center;
   line-height: 1.5;
+}
+
+.dv-document-hint {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  line-height: 1.5;
+  margin: 0 0 4px;
+}
+
+.dv-document-choix {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.dv-file-label-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dv-file-label-btn .dv-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dv-document-recadrage {
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  background: #111;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  touch-action: none; /* évite le scroll tactile pendant le glissé du cadre */
+}
+
+.dv-document-recadrage-img {
+  max-width: 100%;
+  max-height: 70vh;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.dv-document-recadrage-rect {
+  position: absolute;
+  border: 2px solid #3ecf6e;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.55); /* assombrit tout ce qui est hors du cadre */
+  cursor: move;
+  touch-action: none;
+}
+
+.dv-document-recadrage-poignee {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3ecf6e;
+  border: 2px solid #fff;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.dv-document-switch {
+  background: none;
+  border: none;
+  color: var(--rk-primary, #2f8f4e);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 2px 4px;
 }
 
 /* ── CARTE GPS (MapSelectionGPS.jsx) ───────────────────────────────────────── */

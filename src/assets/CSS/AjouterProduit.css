@@ -1,9 +1,3 @@
-/* =============================================================
-   RekoltHT — Ajouter un produit (vendeur)
-   Fichier autonome : ne dépend d'aucune variable/classe définie dans
-   ProfilAcheteur.css ou AdminDashboard.css (AjouterProduit.jsx n'importe
-   plus que ce fichier). Toutes les classes sont préfixées "ap-".
-   ============================================================= */
 
 .ap-page {
   --ap-terracotta: #c1693f;

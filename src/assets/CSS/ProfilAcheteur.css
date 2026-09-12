@@ -1,7 +1,3 @@
-/* =============================================================
-   RekoltHT — Page "Mon Profil" (Acheteur)
-   ============================================================= */
-
 :root {
   --rk-terracotta: #c1693f;
   --rk-terracotta-dark: #a85a35;
@@ -40,13 +36,6 @@
   color: #fff;
   padding: 16px 32px;
 }
-
-
-/* 
-.profil-navbar__links {
-  display: flex;
-  gap: 24px;
-} */
 
 .profil-navbar__link {
   color: #fff;
@@ -323,7 +312,6 @@
   background: var(--rk-border);
 }
 
-/* repli affiché quand le profil n'a pas encore de photo (photo_profil est null) */
 .profil-avatar-image--placeholder {
   display: flex;
   align-items: center;
@@ -445,11 +433,11 @@
   transition: transform 0.2s ease;
 }
 
-.profil-switch input:checked + .profil-switch__slider {
+.profil-switch input:checked+.profil-switch__slider {
   background: var(--rk-green);
 }
 
-.profil-switch input:checked + .profil-switch__slider::before {
+.profil-switch input:checked+.profil-switch__slider::before {
   transform: translateX(20px);
 }
 
@@ -706,6 +694,7 @@
 /* ===================== Responsive ===================== */
 
 @media (max-width: 1024px) {
+
   .profil-cards,
   .profil-cards--bottom {
     grid-template-columns: 1fr;
@@ -716,7 +705,40 @@
   }
 
   .profil-sidebar {
-    display: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--rk-border);
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .profil-sidebar__user {
+    padding: 0;
+    border-bottom: none;
+    margin-bottom: 0;
+    flex: 0 0 auto;
+  }
+
+  .profil-sidebar__nav {
+    flex-direction: row;
+    flex: 1 1 auto;
+    overflow-x: auto;
+    gap: 8px;
+  }
+
+  .profil-sidebar__item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .profil-sidebar__footer {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    flex: 0 0 auto;
   }
 
   .profil-footer {
@@ -738,9 +760,7 @@
   }
 }
 
-/* ── MODE SOMBRE ── la quasi-totalité de ce fichier passe déjà par les
-   jetons --rk-* (redéfinis en mode sombre dans src/index.css) ; seuls les
-   couleurs codées en dur ci-dessous ont besoin d'une surcharge propre */
+/* ── MODE SOMBRE ── */
 [data-theme="dark"] .profil-product__badge {
   background: rgba(31, 36, 34, 0.85);
 }

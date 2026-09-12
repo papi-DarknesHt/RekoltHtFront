@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, ShieldCheck, X, Flag, Trash2, Reply, CheckSquare } from "lucide-react";
+import { Send, ShieldCheck, X, Flag, Trash2, Reply, CheckSquare, ArrowLeft } from "lucide-react";
 import NavBar from "../components/NavBar.jsx";
 import BoutonRetour from "../components/BoutonRetour.jsx";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
@@ -11,8 +11,7 @@ import { useMessagerieBadgeStore } from "../api/messagerieBadgeStore.js";
 import { useConfirmStore } from "../api/confirmStore.js";
 import { MessagerieApi } from "../api/messagerie";
 import { ProduitsApi } from "../api/produits";
-import { useE2eStore } from "../api/e2eStore.js";
-import { deriverSecretPartage, chiffrerTexte, dechiffrerTexte } from "../utils/e2eCrypto.js";
+import { symboleDevise } from "../utils/symboleDevise.js";
 import "../assets/CSS/Messagerie.css";
 import "../assets/CSS/DetailProduit.css";
 
@@ -26,32 +25,23 @@ function initiale(nom) {
   return (nom || "?").charAt(0).toUpperCase();
 }
 
-// texte à afficher pour un message du fil actif — voir texteDechiffre dans
-// Messagerie() : undefined = déchiffrement pas encore tenté, null = échec
-function texteBulle(message, texteDechiffre, t) {
-  if (!message.chiffre) return message.contenu;
-  const valeur = texteDechiffre[message.id];
-  if (valeur === undefined) return t("messagerie.dechiffrementEnCours");
-  if (valeur === null) return t("messagerie.contenuIllisible");
-  return valeur;
-}
-
 // aperçu court d'un message cité (bouton "Répondre" — voir menu contextuel
-// et la citation affichée en haut d'une bulle, plus bas)
-function apercuCitation(message, texteDechiffre, t) {
+// et la citation affichée en haut d'une bulle, plus bas). Le contenu arrive
+// déjà en clair depuis le backend (chiffré au repos côté serveur, voir
+// MESSAGES_MASTER_KEY/Messagerie/services/messages_chiffrement_service.py) —
+// plus aucun déchiffrement ni clé côté client, demande explicite du
+// propriétaire : accès immédiat aux messages sur n'importe quel appareil/
+// navigateur dès la connexion, sans mot de passe ni clé à saisir.
+function apercuCitation(message) {
   if (message.produit && !message.contenu) return `📦 ${message.produit.nom}`;
-  return texteBulle(message, texteDechiffre, t);
+  return message.contenu;
 }
 
 // même principe pour l'aperçu du dernier message dans la sidebar
-function texteApercuConversation(conversation, apercuDechiffre, t) {
+function texteApercuConversation(conversation, t) {
   const dm = conversation.dernier_message;
   if (!dm) return "";
-  if (!dm.chiffre) return dm.contenu || t("messagerie.sharedProduct");
-  const valeur = apercuDechiffre[conversation.id];
-  if (valeur === undefined) return t("messagerie.dechiffrementEnCours");
-  if (valeur === null) return t("messagerie.contenuIllisible");
-  return valeur || t("messagerie.sharedProduct");
+  return dm.contenu || t("messagerie.sharedProduct");
 }
 
 export default function Messagerie() {
@@ -61,6 +51,7 @@ export default function Messagerie() {
   const profil = useProfilStore((s) => s.profil);
   const isVendeur = profil?.role === "vendeur";
   const messageEvent = useGlobalStore((s) => s.messageEvent);
+  const reconnectedAt = useGlobalStore((s) => s.reconnectedAt);
   const [searchParams] = useSearchParams();
   const demanderConfirmation = useConfirmStore((s) => s.demander);
 
@@ -88,19 +79,6 @@ export default function Messagerie() {
   const [messagesSelectionnes, setMessagesSelectionnes] = useState(() => new Set());
   const finDesMessagesRef = useRef(null);
   const setNonLus = useMessagerieBadgeStore((s) => s.setNonLus);
-
-  // chiffrement de bout en bout, entièrement automatique (voir api/e2eStore.js
-  // et utils/e2eCrypto.js — aucun code PIN, aucune saisie utilisateur) —
-  // clePriveeCryptoKey déclenche un nouveau rendu dès que la clé devient
-  // disponible, faisant automatiquement rejouer les effets de déchiffrement
-  // ci-dessous
-  const garantirCleE2E = useE2eStore((s) => s.garantirCleE2E);
-  const clePriveeCryptoKey = useE2eStore((s) => s.clePriveeCryptoKey);
-  const obtenirClePubliqueDe = useE2eStore((s) => s.obtenirClePubliqueDe);
-  // texte en clair déjà déchiffré, par id de message ou de conversation —
-  // undefined = pas encore tenté, null = échec (voir texteBulle/texteApercu)
-  const [texteDechiffre, setTexteDechiffre] = useState({});
-  const [apercuDechiffre, setApercuDechiffre] = useState({});
 
   // signalement d'un message reçu (voir Messagerie/views.py::signalerMessage)
   // — même principe que le signalement produit/vendeur : modal avec type de
@@ -147,70 +125,14 @@ export default function Messagerie() {
     tout
       .catch((err) => setErreur(err.message))
       .finally(() => setChargementConversations(false));
+    // dépend de searchParams (pas [] à l'ancienne) : un futur lien qui
+    // navigue vers /messages?avec=... en restant sur la même route (donc
+    // sans remontage du composant) doit rouvrir la bonne conversation, pas
+    // rester bloqué sur l'état du tout premier montage
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // garantit une clé de chiffrement dès l'ouverture de la page — silencieux,
-  // ne demande jamais rien à l'utilisateur (voir e2eStore.js::garantirCleE2E)
-  useEffect(() => {
-    garantirCleE2E().catch((err) => {
-      if (err.message !== "annule") setErreur(err.message);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   const conversationActive = conversations.find((c) => c.id === conversationActiveId) || null;
-
-  // déchiffre les messages du fil actif dès que la clé est prête — reste
-  // silencieux (bulle "message illisible", voir texteBulle) si le
-  // déchiffrement échoue, par ex. après une régénération de clé
-  useEffect(() => {
-    if (!clePriveeCryptoKey || !conversationActive) return;
-    const messagesChiffres = messages.filter((m) => m.chiffre);
-    if (messagesChiffres.length === 0) return;
-    let annule = false;
-    (async () => {
-      let secret;
-      try {
-        const clePubliqueAutre = await obtenirClePubliqueDe(conversationActive.autre_utilisateur.id);
-        secret = await deriverSecretPartage(clePriveeCryptoKey, clePubliqueAutre);
-      } catch {
-        return;
-      }
-      const resultats = {};
-      for (const m of messagesChiffres) {
-        try {
-          resultats[m.id] = await dechiffrerTexte(secret, m.contenu, m.iv);
-        } catch {
-          resultats[m.id] = null;
-        }
-      }
-      if (!annule) setTexteDechiffre((prev) => ({ ...prev, ...resultats }));
-    })();
-    return () => { annule = true; };
-  }, [messages, clePriveeCryptoKey, conversationActive, obtenirClePubliqueDe]);
-
-  // déchiffre l'aperçu du dernier message de chaque conversation (sidebar)
-  useEffect(() => {
-    if (!clePriveeCryptoKey) return;
-    const aDechiffrer = conversations.filter((c) => c.dernier_message?.chiffre);
-    if (aDechiffrer.length === 0) return;
-    let annule = false;
-    (async () => {
-      const resultats = {};
-      for (const c of aDechiffrer) {
-        try {
-          const clePubliqueAutre = await obtenirClePubliqueDe(c.autre_utilisateur.id);
-          const secret = await deriverSecretPartage(clePriveeCryptoKey, clePubliqueAutre);
-          resultats[c.id] = await dechiffrerTexte(secret, c.dernier_message.contenu, c.dernier_message.iv);
-        } catch {
-          resultats[c.id] = null;
-        }
-      }
-      if (!annule) setApercuDechiffre((prev) => ({ ...prev, ...resultats }));
-    })();
-    return () => { annule = true; };
-  }, [conversations, clePriveeCryptoKey, obtenirClePubliqueDe]);
 
   // charge les messages de la conversation sélectionnée — réinitialise aussi
   // le menu contextuel/mode sélection au passage : jamais laissés "orphelins"
@@ -301,6 +223,25 @@ export default function Messagerie() {
   useEffect(() => {
     setNonLus(conversations.reduce((somme, c) => somme + (c.non_lus || 0), 0));
   }, [conversations, setNonLus]);
+
+  // rattrapage après une coupure du WebSocket (veille de l'appareil, wifi qui
+  // saute, cold-start du serveur...) — voir reconnectedAt, api/globalStore.js.
+  // Pendant la coupure, tout message reçu de l'autre participant n'a JAMAIS
+  // été diffusé (le backend ne rejoue rien après coup) : sans ce correctif il
+  // fallait recharger la page à la main pour le voir apparaître (bug signalé
+  // explicitement — "même si on n'est pas en ligne, on doit voir nos anciens
+  // messages"). Ignoré au tout premier montage (reconnectedAt reste à 0 tant
+  // qu'aucune VRAIE reconnexion n'a eu lieu, voir setConnected).
+  useEffect(() => {
+    if (!reconnectedAt) return;
+    MessagerieApi.mesConversations().then((res) => setConversations(res.conversations || [])).catch(() => {});
+    if (conversationActiveId) {
+      MessagerieApi.messagesConversation(conversationActiveId)
+        .then((res) => setMessages(res.messages || []))
+        .catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reconnectedAt]);
 
   // ferme le menu contextuel au clic ailleurs, à Échap, ou dès qu'on change
   // de conversation/scroll — jamais laissé ouvert "orphelin"
@@ -410,31 +351,11 @@ export default function Messagerie() {
     const produitId = produitAPartager?.id;
     const repondAId = messageEnReponse?.id;
     try {
-      let contenuEnvoi = texte;
-      let ivEnvoi;
-      if (texte) {
-        try {
-          const clePrivee = await garantirCleE2E();
-          const clePubliqueAutre = await obtenirClePubliqueDe(conversationActive.autre_utilisateur.id);
-          const secret = await deriverSecretPartage(clePrivee, clePubliqueAutre);
-          const resultat = await chiffrerTexte(secret, texte);
-          contenuEnvoi = resultat.contenu;
-          ivEnvoi = resultat.iv;
-        } catch {
-          // le destinataire n'a pas encore de clé publique configurée (ou
-          // toute autre erreur de chiffrement) : on envoie en clair plutôt
-          // que de bloquer l'envoi — une messagerie doit rester utilisable
-          // même quand l'autre partie n'a pas encore de chiffrement configuré,
-          // constaté en conditions réelles. Les messages suivants avec cette
-          // même personne seront de nouveau chiffrés dès qu'elle en aura un.
-          contenuEnvoi = texte;
-          ivEnvoi = undefined;
-        }
-      }
-      const res = await MessagerieApi.envoyerMessage(conversationActiveId, contenuEnvoi, produitId, ivEnvoi, repondAId);
+      // chiffré au repos côté SERVEUR (voir Messagerie/services/
+      // messages_chiffrement_service.py) — le texte part en clair vers le
+      // serveur ici (HTTPS), aucun chiffrement côté client nécessaire
+      const res = await MessagerieApi.envoyerMessage(conversationActiveId, texte, produitId, repondAId);
       setMessages((liste) => (liste.some((m) => m.id === res.message.id) ? liste : [...liste, res.message]));
-      // évite un aller-retour de déchiffrement inutile pour mon propre envoi
-      if (texte) setTexteDechiffre((prev) => ({ ...prev, [res.message.id]: texte }));
       // le brouillon n'est vidé qu'une fois l'envoi confirmé — sinon un échec
       // réseau ferait perdre le texte déjà tapé, constaté en conditions réelles
       setBrouillon("");
@@ -467,14 +388,8 @@ export default function Messagerie() {
     setSignalementEnCours(true);
     setSignalementErreur(null);
     try {
-      // copie en clair déjà déchiffrée côté client (voir texteBulle) — sans
-      // objet pour un message legacy non chiffré (backend retombe alors sur
-      // message.contenu directement, voir _serialiseSignalementMessage)
-      const contenuDechiffre = signalementCible.chiffre
-        ? (texteDechiffre[signalementCible.id] || undefined)
-        : undefined;
       await MessagerieApi.signalerMessage(
-        signalementCible.id, signalementForm.type_probleme, signalementForm.motif.trim(), contenuDechiffre
+        signalementCible.id, signalementForm.type_probleme, signalementForm.motif.trim()
       );
       setSignalementEnvoye(true);
     } catch (err) {
@@ -488,7 +403,11 @@ export default function Messagerie() {
     <div className="msg-page">
       <NavBar />
 
-      <div className="msg-layout">
+      {/* sur mobile (voir Messagerie.css), la sidebar ET le panneau de
+          discussion sont côte à côte en CSS mais l'un des deux masqué selon
+          conversationActiveId — sans balise <form>/état dédié, ce sont les
+          seuls éléments qui déterminent lequel des deux occuper tout l'écran */}
+      <div className={`msg-layout ${conversationActiveId ? "msg-layout--conversation-active" : ""}`}>
         <aside className="msg-sidebar">
           <div className="msg-sidebar__header">
             <BoutonRetour />
@@ -527,7 +446,7 @@ export default function Messagerie() {
                   <span className="msg-conv-item__body">
                     <span className="msg-conv-item__nom">{c.autre_utilisateur.nom_affiche}</span>
                     <span className="msg-conv-item__apercu">
-                      {texteApercuConversation(c, apercuDechiffre, t)}
+                      {texteApercuConversation(c, t)}
                     </span>
                   </span>
                   <span className="msg-conv-item__meta">
@@ -548,6 +467,17 @@ export default function Messagerie() {
           ) : (
             <>
               <div className="msg-chat__header">
+                {/* uniquement visible sur mobile, voir Messagerie.css — sur
+                    desktop la sidebar reste affichée en permanence à côté */}
+                <button
+                  type="button"
+                  className="msg-chat__retour"
+                  onClick={() => setConversationActiveId(null)}
+                  aria-label={t("messagerie.backToList")}
+                  title={t("messagerie.backToList")}
+                >
+                  <ArrowLeft size={18} />
+                </button>
                 <span className="msg-chat__avatar">{initiale(conversationActive.autre_utilisateur.nom_affiche)}</span>
                 <p className="msg-chat__nom">{conversationActive.autre_utilisateur.nom_affiche}</p>
                 <button
@@ -601,16 +531,31 @@ export default function Messagerie() {
                       <div className="msg-bulle__contenu">
                         {m.repond_a_id && (
                           <div className="msg-bulle__citation">
-                            <span className="msg-bulle__citation-nom">
-                              {original
-                                ? (original.expediteur_id === utilisateur?.id
-                                  ? t("messagerie.you")
-                                  : conversationActive.autre_utilisateur.nom_affiche)
-                                : ""}
-                            </span>
-                            <span className="msg-bulle__citation-texte">
-                              {original ? apercuCitation(original, texteDechiffre, t) : t("messagerie.messageUnavailable")}
-                            </span>
+                            {/* miniature du produit/photo cité — le texte seul
+                                ("📦 nom du produit") ne suffisait pas à montrer
+                                CE dont on parle, corrigé définitivement en
+                                affichant aussi la photo quand l'original en a
+                                une (voir apercuCitation plus haut, et le même
+                                traitement pour produitAPartager ci-dessous) */}
+                            {original?.produit?.photo && (
+                              <img
+                                className="msg-bulle__citation-img"
+                                src={original.produit.photo}
+                                alt={original.produit.nom}
+                              />
+                            )}
+                            <div className="msg-bulle__citation-texte-bloc">
+                              <span className="msg-bulle__citation-nom">
+                                {original
+                                  ? (original.expediteur_id === utilisateur?.id
+                                    ? t("messagerie.you")
+                                    : conversationActive?.autre_utilisateur?.nom_affiche)
+                                  : ""}
+                              </span>
+                              <span className="msg-bulle__citation-texte">
+                                {original ? apercuCitation(original) : t("messagerie.messageUnavailable")}
+                              </span>
+                            </div>
                           </div>
                         )}
                         {m.produit && (
@@ -625,14 +570,14 @@ export default function Messagerie() {
                               <p className="msg-produit-partage__nom">{m.produit.nom}</p>
                               {m.produit.prix != null && (
                                 <p className="msg-produit-partage__prix">
-                                  {m.produit.prix} {m.produit.unitePrix}
+                                  {m.produit.prix} {symboleDevise(m.produit.unitePrix)}
                                   {m.produit.unite_De_Mesure ? ` / ${m.produit.unite_De_Mesure}` : ""}
                                 </p>
                               )}
                             </div>
                           </div>
                         )}
-                        {m.contenu && <p className="msg-bulle__texte">{texteBulle(m, texteDechiffre, t)}</p>}
+                        {m.contenu && <p className="msg-bulle__texte">{m.contenu}</p>}
                         <span className="msg-bulle__heure">{formatHeure(m.date_envoi)}</span>
                       </div>
                     </div>
@@ -671,18 +616,24 @@ export default function Messagerie() {
               {messageEnReponse && (
                 <div className="msg-reply-preview">
                   <div className="msg-reply-preview__barre" />
-                  <div className="msg-reply-preview__img msg-reply-preview__img--icone">
-                    <Reply size={16} />
-                  </div>
+                  {messageEnReponse.produit?.photo ? (
+                    <div className="msg-reply-preview__img">
+                      <img src={messageEnReponse.produit.photo} alt={messageEnReponse.produit.nom} />
+                    </div>
+                  ) : (
+                    <div className="msg-reply-preview__img msg-reply-preview__img--icone">
+                      <Reply size={16} />
+                    </div>
+                  )}
                   <div className="msg-reply-preview__info">
                     <span className="msg-reply-preview__label">
                       {t("messagerie.replyingToMessage", {
                         nom: messageEnReponse.expediteur_id === utilisateur?.id
                           ? t("messagerie.you")
-                          : conversationActive.autre_utilisateur.nom_affiche,
+                          : conversationActive?.autre_utilisateur?.nom_affiche,
                       })}
                     </span>
-                    <p className="msg-reply-preview__nom">{apercuCitation(messageEnReponse, texteDechiffre, t)}</p>
+                    <p className="msg-reply-preview__nom">{apercuCitation(messageEnReponse)}</p>
                   </div>
                   <button
                     type="button"
@@ -770,7 +721,7 @@ export default function Messagerie() {
                     placeholder={t("productDetail.reportReasonPlaceholder")}
                   />
                 </div>
-                {signalementErreur && <p className="rk-error">✗ {signalementErreur}</p>}
+                {signalementErreur && <p className="rk-error"><XCircle size={20}/> {signalementErreur}</p>}
                 <button type="submit" className="rk-btn" disabled={signalementEnCours}>
                   {signalementEnCours ? t("seller.saving") : t("productDetail.reportSubmit")}
                 </button>

@@ -1,7 +1,3 @@
-/* =============================================================
-   RekoltHT — Détail produit
-   Fichier autonome, classes préfixées "pd-".
-   ============================================================= */
 
 .pd-page {
   --pd-terracotta: #c1693f;
@@ -86,11 +82,13 @@
   object-fit: cover;
 }
 
-/* repli affiché quand le produit n'a aucune photo (voir DetailProduit.jsx) —
-   le logo garde ses proportions plutôt que d'être recadré en plein cadre */
 .pd-gallery__main img.pd-gallery__logo {
   object-fit: contain;
   padding: 15%;
+}
+
+.pd-gallery__main:has(.pd-gallery__logo) {
+  background: var(--pd-green);
 }
 
 .pd-gallery__thumbs {
@@ -537,6 +535,10 @@
 
 [data-theme="dark"] .pd-gallery__main {
   background: var(--pd-border);
+}
+
+[data-theme="dark"] .pd-gallery__main:has(.pd-gallery__logo) {
+  background: var(--pd-green);
 }
 
 [data-theme="dark"] .pd-alert--error,

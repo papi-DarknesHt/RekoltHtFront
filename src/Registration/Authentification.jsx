@@ -4,20 +4,30 @@ import logo from "../assets/Images/Asset5.svg";
 import ReCAPTCHA from "react-google-recaptcha";
 import { api } from "../api/client";
 import { useAuthStore } from "./AuthentificationStore";
+import { AuthentificationApi } from "../api/auth";
+import { useAlertStore } from "../api/alertStore.js";
 import { useProfilStore } from "../Profil/ProfilStore";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
-import { ArrowLeft, Eye, EyeOff, Camera } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Camera, Mail, Check, XCircle } from 'lucide-react';
 import departementsData from "../assets/Departements/haiti_departements.json";
 import MapSelectionGPS from "../components/MapSelectionGPS.jsx";
 import { fusionnerLocalisationDetectee, niveauDetecteDepuisLoc } from "../utils/geoLookup.js";
+import { soumettreSurEntree } from "../utils/formShortcuts.js";
 
 export default function RekoltHtAuth() {
 
   const navigate = useNavigate();
   const { inscription, connexion, creerEntreprise, verifierEntreprise, loading, error, clearError } = useAuthStore();
   const [success, setSuccess] = useState(null);
+  // email pour lequel l'email d'activation vient d'être envoyé (voir
+  // sinscrire, Registration/views.py) — non null = affiche l'écran "vérifiez
+  // votre boîte mail" à la place du formulaire d'inscription, tant que le
+  // lien reçu n'a pas été cliqué (voir ActiverCompte.jsx)
+  const [activationEmailEnvoye, setActivationEmailEnvoye] = useState(null);
+  const [renvoiActivationEnCours, setRenvoiActivationEnCours] = useState(false);
+  const [erreurRenvoiActivation, setErreurRenvoiActivation] = useState(null);
   const [tab, setTab] = useState("login");
   const googleConnexion = useAuthStore((s) => s.googleConnexion);
   const googleInscription = useAuthStore((s) => s.googleInscription);
@@ -91,6 +101,8 @@ export default function RekoltHtAuth() {
     setForgotError(null);
     setForgotEmail("");
     setForgotResetSuccess(false);
+    setActivationEmailEnvoye(null);
+    setErreurRenvoiActivation(null);
     setShowMdp(false);
     setShowMdpConfirm(false);
     setShowEntrepriseMdp(false);
@@ -203,6 +215,7 @@ export default function RekoltHtAuth() {
       if (!form.entreprise_telephone.trim()) errors.entreprise_telephone = t("auth.messageTelRequired");
       else if (!isValidTelephone(form.entreprise_telephone)) errors.entreprise_telephone = t("auth.messageTelPattern");
       if (!form.entreprise_mot_de_passe) errors.entreprise_mot_de_passe = t("auth.messagePasswordRequired");
+      else if (form.entreprise_mot_de_passe.length < 8) errors.entreprise_mot_de_passe = t("auth.messagePasswordTooShort");
       if (!form.entreprise_mot_de_passe_confirmation) errors.entreprise_mot_de_passe_confirmation = t("auth.messagePasswordComfirmRequired");
       if (form.entreprise_mot_de_passe && form.entreprise_mot_de_passe_confirmation
         && form.entreprise_mot_de_passe !== form.entreprise_mot_de_passe_confirmation) {
@@ -223,6 +236,7 @@ export default function RekoltHtAuth() {
       if (!form.telephone.trim()) errors.telephone = t("auth.messageTelRequired");
       else if (!isValidTelephone(form.telephone)) errors.telephone = t("auth.messageTelPattern");
       if (!form.mot_de_passe) errors.mot_de_passe = t("auth.messagePasswordRequired");
+      else if (form.mot_de_passe.length < 8) errors.mot_de_passe = t("auth.messagePasswordTooShort");
       if (!form.mot_de_passe_confirmation) errors.mot_de_passe_confirmation = t("auth.messagePasswordComfirmRequired");
       if (form.mot_de_passe && form.mot_de_passe_confirmation && form.mot_de_passe !== form.mot_de_passe_confirmation) {
         errors.mot_de_passe_confirmation = t("auth.passwordMismatch");
@@ -272,7 +286,10 @@ export default function RekoltHtAuth() {
         }
       } else if (tab === "entreprise") {
         // Inscription autonome : aucun compte personnel préalable — l'entreprise
-        // se crée directement avec ses propres email/mot de passe de connexion.
+        // se crée avec ses propres email/mot de passe de connexion, mais
+        // seulement après clic sur le lien d'activation (voir creerEntreprise,
+        // Registration/views.py) — même exigence explicite que pour un compte
+        // individuel : le mail de l'entreprise doit être opérationnel.
         const verif = await verifierEntreprise(form.entreprise_nom);
         if (verif?.existe) {
           setFieldErrors((prev) => ({ ...prev, entreprise_nom: verif.message }));
@@ -294,11 +311,15 @@ export default function RekoltHtAuth() {
           longitude: form.coord?.lng ?? form.longitude,
           ...(form.entreprise_logo ? { logo: form.entreprise_logo } : {}),
         });
-        if (res && res.token) {
-          setSuccess(t("auth.messageCreateCompteSuccess"));
+        if (res) {
+          // pas de connexion immédiate : le compte n'existe pas encore côté
+          // serveur, voir creerEntreprise (Registration/views.py) —
+          // l'entreprise doit cliquer le lien reçu par email (voir
+          // ActiverCompte.jsx), même écran "vérifiez votre boîte mail" que
+          // pour un compte individuel
           recaptchaRef.current?.reset();
           setRecaptchaToken(null);
-          setTimeout(() => navigate("/"), 1000);
+          setActivationEmailEnvoye(res.email || form.entreprise_email);
         }
       } else {
         // tab === "register" : compte individuel
@@ -319,14 +340,46 @@ export default function RekoltHtAuth() {
         };
         const res = await inscription(payload);
         if (res) {
-          setSuccess(t("auth.messageCreateCompteSuccess"));
+          // pas de connexion immédiate : le compte n'existe pas encore côté
+          // serveur, voir sinscrire (Registration/views.py) — l'utilisateur
+          // doit cliquer le lien reçu par email (voir ActiverCompte.jsx)
           recaptchaRef.current?.reset();
           setRecaptchaToken(null);
-          setTimeout(() => navigate("/"), 1000);
+          setActivationEmailEnvoye(res.email || form.email);
         }
       }
     } catch (err) {
       console.error("Erreur soumission :", err.message);
+      // compte bloqué/supprimé : la connexion n'a jamais lieu (voir
+      // Registration/views.py::seConnecter), demande explicite d'expliquer
+      // clairement ce qui s'est passé via un modal plutôt que le bandeau
+      // d'erreur générique inline, avec un lien vers le seul recours
+      // possible sans être connecté (formulaire "Contactez-nous", voir
+      // le message renvoyé par le backend qui y fait déjà référence)
+      if (tab === "login" && (err.code === "COMPTE_BLOQUE" || err.code === "COMPTE_SUPPRIME")) {
+        clearError();
+        useAlertStore.getState().afficher({
+          titre: err.code === "COMPTE_BLOQUE" ? t("auth.accountBlockedTitle") : t("auth.accountDeletedTitle"),
+          message: err.message,
+          actionLabel: t("auth.contactAdminAction"),
+          actionHref: "/contact",
+          danger: true,
+        });
+      }
+    }
+  };
+
+  const handleRenvoyerActivation = async () => {
+    if (!activationEmailEnvoye) return;
+    setRenvoiActivationEnCours(true);
+    setErreurRenvoiActivation(null);
+    try {
+      await AuthentificationApi.renvoyerActivation(activationEmailEnvoye);
+      setSuccess(t("auth.activationEmailResent"));
+    } catch (err) {
+      setErreurRenvoiActivation(err.message);
+    } finally {
+      setRenvoiActivationEnCours(false);
     }
   };
 
@@ -407,12 +460,43 @@ export default function RekoltHtAuth() {
         }
       } catch (err) {
         console.error("Erreur Google :", err.message);
+        // même bug côté connexion directe (email/mot de passe) corrigé plus
+        // haut : un compte bloqué/supprimé ne doit pas passer non plus via
+        // Google — voir Registration/views.py::google_connection, et le même
+        // modal que handleSubmit ci-dessus (pas de bandeau générique)
+        if (tab === "login" && (err.code === "COMPTE_BLOQUE" || err.code === "COMPTE_SUPPRIME")) {
+          clearError();
+          useAlertStore.getState().afficher({
+            titre: err.code === "COMPTE_BLOQUE" ? t("auth.accountBlockedTitle") : t("auth.accountDeletedTitle"),
+            message: err.message,
+            actionLabel: t("auth.contactAdminAction"),
+            actionHref: "/contact",
+            danger: true,
+          });
+        }
       }
     },
     onError: () => console.error(t("auth.messageConnectionGoogleCancel")),
   });
 
   const isRegisterTab = tab === "register" || tab === "entreprise";
+
+  // Entrée = valider le formulaire actuellement affiché — voir
+  // ../utils/formShortcuts.js. Ce composant n'a jamais utilisé de vraie
+  // balise <form> (juste des boutons type="button" + onClick), donc Entrée
+  // ne déclenchait rien nativement. Le bon handler dépend de l'écran affiché
+  // (connexion/inscription/entreprise, ou l'une des 3 étapes "mot de passe
+  // oublié") — même logique de branchement que le rendu JSX plus bas.
+  const gererEntreeAuth = soumettreSurEntree(() => {
+    if (tab === "login" && showForgot) {
+      if (forgotResetSuccess) return;
+      if (forgotStep === 3) handleConfirmReset();
+      else if (forgotStep === 2) handleVerifierCode();
+      else handleForgotPassword();
+      return;
+    }
+    handleSubmit();
+  });
 
   const communesDisponibles = form.departement
     ? (departementsData.find(d => d.departement === form.departement)?.communes || [])
@@ -456,7 +540,7 @@ export default function RekoltHtAuth() {
 
       {/* RIGHT — panneau défilant */}
       <div className="rk-right">
-        <div className="rk-card">
+        <div className="rk-card" onKeyDown={gererEntreeAuth}>
           <p className="rk-card-title">
             {tab === "login" ? t("auth.loginHere") : tab === "register" ? t("auth.cardTitleRegister") : t("auth.cardTitleEntreprise")}
           </p>
@@ -481,7 +565,7 @@ export default function RekoltHtAuth() {
             </button>
           </div>
 
-          {success && <div className="rk-success">✓ {success}</div>}
+          {success && <div className="rk-success"><Check size={20}/> {success}</div>}
 
           {/* ——— CONNEXION ——— */}
           {tab === "login" && !showForgot && (
@@ -493,7 +577,7 @@ export default function RekoltHtAuth() {
                   placeholder={t("auth.emailPlaceholder")}
                   onChange={handleChange} required inputMode="email" autoComplete="email"
                 />
-                {fieldErrors.email && <p className="rk-error"> X {fieldErrors.email}</p>}
+                {fieldErrors.email && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.email}</p>}
               </div>
               <div className="rk-field">
                 <label className="rk-label">{t("auth.password")}<span className="red">*</span></label>
@@ -507,7 +591,7 @@ export default function RekoltHtAuth() {
                     {showMdp ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                {fieldErrors.mot_de_passe && <p className="rk-error">X {fieldErrors.mot_de_passe}</p>}
+                {fieldErrors.mot_de_passe && <p className="rk-error"><XCircle size={20}/> {fieldErrors.mot_de_passe}</p>}
                 <div className="rk-label-row">
 
                   <button type="button" className="rk-forgot-link" onClick={() => setShowForgot(true)}>
@@ -523,7 +607,7 @@ export default function RekoltHtAuth() {
             <div className="rk-forgot-box">
               {forgotResetSuccess ? (
                 <div className="rk-success">
-                  ✓ {t("auth.resetSuccessMessage")}
+                  <Check size={26}/> {t("auth.resetSuccessMessage")}
                 </div>
               ) : forgotStep === 3 ? (
                 /* ── Étape 3 : nouveau mot de passe ── */
@@ -564,7 +648,7 @@ export default function RekoltHtAuth() {
                       </button>
                     </div>
                     {forgotNewPasswordConfirm && forgotNewPassword === forgotNewPasswordConfirm && (
-                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}>✓ {t("auth.passwordMatch")}</p>
+                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}> <Check size={26}/> {t("auth.passwordMatch")}</p>
                     )}
                   </div>
                   {forgotError && <p className="rk-error">{forgotError}</p>}
@@ -621,7 +705,11 @@ export default function RekoltHtAuth() {
           {/* ——— INSCRIPTION (individuel & entreprise) ——— */}
           {isRegisterTab && (
             <>
-              {/* Informations personnelles — uniquement pour un compte individuel */}
+              {/* Informations personnelles — uniquement pour un compte individuel.
+                  L'écran "vérifiez votre boîte mail" (activationEmailEnvoye) est
+                  désormais un modal centré au-dessus de toute la page (voir plus
+                  bas) plutôt qu'affiché ici à la place du formulaire — demande
+                  explicite : doit apparaître comme une alerte, bien visible. */}
               {tab === "register" && (
                 <>
                   <div className="rk-row">
@@ -633,7 +721,7 @@ export default function RekoltHtAuth() {
                         inputMode="text" autoComplete="family-name"
                         title={t("auth.messageNamePattern")}
                       />
-                      {fieldErrors.nom && <p className="rk-error">X {fieldErrors.nom}</p>}
+                      {fieldErrors.nom && <p className="rk-error"><XCircle size={20}/> {fieldErrors.nom}</p>}
                     </div>
                     <div className="rk-field">
                       <label className="rk-label">{t("auth.firstName")}<span className="red">*</span></label>
@@ -643,7 +731,7 @@ export default function RekoltHtAuth() {
                         inputMode="text" autoComplete="given-name"
                         title={t("auth.messageFirstNamePattern")}
                       />
-                      {fieldErrors.prenom && <p className="rk-error">X {fieldErrors.prenom}</p>}
+                      {fieldErrors.prenom && <p className="rk-error"><XCircle size={20}/> {fieldErrors.prenom}</p>}
                     </div>
                   </div>
 
@@ -654,7 +742,7 @@ export default function RekoltHtAuth() {
                       placeholder={t("auth.emailPlaceholder")}
                       onChange={handleChange} required inputMode="email" autoComplete="email"
                     />
-                    {fieldErrors.email && <p className="rk-error">X {fieldErrors.email}</p>}
+                    {fieldErrors.email && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.email}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -665,7 +753,7 @@ export default function RekoltHtAuth() {
                       value={form.telephone} onChange={handleChange}
                       required inputMode="tel" maxLength={16} autoComplete="tel"
                     />
-                    {fieldErrors.telephone && <p className="rk-error">✗ {fieldErrors.telephone}</p>}
+                    {fieldErrors.telephone && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.telephone}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -680,7 +768,7 @@ export default function RekoltHtAuth() {
                         {showMdp ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                    {fieldErrors.mot_de_passe && <p className="rk-error">X {fieldErrors.mot_de_passe}</p>}
+                    {fieldErrors.mot_de_passe && <p className="rk-error"><XCircle size={20}/> {fieldErrors.mot_de_passe}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -698,10 +786,10 @@ export default function RekoltHtAuth() {
                         {showMdpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                    {fieldErrors.mot_de_passe_confirmation && <p className="rk-error">X {fieldErrors.mot_de_passe_confirmation}</p>}
-                    {mdpError && !fieldErrors.mot_de_passe_confirmation && <p className="rk-error">✗ {mdpError}</p>}
+                    {fieldErrors.mot_de_passe_confirmation && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.mot_de_passe_confirmation}</p>}
+                    {mdpError && !fieldErrors.mot_de_passe_confirmation && <p className="rk-error"> <XCircle size={20}/> {mdpError}</p>}
                     {form.mot_de_passe_confirmation && !mdpError && (
-                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}>✓ {t("auth.passwordMatch")}</p>
+                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}> <Check size={20}/> {t("auth.passwordMatch")}</p>
                     )}
                   </div>
                 </>
@@ -720,7 +808,7 @@ export default function RekoltHtAuth() {
                       onChange={handleChange}
                       required maxLength={120} autoComplete="organization"
                     />
-                    {fieldErrors.entreprise_nom && <p className="rk-error">X {fieldErrors.entreprise_nom}</p>}
+                    {fieldErrors.entreprise_nom && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.entreprise_nom}</p>}
                   </div>
                   <div className="rk-field">
                     <label className="rk-label">{t("auth.entrepriseType")}<span className="red">*</span></label>
@@ -737,7 +825,7 @@ export default function RekoltHtAuth() {
                         <option value="Autre">{t("auth.other")}</option>
                       </select>
                     </div>
-                    {fieldErrors.entreprise_type && <p className="rk-error">X {fieldErrors.entreprise_type}</p>}
+                    {fieldErrors.entreprise_type && <p className="rk-error"><XCircle size={20}/> {fieldErrors.entreprise_type}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -748,7 +836,7 @@ export default function RekoltHtAuth() {
                       value={form.entreprise_telephone} onChange={handleChange}
                       required inputMode="tel" maxLength={16} autoComplete="tel"
                     />
-                    {fieldErrors.entreprise_telephone && <p className="rk-error">✗ {fieldErrors.entreprise_telephone}</p>}
+                    {fieldErrors.entreprise_telephone && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.entreprise_telephone}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -759,7 +847,7 @@ export default function RekoltHtAuth() {
                       value={form.entreprise_email} onChange={handleChange}
                       required inputMode="email" autoComplete="off"
                     />
-                    {fieldErrors.entreprise_email && <p className="rk-error">X {fieldErrors.entreprise_email}</p>}
+                    {fieldErrors.entreprise_email && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.entreprise_email}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -774,7 +862,7 @@ export default function RekoltHtAuth() {
                         {showEntrepriseMdp ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                    {fieldErrors.entreprise_mot_de_passe && <p className="rk-error">X {fieldErrors.entreprise_mot_de_passe}</p>}
+                    {fieldErrors.entreprise_mot_de_passe && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.entreprise_mot_de_passe}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -792,10 +880,10 @@ export default function RekoltHtAuth() {
                         {showEntrepriseMdpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                    {fieldErrors.entreprise_mot_de_passe_confirmation && <p className="rk-error">X {fieldErrors.entreprise_mot_de_passe_confirmation}</p>}
-                    {entrepriseMdpError && !fieldErrors.entreprise_mot_de_passe_confirmation && <p className="rk-error">✗ {entrepriseMdpError}</p>}
+                    {fieldErrors.entreprise_mot_de_passe_confirmation && <p className="rk-error"> <XCircle size={20}/> {fieldErrors.entreprise_mot_de_passe_confirmation}</p>}
+                    {entrepriseMdpError && !fieldErrors.entreprise_mot_de_passe_confirmation && <p className="rk-error"><XCircle size={20}/> {entrepriseMdpError}</p>}
                     {form.entreprise_mot_de_passe_confirmation && !entrepriseMdpError && (
-                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}>✓ {t("auth.passwordMatch")}</p>
+                      <p style={{ color: "#1D9E75", fontSize: "12px", marginTop: "4px" }}><Check size={20}/> {t("auth.passwordMatch")}</p>
                     )}
                   </div>
 
@@ -831,7 +919,7 @@ export default function RekoltHtAuth() {
                         ))}
                       </select>
                     </div>
-                    {fieldErrors.departement && <p className="rk-error">✗ {fieldErrors.departement}</p>}
+                    {fieldErrors.departement && <p className="rk-error"><XCircle size={20}/> {fieldErrors.departement}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -848,7 +936,7 @@ export default function RekoltHtAuth() {
                         ))}
                       </select>
                     </div>
-                    {fieldErrors.commune && <p className="rk-error">✗ {fieldErrors.commune}</p>}
+                    {fieldErrors.commune && <p className="rk-error"><XCircle size={20}/> {fieldErrors.commune}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -865,7 +953,7 @@ export default function RekoltHtAuth() {
                         ))}
                       </select>
                     </div>
-                    {fieldErrors.section_communale && <p className="rk-error">✗ {fieldErrors.section_communale}</p>}
+                    {fieldErrors.section_communale && <p className="rk-error"><XCircle size={20}/> {fieldErrors.section_communale}</p>}
                   </div>
 
                   <div className="rk-field">
@@ -915,7 +1003,7 @@ export default function RekoltHtAuth() {
               padding: "10px 14px", fontSize: "13px", color: "#c0392b",
               marginBottom: "1rem", display: "flex", alignItems: "center", gap: "8px",
             }}>
-              ✗ {error}
+              <XCircle size={20}/> {error}
             </div>
           )}
 
@@ -958,6 +1046,41 @@ export default function RekoltHtAuth() {
           </div>
         </div>
       </div>
+
+      {/* écran "vérifiez votre boîte mail" — modal centré au-dessus de toute
+          la page (même patron que ConfirmModal.jsx/NotificationsPermission.jsx :
+          overlay z-index élevé, jamais caché derrière le header sticky) plutôt
+          qu'affiché à la place du formulaire, demande explicite : doit
+          apparaître comme une alerte, bien visible */}
+      {activationEmailEnvoye && (
+        <div className="rk-activation-overlay">
+          <div className="rk-activation-modal">
+            <div className="rk-activation-modal__icon"><Mail size={22} /></div>
+            <p className="rk-activation-modal__title">{t("auth.activationCheckEmailTitle")}</p>
+            <p className="rk-activation-modal__body">
+              {t("auth.activationCheckEmailSubtitle").replace("{email}", activationEmailEnvoye)}
+            </p>
+            {erreurRenvoiActivation && <p className="rk-error"><XCircle size={20}/>  {erreurRenvoiActivation}</p>}
+            <div className="rk-activation-modal__actions">
+              <button
+                type="button"
+                className="rk-activation-modal__btn rk-activation-modal__btn--secondary"
+                onClick={() => { setActivationEmailEnvoye(null); setErreurRenvoiActivation(null); }}
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                type="button"
+                className="rk-activation-modal__btn rk-activation-modal__btn--primary"
+                disabled={renvoiActivationEnCours}
+                onClick={handleRenvoyerActivation}
+              >
+                {renvoiActivationEnCours ? t("auth.loading") : t("auth.resendActivationEmail")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

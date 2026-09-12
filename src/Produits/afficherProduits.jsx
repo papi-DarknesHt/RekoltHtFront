@@ -9,16 +9,18 @@ import { useGlobalStore } from "../api/globalStore.js";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { ProduitsApi } from "../api/produits";
 import { formaterLocalisationProduit } from "../utils/localisationProduit.js";
+import { nomLocalise } from "../utils/nomLocalise.js";
 import "../assets/CSS/AfficherProduits.css";
 
-// nombre de produits affichés au départ, et incrément du bouton "Afficher plus"
-const TAILLE_PAGE = 10;
+// nombre de produits affichés par page (pagination précédent/suivant, voir
+// ProduitsPagines/PRODUITS_PAR_PAGE côté page d'accueil pour le même principe)
+const TAILLE_PAGE = 18;
 
 // Convertit un produit tel que renvoyé par l'API (voir _serialiseProduit,
 // Produits/views/produitsViews.py) au format attendu par ProductCard.jsx +
 // aux filtres de cette page (categorieId/sousCategorieId/departement/commune/
 // sectionComunale bruts, en plus des champs déjà attendus par ProductCard)
-function versProduitAffiche(p, texteNonPrecise, texteHaiti) {
+function versProduitAffiche(p, texteNonPrecise, texteHaiti, lang) {
   return {
     id: p.id,
     nom: p.nom,
@@ -33,9 +35,9 @@ function versProduitAffiche(p, texteNonPrecise, texteHaiti) {
     devise: p.unitePrix,
     image: p.photos?.[0]?.url_photo || null,
     categorieId: p.categorie?.id,
-    categorieNom: p.categorie?.nom,
+    categorieNom: nomLocalise(p.categorie, lang),
     sousCategorieId: p.sous_categorie?.id,
-    sousCategorieNom: p.sous_categorie?.nom,
+    sousCategorieNom: nomLocalise(p.sous_categorie, lang),
     departement: p.departement || "",
     commune: p.commune || "",
     sectionComunale: p.section_comunale || "",
@@ -137,7 +139,7 @@ function SectionPrix({ titre, prixMin, prixMax, onChangeMin, onChangeMax, placeh
 }
 
 export default function AfficherProduits() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const navigate = useNavigate();
   const produitEvent = useGlobalStore((s) => s.produitEvent);
   const isConnected = useAuthStore((s) => s.isConnected);
@@ -159,7 +161,7 @@ export default function AfficherProduits() {
   // permet de le masquer aussi bien en desktop (la sidebar disparaît, le
   // contenu principal reprend toute la largeur) qu'en mobile (panneau plein écran)
   const [filtresOuverts, setFiltresOuverts] = useState(true);
-  const [nombreAffiche, setNombreAffiche] = useState(TAILLE_PAGE);
+  const [page, setPage] = useState(0);
 
   // catalogue public : tous les produits disponibles, de tous les vendeurs
   // (voir Produits/views/produitsViews.py::listerProduits, filtre ?disponible=true)
@@ -167,12 +169,22 @@ export default function AfficherProduits() {
   // plus bas), pas d'un référentiel à part : seules les valeurs qui ont
   // vraiment des produits disponibles apparaissent, avec leur nombre, comme
   // sur le menu de filtrage d'Amazon
-  useEffect(() => {
+  const chargerProduits = () => {
     ProduitsApi.listerProduits({ disponible: "true" })
       .then((res) => setProduits(res.produits || []))
       .catch((err) => setErreur(err.message))
       .finally(() => setChargement(false));
-  }, []);
+  };
+  useEffect(chargerProduits, []);
+
+  // rattrapage après une coupure WebSocket (voir reconnectedAt,
+  // api/globalStore.js)
+  const reconnectedAt = useGlobalStore((s) => s.reconnectedAt);
+  useEffect(() => {
+    if (!reconnectedAt) return;
+    chargerProduits();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reconnectedAt]);
 
   // réactivité temps réel (voir Produits/signals.py côté backend) : un
   // produit publié/rendu disponible par n'importe quel vendeur apparaît ici
@@ -193,8 +205,8 @@ export default function AfficherProduits() {
   }, [produitEvent]);
 
   const produitsAffiches = useMemo(
-    () => produits.map((p) => versProduitAffiche(p, t("profile.notSpecified"), t("auth.haiti"))),
-    [produits, t]
+    () => produits.map((p) => versProduitAffiche(p, t("profile.notSpecified"), t("auth.haiti"), lang)),
+    [produits, t, lang]
   );
 
   const termeRecherche = _normaliser(recherche);
@@ -279,18 +291,26 @@ export default function AfficherProduits() {
   // l'intérieur d'une facette, AND entre facettes — même principe que le
   // menu de filtrage d'Amazon)
   const produitsFiltres = appliquerFiltres(produitsApresRecherche, null);
-  const produitsPage = produitsFiltres.slice(0, nombreAffiche);
+  const totalPages = Math.max(1, Math.ceil(produitsFiltres.length / TAILLE_PAGE));
+  const produitsPage = produitsFiltres.slice(page * TAILLE_PAGE, (page + 1) * TAILLE_PAGE);
 
   const nombreFiltresActifs =
     categorieIds.length + sousCategorieIds.length + departements.length + communes.length +
     sectionsComunales.length + (prixMin !== "" ? 1 : 0) + (prixMax !== "" ? 1 : 0);
 
   // revient à la première page de résultats à chaque changement de
-  // recherche ou de filtre — sinon "Afficher plus" resterait sur une valeur
-  // élevée alors que le nouveau résultat filtré est plus court
+  // recherche ou de filtre — sinon "page" resterait sur une valeur qui
+  // n'existe plus dans le nouveau résultat filtré (plus court)
   useEffect(() => {
-    setNombreAffiche(TAILLE_PAGE);
+    setPage(0);
   }, [termeRecherche, categorieIds, sousCategorieIds, departements, communes, sectionsComunales, prixMin, prixMax]);
+
+  // si la liste rétrécit en temps réel (produit rendu indisponible/supprimé
+  // pendant que je consulte une page qui n'existe plus) — recule sur la
+  // dernière page valide, même principe que ProduitsPagines (HomePage.jsx)
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages - 1));
+  }, [totalPages]);
 
   // synchronise l'état vers l'URL pour que le catalogue filtré reste
   // partageable/rechargeable
@@ -502,14 +522,26 @@ export default function AfficherProduits() {
                     />
                   ))}
                 </div>
-                {produitsFiltres.length > produitsPage.length && (
-                  <div className="ap2-voir-plus">
+                {totalPages > 1 && (
+                  <div className="ap2-pagination">
                     <button
                       type="button"
                       className="ap2-voir-plus__btn"
-                      onClick={() => setNombreAffiche((n) => n + TAILLE_PAGE)}
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      disabled={page === 0}
                     >
-                      {t("catalog.showMore")}
+                      {t("home.carouselPrev")}
+                    </button>
+                    <span className="ap2-pagination__indicateur">
+                      {t("home.pageIndicator", { page: page + 1, total: totalPages })}
+                    </span>
+                    <button
+                      type="button"
+                      className="ap2-voir-plus__btn"
+                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                      disabled={page >= totalPages - 1}
+                    >
+                      {t("home.carouselNext")}
                     </button>
                   </div>
                 )}

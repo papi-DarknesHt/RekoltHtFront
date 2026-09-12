@@ -14,9 +14,9 @@ import {
   Pencil,
   History,
   Shield,
-  ClipboardEdit,
   Building2,
   Users,
+  Store,
 } from "lucide-react";
 import "../assets/CSS/ProfilAcheteur.css";
 import NavBar from "../components/NavBar.jsx";
@@ -28,6 +28,10 @@ import { useProfilStore } from "./ProfilStore.js"
 import Footer from "../components/Footer.jsx"
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { AuthentificationApi } from "../api/auth";
+import { ProduitsApi } from "../api/produits";
+import StarRating from "../components/StarRating.jsx";
+import { useGlobalStore } from "../api/globalStore.js";
+import { applyListEvent } from "../api/applyListEvent.js";
 
 
 export default function ProfilAcheteur() {
@@ -35,6 +39,7 @@ export default function ProfilAcheteur() {
   const { t } = useTranslation();
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const entreprise = useAuthStore((s) => s.entreprise);
+  const chargerEntreprise = useAuthStore((s) => s.chargerEntreprise);
   const deconnexion = useAuthStore((s) => s.deconnexion);
 
   // ── profil réel (bio, adresse, photo, ...) venant de /Registration/profil/
@@ -61,9 +66,26 @@ export default function ProfilAcheteur() {
     ? [...partiesAdresse, t("auth.haiti")].join(", ")
     : t("profile.notSpecified");
 
+  // même construction que adresseComplete ci-dessus, mais à partir des
+  // champs de localisation d'Entreprise (pas de Profil) — utilisée sur
+  // l'onglet "entreprise" pour que la carte d'identité ressemble en tout
+  // point à celle d'un compte individuel (demande explicite)
+  const partiesAdresseEntreprise = isEntreprise
+    ? [entreprise.section_communale, entreprise.commune, entreprise.departement].filter(Boolean)
+    : [];
+  const adresseCompleteEntreprise = partiesAdresseEntreprise.length > 0
+    ? [...partiesAdresseEntreprise, t("auth.haiti")].join(", ")
+    : t("profile.notSpecified");
+
   // Un admin (profil.role === 'admin') voit deux onglets supplémentaires :
   // la liste de tous les utilisateurs et celle de toutes les entreprises créées.
   const isAdmin = profil?.role === "admin";
+  // détermine la section "Avis et commentaires" affichée dans l'onglet
+  // "personal" ci-dessous : un vendeur voit les avis REÇUS sur ses produits
+  // (demande explicite : produit concerné, date, auteur), un acheteur n'a
+  // pas cette section du tout (ni "rechercher des produits", retiré pour les
+  // deux rôles).
+  const isVendeur = profil?.role === "vendeur";
 
   // L'onglet par défaut dépend du type de compte : un compte entreprise/admin
   // n'a pas d'onglet "personal" dans la sidebar, donc on ne peut pas démarrer
@@ -82,12 +104,57 @@ export default function ProfilAcheteur() {
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminError, setAdminError] = useState(null);
 
-  // au montage : on récupère le profil à jour (photo de profil, adresse, ...)
+  // avis reçus sur mes produits (vendeur uniquement, voir isVendeur plus
+  // haut) — Produits/views/avisViews.py::listerAvisRecusVendeur
+  const [avisRecus, setAvisRecus] = useState([]);
+  const [chargementAvisRecus, setChargementAvisRecus] = useState(false);
+
+  const chargerAvisRecus = () => {
+    setChargementAvisRecus(true);
+    ProduitsApi.listerAvisRecusVendeur()
+      .then((res) => setAvisRecus(res.avis || []))
+      .catch(() => {})
+      .finally(() => setChargementAvisRecus(false));
+  };
+
+  // voir reconnectedAt, api/globalStore.js : tout évènement diffusé pendant
+  // une coupure WebSocket est perdu — chaque liste de cette page se
+  // re-synchronise donc aussi sur une reconnexion, pas seulement sur les
+  // évènements individuels (même principe que Messagerie.jsx)
+  const reconnectedAt = useGlobalStore((s) => s.reconnectedAt);
+
+  useEffect(() => {
+    // "personal" pour un compte individuel, "entreprise" pour une entreprise
+    // devenue vendeur — même section "Avis reçus" affichée dans les deux cas
+    if ((activeTab !== "personal" && activeTab !== "entreprise") || !isVendeur) return;
+    chargerAvisRecus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, isVendeur, reconnectedAt]);
+
+  // réactivité temps réel (voir Produits/signals.py::broadcast_avis côté
+  // backend) : le payload avisEvent ne porte que produit_id (pas produit_nom
+  // ni le vendeur concerné, voir _serialiser_avis) — pas assez pour patcher
+  // la liste en place sans un aller-retour supplémentaire ; un simple
+  // rechargement de listerAvisRecusVendeur() sur chaque évènement reste
+  // largement assez léger ici (liste courte, onglet peu visité) et suit le
+  // même principe que Messagerie.jsx (refetch de mesConversations() sur
+  // messageEvent plutôt qu'un patch en place)
+  const avisEvent = useGlobalStore((s) => s.avisEvent);
+  useEffect(() => {
+    if (!avisEvent || (activeTab !== "personal" && activeTab !== "entreprise") || !isVendeur) return;
+    chargerAvisRecus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [avisEvent]);
+
+  // au montage, ET après une reconnexion WebSocket : on récupère le profil à
+  // jour (photo de profil, adresse, ...)
   useEffect(() => {
     afficherProfil().catch(() => {
       // l'erreur est déjà stockée dans le store, rien d'autre à faire ici
     });
-  }, [afficherProfil]);
+    if (isEntreprise) chargerEntreprise().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [afficherProfil, reconnectedAt]);
 
   // La sidebar n'offre pas le même onglet "personal" à tous les types de
   // compte (entreprise → "entreprise", admin → "admin_users") : on aligne
@@ -97,7 +164,9 @@ export default function ProfilAcheteur() {
     if (isEntreprise) {
       setActiveTab("entreprise");
     } else if (isAdmin) {
-      setActiveTab((prev) => (prev === "admin_users" || prev === "admin_entreprises" ? prev : "admin_users"));
+      setActiveTab((prev) => (
+        prev === "admin_users" || prev === "admin_entreprises" || prev === "personal" ? prev : "admin_users"
+      ));
     }
   }, [isEntreprise, isAdmin]);
 
@@ -118,7 +187,50 @@ export default function ProfilAcheteur() {
         .catch((err) => setAdminError(err.message))
         .finally(() => setAdminLoading(false));
     }
-  }, [activeTab, isAdmin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, isAdmin, reconnectedAt]);
+
+  // réactivité temps réel de la liste "Comptes utilisateurs" (voir
+  // Registration/signals.py::broadcast_utilisateur côté backend) — même
+  // mécanisme que AdminDashboard.jsx (applyListEvent + utilisateurEvent) :
+  // un compte créé/modifié/supprimé par un autre admin (ou depuis
+  // AdminDashboard) se reflète ici sans rechargement de page
+  const utilisateurEvent = useGlobalStore((s) => s.utilisateurEvent);
+  useEffect(() => {
+    if (!utilisateurEvent || activeTab !== "admin_users" || !isAdmin) return;
+    setAdminUsers((liste) => applyListEvent(liste, utilisateurEvent));
+  }, [utilisateurEvent, activeTab, isAdmin]);
+
+  // même principe pour la liste "Entreprises" (voir Registration/signals.py::
+  // broadcast_entreprise côté backend)
+  const entrepriseEvent = useGlobalStore((s) => s.entrepriseEvent);
+  useEffect(() => {
+    if (!entrepriseEvent || activeTab !== "admin_entreprises" || !isAdmin) return;
+    setAdminEntreprises((liste) => applyListEvent(liste, entrepriseEvent));
+  }, [entrepriseEvent, activeTab, isAdmin]);
+
+  // réactivité temps réel du PROPRE profil du visiteur (pas les onglets
+  // admin ci-dessus) — sans ça, un statut de vérification KYC validé par un
+  // admin, ou un profil modifié depuis un autre appareil, ne se reflète
+  // jamais tant que la page n'est pas rechargée manuellement. Même pattern
+  // de filtrage par id que DevenirVendeur.jsx (verificationEvent).
+  const verificationEvent = useGlobalStore((s) => s.verificationEvent);
+  useEffect(() => {
+    if (!verificationEvent || String(verificationEvent.utilisateur_id) !== String(utilisateur?.id)) return;
+    afficherProfil().catch(() => { });
+    if (isEntreprise) chargerEntreprise().catch(() => { });
+  }, [verificationEvent]);
+
+  const profilEvent = useGlobalStore((s) => s.profilEvent);
+  useEffect(() => {
+    if (!utilisateurEvent || String(utilisateurEvent.data?.id) !== String(utilisateur?.id)) return;
+    afficherProfil().catch(() => { });
+  }, [utilisateurEvent]);
+
+  useEffect(() => {
+    if (!profilEvent || String(profilEvent.data?.user_id) !== String(utilisateur?.id)) return;
+    afficherProfil().catch(() => { });
+  }, [profilEvent]);
 
   const handleDeconnexion2 = async () => {
     await deconnexion();
@@ -163,16 +275,43 @@ export default function ProfilAcheteur() {
           <nav className="profil-sidebar__nav">
 
             {isEntreprise ? (
-              <a
-                href="#"
-                className={`profil-sidebar__item ${activeTab === "entreprise" ? "profil-sidebar__item--active" : ""}`}
-                onClick={(e) => { e.preventDefault(); setActiveTab("entreprise"); }}
-              >
-                <Building2 size={18} />
-                {t("profile.companyTab")}
-              </a>
+              <>
+                <a
+                  href="#"
+                  className={`profil-sidebar__item ${activeTab === "entreprise" ? "profil-sidebar__item--active" : ""}`}
+                  onClick={(e) => { e.preventDefault(); setActiveTab("entreprise"); }}
+                >
+                  <Building2 size={18} />
+                  {t("profile.companyTab")}
+                </a>
+                {/* une entreprise reste une entreprise, mais elle démarre
+                    'acheteur' comme n'importe quel compte et doit pouvoir
+                    devenir vendeur exactement de la même façon (voir
+                    DevenirVendeur.jsx, qui adapte déjà son parcours —
+                    patente au lieu de pièce d'identité — pour ce cas) —
+                    demande explicite : mêmes fonctionnalités qu'un compte
+                    particulier */}
+                {!isVendeur && (
+                  <a
+                    href="#"
+                    className="profil-sidebar__item"
+                    onClick={(e) => { e.preventDefault(); navigate("/Devenir_Vendeur"); }}
+                  >
+                    <Store size={18} />
+                    {t("profile.becomeSellerTab")}
+                  </a>
+                )}
+              </>
             ) : isAdmin ? (
               <>
+                <a
+                  href="#"
+                  className={`profil-sidebar__item ${activeTab === "personal" ? "profil-sidebar__item--active" : ""}`}
+                  onClick={(e) => { e.preventDefault(); setActiveTab("personal"); }}
+                >
+                  <User size={18} />
+                  {t("profile.personalInfoTab")}
+                </a>
                 <a
                   href="#"
                   className={`profil-sidebar__item ${activeTab === "admin_users" ? "profil-sidebar__item--active" : ""}`}
@@ -200,6 +339,19 @@ export default function ProfilAcheteur() {
                   <User size={18} />
                   {t("profile.personalInfoTab")}
                 </a>
+                {/* réservé à un acheteur qui n'est pas encore vendeur — un
+                    vendeur l'est déjà, pas besoin de le lui reproposer (voir
+                    même garde côté NavBar.jsx) */}
+                {!isVendeur && (
+                  <a
+                    href="#"
+                    className="profil-sidebar__item"
+                    onClick={(e) => { e.preventDefault(); navigate("/Devenir_Vendeur"); }}
+                  >
+                    <Store size={18} />
+                    {t("profile.becomeSellerTab")}
+                  </a>
+                )}
               </>
             )}
           </nav>
@@ -273,6 +425,136 @@ export default function ProfilAcheteur() {
               </section>
 
               {/* ----- Vendeurs contactés + Avis ----- */}
+              {/* sans objet pour un compte admin (pas d'achats/avis) — voir isAdmin plus haut */}
+              {!isAdmin && (
+                <section className="profil-cards profil-cards--bottom">
+                  <div className="profil-card">
+                    <h3 className="profil-card__title profil-card__title--accent">
+                      {t("profile.contactedSellers")}
+                    </h3>
+
+                    <ul className="profil-seller-list">
+                      {contactedSellers.map((seller) => (
+                        <li className="profil-seller" key={seller.id}>
+                          <div className="profil-seller__avatar">{seller.initials}</div>
+                          <div className="profil-seller__info">
+                            <p className="profil-seller__name">{seller.name}</p>
+                            <p className="profil-seller__contact">{seller.lastContact}</p>
+                          </div>
+                          <button className="profil-icon-btn" aria-label={t("profile.messageToAria", { nom: seller.name })}>
+                            <MessageSquare size={18} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* "Avis et commentaires" : réservé au vendeur (avis REÇUS
+                      sur ses produits — voir listerAvisRecusVendeur) ; retiré
+                      entièrement côté acheteur, de même que "Rechercher des
+                      produits" pour les deux rôles (demande explicite) */}
+                  {isVendeur && (
+                    <div className="profil-card">
+                      <h3 className="profil-card__title profil-card__title--accent">
+                        {t("profile.reviewsTitle")}
+                      </h3>
+
+                      {chargementAvisRecus && <p className="profil-field-value">{t("auth.loading")}</p>}
+
+                      {!chargementAvisRecus && avisRecus.length === 0 ? (
+                        <p className="profil-field-value">{t("profile.noReviewsReceived")}</p>
+                      ) : (
+                        <ul className="profil-seller-list">
+                          {avisRecus.map((a) => (
+                            <li className="profil-seller" key={a.id}>
+                              <div className="profil-seller__avatar">
+                                <StarRating note={a.note} taille={13} />
+                              </div>
+                              <div className="profil-seller__info">
+                                <p className="profil-seller__name">{a.produit_nom}</p>
+                                <p className="profil-seller__contact">
+                                  {t("profile.reviewBy", { nom: a.auteur_nom || t("profile.notSpecified") })}
+                                  {" — "}
+                                  {new Date(a.date_avis).toLocaleDateString()}
+                                </p>
+                                {a.commentaire && (
+                                  <p className="profil-seller__contact">{a.commentaire}</p>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </section>
+              )}
+            </>
+          )}
+
+          {activeTab === "entreprise" && isEntreprise && (
+            <>
+              <div className="profil-header">
+                <div>
+                  <h1 className="profil-title">{t("profile.companyTitle")}</h1>
+                  <p className="profil-subtitle">
+                    {t("profile.companySubtitle")}
+                  </p>
+                </div>
+                <button className="profil-btn profil-btn--primary" onClick={() => navigate("/update_profil")}>
+                  <Pencil size={16} />
+                  {t("profile.editProfile")}
+                </button>
+              </div>
+
+              {/* ----- Carte identité + Informations de contact — même
+                  structure que l'onglet "personal" d'un compte individuel
+                  (demande explicite : mêmes fonctionnalités affichées) */}
+              <section className="profil-cards">
+                <div className="profil-card profil-card--identity">
+                  <div className="profil-avatar-wrapper">
+                    {entreprise.logo ? (
+                      <img
+                        src={entreprise.logo}
+                        alt={entreprise.nom_Entreprise}
+                        className="profil-avatar-image"
+                      />
+                    ) : (
+                      <div className="profil-avatar-image profil-avatar-image--placeholder">
+                        <Building2 size={32} />
+                      </div>
+                    )}
+                  </div>
+                  <h2 className="profil-identity__name">{entreprise.nom_Entreprise}</h2>
+                  <span className="profil-badge">{profil?.role}</span>
+                  <p className="profil-identity__location">
+                    <Building2 size={14} />
+                    {entreprise.secteur}
+                  </p>
+                  <p className="profil-identity__location">
+                    <MapPin size={14} />
+                    {adresseCompleteEntreprise}
+                  </p>
+                </div>
+
+                <div className="profil-card profil-card--contact">
+                  <h3 className="profil-card__title">{t("profile.contactInfo")}</h3>
+
+                  <div className="profil-contact-grid">
+                    <div>
+                      <p className="profil-field-label">{t("profile.workEmail")}</p>
+                      <p className="profil-field-value">{entreprise.email}</p>
+                    </div>
+                    <div>
+                      <p className="profil-field-label">{t("profile.phone")}</p>
+                      <p className="profil-field-value">{entreprise.telephone}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* ----- Vendeurs contactés + Avis — identique à l'onglet
+                  "personal" (voir contactedSellers/avisRecus plus haut) ----- */}
               <section className="profil-cards profil-cards--bottom">
                 <div className="profil-card">
                   <h3 className="profil-card__title profil-card__title--accent">
@@ -295,90 +577,40 @@ export default function ProfilAcheteur() {
                   </ul>
                 </div>
 
-                <div className="profil-card profil-card--empty">
-                  <div className="profil-empty">
-                    <div className="profil-empty__icon">
-                      <ClipboardEdit size={28} />
-                    </div>
-                    <h3 className="profil-empty__title">{t("profile.reviewsTitle")}</h3>
-                    <p className="profil-empty__text">
-                      {t("profile.reviewsText")}
-                    </p>
-                    <button className="profil-btn profil-btn--secondary">
-                      {t("profile.searchProducts")}
-                    </button>
-                  </div>
-                </div>
-              </section>
-            </>
-          )}
+                {isVendeur && (
+                  <div className="profil-card">
+                    <h3 className="profil-card__title profil-card__title--accent">
+                      {t("profile.reviewsTitle")}
+                    </h3>
 
-          {activeTab === "entreprise" && isEntreprise && (
-            <>
-              <div className="profil-header">
-                <div>
-                  <h1 className="profil-title">{t("profile.companyTitle")}</h1>
-                  <p className="profil-subtitle">
-                    {t("profile.companySubtitle")}
-                  </p>
-                </div>
-                <button className="profil-btn profil-btn--primary" onClick={() => navigate("/update_profil")}>
-                  <Pencil size={16} />
-                  {t("profile.editProfile")}
-                </button>
-              </div>
+                    {chargementAvisRecus && <p className="profil-field-value">{t("auth.loading")}</p>}
 
-              {/* ----- Carte entreprise + Informations de contact ----- */}
-              <section className="profil-cards">
-                <div className="profil-card profil-card--identity">
-                  <div className="profil-avatar-wrapper">
-                    {entreprise.logo ? (
-                      <img
-                        src={entreprise.logo}
-                        alt={entreprise.nom_Entreprise}
-                        className="profil-avatar-image"
-                      />
+                    {!chargementAvisRecus && avisRecus.length === 0 ? (
+                      <p className="profil-field-value">{t("profile.noReviewsReceived")}</p>
                     ) : (
-                      <div className="profil-avatar-image profil-avatar-image--placeholder">
-                        <Building2 size={32} />
-                      </div>
+                      <ul className="profil-seller-list">
+                        {avisRecus.map((a) => (
+                          <li className="profil-seller" key={a.id}>
+                            <div className="profil-seller__avatar">
+                              <StarRating note={a.note} taille={13} />
+                            </div>
+                            <div className="profil-seller__info">
+                              <p className="profil-seller__name">{a.produit_nom}</p>
+                              <p className="profil-seller__contact">
+                                {t("profile.reviewBy", { nom: a.auteur_nom || t("profile.notSpecified") })}
+                                {" — "}
+                                {new Date(a.date_avis).toLocaleDateString()}
+                              </p>
+                              {a.commentaire && (
+                                <p className="profil-seller__contact">{a.commentaire}</p>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
-                  <h2 className="profil-identity__name">{entreprise.nom_Entreprise}</h2>
-                  <span className="profil-badge">{entreprise.secteur}</span>
-                  <p className="profil-identity__location">
-                    <MapPin size={14} />
-                    {entreprise.adresse || entreprise.commune || t("profile.notSpecified")}
-                  </p>
-                </div>
-
-                <div className="profil-card profil-card--contact">
-                  <h3 className="profil-card__title profil-card__title--accent">
-                    {t("profile.companyDetailsTitle")}
-                  </h3>
-
-                  <div className="profil-contact-grid">
-                    <div>
-                      <p className="profil-field-label">{t("profile.companySector")}</p>
-                      <p className="profil-field-value">{entreprise.secteur}</p>
-                    </div>
-                  </div>
-
-                  <hr className="profil-divider" />
-
-                  <div className="profil-contact-grid profil-contact-grid--bottom">
-                    <div>
-                      <p className="profil-field-label">{t("profile.companyStatus")}</p>
-                      <p className="profil-field-value">{entreprise.statut_verification}</p>
-                    </div>
-                    <div>
-                      <p className="profil-field-label">{t("profile.companyCreatedAt")}</p>
-                      <p className="profil-field-value">
-                        {entreprise.date_creation ? new Date(entreprise.date_creation).toLocaleDateString() : t("profile.notSpecified")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </section>
             </>
           )}
@@ -397,20 +629,30 @@ export default function ProfilAcheteur() {
                   {t("profile.adminUsersTitle")}
                 </h3>
 
-                {adminLoading && <p className="profil-field-value">{t("profile.loading")}</p>}
-                {adminError && <p className="rk-error">✗ {adminError}</p>}
+                {adminLoading && <p className="profil-field-value">{t("auth.loading")}</p>}
+                {adminError && <p className="rk-error"><XCircle size={20}/> {adminError}</p>}
 
                 {!adminLoading && !adminError && (
                   <ul className="profil-seller-list">
                     {adminUsers.map((u) => (
                       <li className="profil-seller" key={u.id}>
                         <div className="profil-seller__avatar">
-                          {(u.prenom?.[0] || "").toUpperCase()}{(u.nom?.[0] || "").toUpperCase()}
+                          {/* une Entreprise (héritage multi-tables de Utilisateur) a toujours
+                              prenom='' — même repli que AdminDashboard.jsx */}
+                          {u.est_entreprise
+                            ? (u.nom?.slice(0, 2) || "").toUpperCase()
+                            : `${(u.prenom?.[0] || "").toUpperCase()}${(u.nom?.[0] || "").toUpperCase()}`}
                         </div>
                         <div className="profil-seller__info">
-                          <p className="profil-seller__name">{u.prenom} {u.nom}</p>
+                          <p className="profil-seller__name">{u.est_entreprise ? u.nom : `${u.prenom} ${u.nom}`}</p>
                           <p className="profil-seller__contact">{u.email} — {u.telephone}</p>
                         </div>
+                        {/* type de compte (particulier/entreprise) — indépendant du rôle,
+                            même principe que AdminDashboard.jsx : une entreprise reste une
+                            entreprise quel que soit son rôle courant (acheteur/vendeur) */}
+                        <span className={`profil-badge ${u.est_entreprise ? "admin-tag--entreprise" : "admin-tag--individuel"}`}>
+                          {u.est_entreprise ? t("admin.dashboard.companyBadge") : t("admin.dashboard.individualBadge")}
+                        </span>
                         <span className="profil-badge">{u.role}</span>
                       </li>
                     ))}
@@ -434,8 +676,8 @@ export default function ProfilAcheteur() {
                   {t("profile.adminCompaniesTitle")}
                 </h3>
 
-                {adminLoading && <p className="profil-field-value">{t("profile.loading")}</p>}
-                {adminError && <p className="rk-error">✗ {adminError}</p>}
+                {adminLoading && <p className="profil-field-value">{t("auth.loading")}</p>}
+                {adminError && <p className="rk-error"><XCircle size={20}/> {adminError}</p>}
 
                 {!adminLoading && !adminError && (
                   <ul className="profil-seller-list">

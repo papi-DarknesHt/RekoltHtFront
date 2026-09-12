@@ -43,6 +43,8 @@ export default function ProfilVendeur() {
   const isConnected = useAuthStore((s) => s.isConnected);
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const produitEvent = useGlobalStore((s) => s.produitEvent);
+  const profilEvent = useGlobalStore((s) => s.profilEvent);
+  const utilisateurEvent = useGlobalStore((s) => s.utilisateurEvent);
 
   const [vendeur, setVendeur] = useState(null);
   const [produits, setProduits] = useState([]);
@@ -61,7 +63,7 @@ export default function ProfilVendeur() {
   const [signalementErreur, setSignalementErreur] = useState(null);
   const [signalementEnvoye, setSignalementEnvoye] = useState(false);
 
-  useEffect(() => {
+  const chargerProfilVendeur = () => {
     if (!id) {
       setErreur("productDetail.missingId");
       setChargement(false);
@@ -85,7 +87,17 @@ export default function ProfilVendeur() {
         setAccesRestreint(err.code === "COMPTE_BLOQUE");
       })
       .finally(() => setChargement(false));
-  }, [id]);
+  };
+  useEffect(chargerProfilVendeur, [id]);
+
+  // rattrapage après une coupure WebSocket (voir reconnectedAt,
+  // api/globalStore.js)
+  const reconnectedAt = useGlobalStore((s) => s.reconnectedAt);
+  useEffect(() => {
+    if (!reconnectedAt) return;
+    chargerProfilVendeur();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reconnectedAt]);
 
   // réactivité temps réel (voir Produits/signals.py côté backend) : les
   // produits de ce vendeur se mettent à jour sans rechargement — un produit
@@ -101,6 +113,26 @@ export default function ProfilVendeur() {
     }
     setProduits((liste) => applyListEvent(liste, produitEvent));
   }, [produitEvent, vendeur]);
+
+  // réactivité temps réel de la fiche vendeur elle-même (nom, photo, bio,
+  // localisation, blocage...) — voir Registration/signals.py::broadcast_profil
+  // (individuel : commune/pays/photo) et broadcast_utilisateur (nom/prenom/
+  // telephone/est_bloquer). Les champs affichés (voir infoVendeur,
+  // Produits/views/produitsViews.py) ne correspondent pas 1:1 au payload de
+  // ces évènements (nom combiné prénom+nom, photo/logo selon compte
+  // entreprise ou non...) — un simple rechargement de infoVendeur() sur
+  // évènement matché par id reste plus fiable qu'un patch champ par champ,
+  // même principe que le rechargement de mesConversations() dans
+  // Messagerie.jsx sur messageEvent.
+  useEffect(() => {
+    if (!vendeur) return;
+    const idConcerne =
+      (profilEvent && String(profilEvent.data.user_id) === String(vendeur.id)) ||
+      (utilisateurEvent && String(utilisateurEvent.data.id) === String(vendeur.id));
+    if (!idConcerne) return;
+    ProduitsApi.infoVendeur(vendeur.id).then((res) => setVendeur(res.vendeur)).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profilEvent, utilisateurEvent]);
 
   const voirDetail = (p) => navigate(`/produits/detail?id=${p.id}`);
 
@@ -299,7 +331,7 @@ export default function ProfilVendeur() {
                     placeholder={t("productDetail.reportReasonPlaceholder")}
                   />
                 </div>
-                {signalementErreur && <p className="rk-error">✗ {signalementErreur}</p>}
+                {signalementErreur && <p className="rk-error"><XCircle size={20}/> {signalementErreur}</p>}
                 <button type="submit" className="rk-btn" disabled={signalementEnCours}>
                   {signalementEnCours ? t("seller.saving") : t("productDetail.reportSubmit")}
                 </button>

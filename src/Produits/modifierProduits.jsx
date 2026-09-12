@@ -7,9 +7,11 @@ import NavBar from "../components/NavBar.jsx";
 import BoutonRetour from "../components/BoutonRetour.jsx";
 import Footer from "../components/Footer.jsx";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
+import { nomLocalise } from "../utils/nomLocalise.js";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { ProduitsApi } from "../api/produits";
 import { useConfirmStore } from "../api/confirmStore.js";
+import { useGlobalStore } from "../api/globalStore.js";
 import categorieProduitsData from "../assets/Produits/categorieProduits.json";
 import "../assets/CSS/ModifierProduit.css";
 
@@ -33,9 +35,10 @@ export default function ModifierProduit() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const produitId = searchParams.get("id");
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const demanderConfirmation = useConfirmStore((s) => s.demander);
+  const produitEvent = useGlobalStore((s) => s.produitEvent);
 
   const [chargement, setChargement] = useState(true);
   const [erreurChargement, setErreurChargement] = useState(null);
@@ -108,6 +111,25 @@ export default function ModifierProduit() {
     // pas relancer le chargement (évite une double requête au premier rendu)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [produitId]);
+
+  // réactivité temps réel (voir Produits/signals.py côté backend) : ce
+  // formulaire n'avait aucun abonnement jusqu'ici — si le produit est
+  // supprimé (par le vendeur depuis un autre onglet, ou par un admin) ou
+  // désactivé par signalements pendant l'édition, l'écran restait
+  // silencieusement périmé jusqu'à un rechargement manuel. Même filtre par id
+  // que DetailProduit.jsx.
+  useEffect(() => {
+    if (!produitEvent || !produitId) return;
+    const { type, data } = produitEvent;
+    if (String(data.id) !== String(produitId)) return;
+    if (type === "produit.deleted") {
+      setErreurChargement(t("product.editDeletedWhileEditing"));
+      return;
+    }
+    if ("desactive_par_signalements" in data) {
+      setDesactiveParSignalements(!!data.desactive_par_signalements);
+    }
+  }, [produitEvent, produitId, t]);
 
   // sous-catégories rattachées aux catégories choisies par ce vendeur (même
   // périmètre que AjouterProduit.jsx) — la sous-catégorie déjà affectée au
@@ -278,32 +300,29 @@ export default function ModifierProduit() {
                     >
                       <option value="">{t("product.selectSubCategory")}</option>
                       {sousCategoriesDisponibles.map((sc) => (
-                        <option key={sc.id} value={sc.id}>{sc.nom}</option>
+                        <option key={sc.id} value={sc.id}>{nomLocalise(sc, lang)}</option>
                       ))}
                     </select>
                   </label>
 
                   <label className="mep-field">
                     {t("product.name")} *
-                    {suggestionsNom.length > 0 ? (
-                      <select
-                        className="mep-input"
-                        value={form.nom}
-                        onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
-                      >
-                        <option value="">{t("product.selectName")}</option>
-                        {suggestionsNom.map((nom) => <option key={nom} value={nom}>{nom}</option>)}
-                        {!suggestionsNom.includes(form.nom) && form.nom && (
-                          <option value={form.nom}>{form.nom}</option>
-                        )}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        className="mep-input"
-                        value={form.nom}
-                        onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
-                      />
+                    {/* la liste du référentiel n'est qu'une PROPOSITION (voir
+                        <datalist>) — le vendeur doit pouvoir saisir librement
+                        un nom qui n'y figure pas, tant qu'il reste dans la
+                        sous-catégorie choisie ; un <select> forçait
+                        auparavant un choix strict parmi cette liste */}
+                    <input
+                      type="text"
+                      className="mep-input"
+                      list={suggestionsNom.length > 0 ? "suggestions-nom-produit" : undefined}
+                      value={form.nom}
+                      onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
+                    />
+                    {suggestionsNom.length > 0 && (
+                      <datalist id="suggestions-nom-produit">
+                        {suggestionsNom.map((nom) => <option key={nom} value={nom} />)}
+                      </datalist>
                     )}
                   </label>
                 </div>
