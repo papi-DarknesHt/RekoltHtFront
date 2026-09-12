@@ -20,6 +20,7 @@ async function request(path, options = {}) {
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token && { "Authorization": `Token ${token}` }),
+      "ngrok-skip-browser-warning": "true",
     },
     credentials: "include",
     body: options.body || undefined,
@@ -55,7 +56,9 @@ async function requestBlob(path, options = {}) {
   const token = localStorage.getItem("token");
   const res = await fetch(`${BASE_URL}${path}`, {
     method: options.method || "POST",
-    headers: { ...(token && { "Authorization": `Token ${token}` }) },
+    headers: { ...(token && { "Authorization": `Token ${token}` }),
+    "ngrok-skip-browser-warning": "true",
+   },
     credentials: "include",
     body: options.body,
   });
