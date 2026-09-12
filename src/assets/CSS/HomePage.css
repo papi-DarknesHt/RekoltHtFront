@@ -81,6 +81,107 @@
     overflow: hidden;
   }
 
+  /* ── GRILLE "TOUS LES PRODUITS" ── */
+  .produits-page-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem;
+    flex: 1;
+  }
+
+  .produits-page-indicateur {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 1rem;
+  }
+
+  /* ── CAROUSEL "NOS VENDEURS" ── */
+  .vendeurs-auto__viewport {
+    overflow: hidden;
+    width: 100%;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  }
+
+  .vendeurs-auto__viewport--statique {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .vendeurs-auto__viewport--statique .vendeurs-auto__track {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .section-brown--vendeurs {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .section-brown--vendeurs .section-title {
+    padding: 0 5%;
+  }
+
+  .vendeurs-auto__track {
+    display: flex;
+    gap: 1.25rem;
+    width: max-content;
+  }
+
+  .vendeur-auto-carte {
+    flex: 0 0 auto;
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    will-change: transform;
+    background: var(--rk-card, #fff);
+    border: 1px solid var(--rk-border, #e5e2da);
+    border-radius: 14px;
+    padding: 16px 10px;
+    cursor: pointer;
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .vendeur-auto-carte:hover {
+    border-color: var(--couleurSecondaire);
+  }
+
+  .vendeur-auto-carte__photo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .vendeur-auto-carte__photo--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cream);
+    color: var(--couleurSecondaire);
+  }
+
+  .vendeur-auto-carte__nom {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .vendeur-auto-carte__meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+  }
+
   .produits-etat {
     text-align: center;
     color: var(--muted);
@@ -98,9 +199,6 @@
     font-weight: 600;
   }
 
-  /* variante claire, pour un texte d'état affiché sur .section-brown (fond
-     foncé) — voir la section "Mes produits" de la page d'accueil pour un
-     vendeur déjà connecté */
   .produits-etat--clair {
     color: rgba(255, 255, 255, 0.85);
   }
@@ -323,10 +421,14 @@
       height: 34px;
       font-size: 18px;
     }
+
+    .produits-page-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
   @media (max-width: 480px) {
     .carousel { gap: 8px; }
+
+    .produits-page-grid { grid-template-columns: 1fr; }
   }
 
   /* ── MODE SOMBRE ── */
@@ -357,4 +459,13 @@
 
   [data-theme="dark"] .sant-ed-btn:hover {
     background: var(--rk-border, #343b36);
+  }
+
+  [data-theme="dark"] .vendeur-auto-carte {
+    background: var(--rk-card, #1f2422);
+    border-color: var(--rk-border, #343b36);
+  }
+
+  [data-theme="dark"] .vendeur-auto-carte__photo--placeholder {
+    background: var(--rk-bg, #14181a);
   }

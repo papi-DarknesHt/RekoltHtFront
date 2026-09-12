@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
 import { ProduitsApi } from "../api/produits";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
+import { useGlobalStore } from "../api/globalStore.js";
 import logoSite from "../assets/Images/Asset5.svg";
 
 // Taille de la carte
@@ -13,29 +14,27 @@ const CENTRE_HAITI = { lat: 18.9712, lng: -72.2852 };
 // Distance au-delà de laquelle un vendeur est considéré "loin"
 const SEUIL_LOIN_KM = 10;
 
-// Icône de marqueur circulaire (photo de profil du vendeur, ou logo du site
-// si le vendeur n'en a pas) avec un anneau coloré reprenant le code
-// pré/loin déjà utilisé sur les marqueurs — construite comme un data URI SVG
-// (pas un canvas) : la balise <image> référence l'URL directement, ce que le
-// moteur de rendu SVG charge comme une <img> normale, sans jamais lire les
-// pixels en JS. Ça évite tout souci de canvas "taint" par CORS que poserait
-// un data URI généré via canvas.toDataURL() sur une photo hébergée ailleurs.
-function construireIconeVendeur(photoUrl, couleurAnneau) {
-  const taille = 44;
-  const rayon = taille / 2;
-  // échappe les caractères XML réservés (une URL réelle — Cloudinary,
-  // Django media — peut contenir "&" dans sa query string, ce qui casserait
-  // le XML du SVG sans cet échappement)
-  const hrefEchappe = photoUrl.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${taille}" height="${taille}" viewBox="0 0 ${taille} ${taille}">
-    <defs><clipPath id="rond"><circle cx="${rayon}" cy="${rayon}" r="${rayon - 4}" /></clipPath></defs>
-    <circle cx="${rayon}" cy="${rayon}" r="${rayon - 2}" fill="#fff" stroke="${couleurAnneau}" stroke-width="3.5" />
-    <image href="${hrefEchappe}" x="4" y="4" width="${taille - 8}" height="${taille - 8}" clip-path="url(#rond)" preserveAspectRatio="xMidYMid slice" />
-  </svg>`;
+// Icône de marqueur — un petit repère "épingle" générique (même forme pour
+// tous les vendeurs, coloré selon le code pré/loin déjà utilisé), PAS la
+// photo du vendeur en gros cercle comme avant : avec beaucoup de vendeurs
+// proches les uns des autres, ces cercles de 44px se chevauchaient et
+// encombraient la carte (demande explicite). La photo/le logo reste visible
+// au survol/clic (voir InfoWindow ci-dessous, inchangé) — seul le marqueur
+// posé sur la carte change. Symbole vectoriel (google.maps.Symbol, pas un
+// data URI image) : net à tout niveau de zoom, sans requête réseau.
+const CHEMIN_EPINGLE = "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z";
+
+function iconeMarqueurVendeur(couleur) {
   return {
-    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
-    scaledSize: new window.google.maps.Size(taille, taille),
-    anchor: new window.google.maps.Point(rayon, rayon),
+    path: CHEMIN_EPINGLE,
+    fillColor: couleur,
+    fillOpacity: 1,
+    strokeColor: "#fff",
+    strokeWeight: 1.5,
+    scale: 1.15,   // ~28px de haut, contre 44px pour l'ancien cercle-photo
+    // la pointe de l'épingle (bas du chemin, pas son centre) doit toucher la
+    // coordonnée GPS exacte — sinon le marqueur semble flotter à côté du point
+    anchor: new window.google.maps.Point(12, 22),
   };
 }
 
@@ -78,13 +77,50 @@ export default function MapHaiti() {
   // vendeurs ayant au moins un produit disponible et une position GPS connue
   // (voir Produits/views/produitsViews.py::listerVendeursCarte) — public,
   // aucune connexion requise
-  useEffect(() => {
+  const chargerVendeurs = () => {
     ProduitsApi.listerVendeursCarte()
       .then((res) => setVendeurs(res.vendeurs || []))
       .catch(() => {});
-  }, []);
+  };
+  useEffect(chargerVendeurs, []);
+
+  // rattrapage temps réel : un vendeur qui change ses coordonnées GPS depuis
+  // "Modifier mon profil" (individuel : profilEvent, déjà global — entreprise :
+  // entrepriseLocalisationEvent, voir Registration/signals.py::
+  // broadcast_entreprise) ne se reflétait auparavant qu'après un rechargement
+  // manuel de la page d'accueil, la carte gardait la position captée au tout
+  // premier chargement. Un simple refetch (liste courte, page peu fréquentée)
+  // reste plus simple/sûr qu'un patch en place — même principe que
+  // Messagerie.jsx pour mesConversations().
+  const profilEvent = useGlobalStore((s) => s.profilEvent);
+  const entrepriseLocalisationEvent = useGlobalStore((s) => s.entrepriseLocalisationEvent);
+  useEffect(() => {
+    if (!profilEvent) return;
+    chargerVendeurs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profilEvent]);
+  useEffect(() => {
+    if (!entrepriseLocalisationEvent) return;
+    chargerVendeurs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entrepriseLocalisationEvent]);
+  // rattrapage après une coupure WebSocket (voir reconnectedAt, api/globalStore.js) —
+  // un changement de coordonnées diffusé PENDANT la coupure serait sinon perdu
+  const reconnectedAt = useGlobalStore((s) => s.reconnectedAt);
+  useEffect(() => {
+    if (!reconnectedAt) return;
+    chargerVendeurs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reconnectedAt]);
 
   const vendeurAffiche = vendeurs.find((v) => v.vendeur_id === vendeurSurvole) || null;
+
+  // icônes calculées une seule fois (pas à chaque rendu, voir ci-dessous
+  // pourquoi ça compte) — seules 2 variantes possibles (proche/loin), pas la
+  // peine d'en recréer une par vendeur ni de les reconstruire à chaque survol
+  const iconesParStatut = useMemo(() => (
+    isLoaded ? { proche: iconeMarqueurVendeur("#f5f0c0"), loin: iconeMarqueurVendeur("#e23") } : null
+  ), [isLoaded]);
 
   // Affiche un placeholder pendant le chargement
   if (!isLoaded) {
@@ -117,25 +153,13 @@ export default function MapHaiti() {
           mapTypeControl: false,
         }}
       >
-        {/* Notre position */}
-        <Marker
-          position={position}
-          title={t("map.here")}
-          icon={{
-            path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 7,
-            fillColor: "#2563eb",
-            fillOpacity: 1,
-            strokeColor: "#fff",
-            strokeWeight: 2,
-          }}
-        />
-
-        {/* Un marqueur par vendeur (position exacte issue de son profil/entreprise) —
-            photo de profil/logo d'entreprise si disponible, sinon le logo du
-            site (voir listerVendeursCarte, Produits/views/produitsViews.py) ;
-            anneau crème = pre (≤10km), rouge = loin (>10km), même code
-            couleur que la légende affichée sous la carte (voir HomePage.jsx) */}
+        {/* Un marqueur (épingle) par vendeur (position exacte issue de son
+            profil/entreprise) — crème = proche (≤10km), rouge = loin
+            (>10km). Le survol/clic affiche sa photo/logo et ses infos dans
+            l'InfoWindow ci-dessous (voir listerVendeursCarte,
+            Produits/views/produitsViews.py) — inchangé, seul le marqueur
+            posé sur la carte est désormais une petite épingle plutôt qu'un
+            gros cercle-photo (voir iconeMarqueurVendeur ci-dessus). */}
         {vendeurs.map((v) => {
           const distance = distanceKm(position, { lat: v.latitude, lng: v.longitude });
           const loin = distance > SEUIL_LOIN_KM;
@@ -146,7 +170,8 @@ export default function MapHaiti() {
               title={v.nom}
               onMouseOver={() => setVendeurSurvole(v.vendeur_id)}
               onMouseOut={() => setVendeurSurvole((id) => (id === v.vendeur_id ? null : id))}
-              icon={construireIconeVendeur(v.photo || logoSite, loin ? "#e23" : "#f5f0c0")}
+              onClick={() => setVendeurSurvole((id) => (id === v.vendeur_id ? null : v.vendeur_id))}
+              icon={loin ? iconesParStatut.loin : iconesParStatut.proche}
             />
           );
         })}
@@ -155,6 +180,13 @@ export default function MapHaiti() {
           <InfoWindow
             position={{ lat: vendeurAffiche.latitude, lng: vendeurAffiche.longitude }}
             onCloseClick={() => setVendeurSurvole(null)}
+            // sans ça, Google Maps recentre légèrement la carte pour que la
+            // bulle reste visible dès qu'elle s'ouvre — ce qui déplace le
+            // marqueur sous un curseur resté immobile, déclenche mouseout
+            // (ferme la bulle), la carte re-pan en arrière, mouseover
+            // (rouvre la bulle)... boucle qui donnait l'effet de clignotement
+            // au survol/clic (bug constaté, causé par l'ajout de l'InfoWindow)
+            options={{ disableAutoPan: true }}
           >
             <div style={{ minWidth: "150px", fontFamily: "inherit", display: "flex", gap: "8px", alignItems: "flex-start" }}>
               <img

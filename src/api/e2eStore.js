@@ -35,6 +35,9 @@ export const useE2eStore = create((set, get) => ({
   utilisateurId: null,
   clePriveeCryptoKey: null,
   clePubliqueJwk: null,
+  // promesse de l'appel garantirCleE2E en cours, le cas échéant — voir
+  // garantirCleE2E ci-dessous pour la raison d'être de ce verrou
+  _promesseCleEnCours: null,
 
   // caches en mémoire pour la session — clé publique d'un interlocuteur
   // (messagerie privée) et liste des admins (messagerie support)
@@ -89,37 +92,97 @@ export const useE2eStore = create((set, get) => ({
       return get().clePriveeCryptoKey;
     }
 
-    const local = await obtenirCleLocale(utilisateur.id);
-    if (local) {
-      const clePriveeCryptoKey = await importerClePrivee(local.clePriveeJwk);
-      set({ pret: true, utilisateurId: utilisateur.id, clePriveeCryptoKey, clePubliqueJwk: local.clePubliqueJwk });
-      return clePriveeCryptoKey;
+    // Verrou anti-course : connexion()/googleConnexion() (AuthentificationStore.js)
+    // démarre garantirCleE2E(secret) en tâche de fond, SANS l'attendre, juste
+    // après une connexion réussie — la navigation qui suit immédiatement vers
+    // la messagerie (Messagerie.jsx, ContacterAdmin.jsx, ...) appelle ensuite
+    // garantirCleE2E() SANS secret. Sans ce verrou, si le second appel démarre
+    // avant que le premier n'ait fini, il ne trouve encore ni clé en mémoire
+    // ni en IndexedDB (le premier appel est toujours en train de la restaurer/
+    // créer) et, faute de secret, publie directement une TOUTE NOUVELLE paire
+    // de clés (voir plus bas) qui écrase côté serveur celle que le premier
+    // appel — le seul à avoir le secret nécessaire pour restaurer la vraie
+    // sauvegarde — est en train de mettre en place. Résultat : cet appareil se
+    // retrouve avec une clé sans rapport avec celle utilisée pour chiffrer les
+    // messages déjà reçus ⇒ "message illisible sur cet appareil" (constaté en
+    // conditions réelles). En attachant tous les appels concurrents à la MÊME
+    // promesse, seul le premier appel (généralement celui qui a le secret)
+    // effectue réellement la résolution/restauration.
+    if (get()._promesseCleEnCours) {
+      return get()._promesseCleEnCours;
     }
 
-    // pas de clé locale (nouvel appareil ou données du navigateur vidées) :
-    // tenter de restaurer la sauvegarde chiffrée du serveur avec le secret
-    // qui vient d'être obtenu en se connectant
-    if (secretDerivation) {
-      try {
-        const distant = await E2eApi.obtenirMaCle();
-        if (distant.cle_privee_chiffree && distant.iv_cle_privee && distant.sel_kdf) {
-          const cleEnveloppe = await deriverCleEnveloppe(secretDerivation, distant.sel_kdf, distant.iterations_kdf || undefined);
-          const clePriveeJwk = await dechiffrerClePrivee(distant.cle_privee_chiffree, distant.iv_cle_privee, cleEnveloppe);
-          const clePubliqueJwk = JSON.parse(distant.cle_publique);
-          const clePriveeCryptoKey = await importerClePrivee(clePriveeJwk);
-          await enregistrerCleLocale(utilisateur.id, { clePriveeJwk, clePubliqueJwk });
-          set({ pret: true, utilisateurId: utilisateur.id, clePriveeCryptoKey, clePubliqueJwk, clesPubliquesCache: {} });
-          return clePriveeCryptoKey;
-        }
-      } catch (e) {
-        if (e.status !== 404) console.error("Restauration de la clé E2E échouée :", e);
-        // silencieux : on retombe sur la génération d'une nouvelle paire ci-dessous
+    const promesse = (async () => {
+      const local = await obtenirCleLocale(utilisateur.id);
+      if (local) {
+        const clePriveeCryptoKey = await importerClePrivee(local.clePriveeJwk);
+        set({ pret: true, utilisateurId: utilisateur.id, clePriveeCryptoKey, clePubliqueJwk: local.clePubliqueJwk });
+        return clePriveeCryptoKey;
       }
-    }
 
-    // aucune sauvegarde exploitable (première fois, ou secret incorrect/
-    // sauvegarde absente) : publier une nouvelle paire de clés
-    return get()._publierNouvelleCle(utilisateur, secretDerivation);
+      // Pas de clé locale (nouvel appareil, stockage vidé, navigation privée,
+      // autre navigateur — voir "Failed to fetch"/Brave plus haut pour un
+      // exemple de ce genre de divergence entre navigateurs du même compte).
+      // AVANT de générer quoi que ce soit, on regarde si le serveur a DÉJÀ
+      // une clé publiée pour ce compte (mise en place sur un AUTRE appareil,
+      // peut-être des semaines plus tôt) — et si oui on ne la remplace JAMAIS
+      // silencieusement : _publierNouvelleCle publie systématiquement une
+      // NOUVELLE cle_publique (voir plus bas), qui écraserait celle déjà
+      // utilisée par l'autre appareil. Cet autre appareil garde en cache sa
+      // propre clé privée, qui ne correspondrait alors plus du tout à la
+      // cle_publique désormais publiée ⇒ il devient incapable de déchiffrer
+      // TOUT message futur, de façon permanente, sans qu'il n'ait rien fait
+      // de son côté. C'est la cause confirmée, en conditions réelles, de
+      // "Message illisible sur cet appareil" qui réapparaît sans explication :
+      // cet appel se produit SANS secret à chaque montage de Messagerie.jsx /
+      // ContacterAdmin.jsx / AdminDashboard.jsx (y compris pour un compte déjà
+      // configuré ailleurs, simplement pas encore mis en cache dans CET
+      // onglet précis) — l'ancien code générait alors un nouveau trousseau
+      // orphelin à chaque fois, cassant l'appareil légitime déjà en service.
+      let distant = null;
+      try {
+        distant = await E2eApi.obtenirMaCle();
+      } catch (e) {
+        if (e.status !== 404) throw e;   // erreur réseau/serveur : on ne sait pas — prudence, pas de génération
+      }
+
+      if (distant) {
+        // une sauvegarde chiffrée existe et on vient d'obtenir le secret qui
+        // permet de la déchiffrer (juste après une connexion) : restauration
+        // normale, cet appareil rejoint la même paire de clés que les autres
+        if (secretDerivation && distant.cle_privee_chiffree && distant.iv_cle_privee && distant.sel_kdf) {
+          try {
+            const cleEnveloppe = await deriverCleEnveloppe(secretDerivation, distant.sel_kdf, distant.iterations_kdf || undefined);
+            const clePriveeJwk = await dechiffrerClePrivee(distant.cle_privee_chiffree, distant.iv_cle_privee, cleEnveloppe);
+            const clePubliqueJwk = JSON.parse(distant.cle_publique);
+            const clePriveeCryptoKey = await importerClePrivee(clePriveeJwk);
+            await enregistrerCleLocale(utilisateur.id, { clePriveeJwk, clePubliqueJwk });
+            set({ pret: true, utilisateurId: utilisateur.id, clePriveeCryptoKey, clePubliqueJwk, clesPubliquesCache: {} });
+            return clePriveeCryptoKey;
+          } catch (e) {
+            console.error("Restauration de la clé E2E échouée :", e);
+            // on ne tombe PAS sur la génération ci-dessous : voir le throw plus bas
+          }
+        }
+        // clé serveur existante, mais pas restaurable sur CET appel précis
+        // (pas de secret disponible ici, ou sauvegarde chiffrée absente/
+        // invalide) : on abandonne proprement plutôt que d'écraser. Un appel
+        // ultérieur juste après une connexion réussie (avec le bon secret)
+        // la restaurera correctement sur cet appareil.
+        throw new Error("Clé de chiffrement non disponible sur cet appareil pour le moment");
+      }
+
+      // aucune clé nulle part, ni locale ni serveur (tout premier message de
+      // ce compte, sur n'importe quel appareil) : sûr de générer et publier
+      return get()._publierNouvelleCle(utilisateur, secretDerivation);
+    })();
+
+    set({ _promesseCleEnCours: promesse });
+    try {
+      return await promesse;
+    } finally {
+      set({ _promesseCleEnCours: null });
+    }
   },
 
   // Ré-enveloppe la clé privée déjà active sous un nouveau mot de passe
@@ -147,7 +210,7 @@ export const useE2eStore = create((set, get) => ({
   async effacerCacheLocal() {
     const utilisateur = AuthentificationApi.getUtilisateur();
     if (utilisateur) await effacerCleLocale(utilisateur.id);
-    set({ pret: false, utilisateurId: null, clePriveeCryptoKey: null, clePubliqueJwk: null, clesPubliquesCache: {} });
+    set({ pret: false, utilisateurId: null, clePriveeCryptoKey: null, clePubliqueJwk: null, clesPubliquesCache: {}, _promesseCleEnCours: null });
   },
 
   // clé publique d'un interlocuteur (messagerie privée 1:1), mise en cache pour la session

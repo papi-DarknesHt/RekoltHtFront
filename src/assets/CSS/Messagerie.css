@@ -1,8 +1,3 @@
-/* =============================================================
-   RekoltHT — Messagerie
-   Fichier autonome, même principe que AjouterProduit.css/MesProduits.css :
-   ne dépend d'aucune variable/classe définie ailleurs. Classes préfixées "msg-".
-   ============================================================= */
 
 .msg-page {
   --msg-terracotta: #c1693f;
@@ -321,13 +316,31 @@
 
 .msg-bulle__citation {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 8px;
   padding: 6px 10px;
   margin-bottom: 6px;
   border-left: 3px solid var(--msg-terracotta);
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.04);
+}
+
+/* miniature du produit/photo cité — voir Messagerie.jsx, citation dans une
+   bulle de réponse : le texte seul ("📦 nom") ne suffisait pas à montrer la
+   photo elle-même */
+.msg-bulle__citation-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.msg-bulle__citation-texte-bloc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .msg-bulle__citation-nom {
@@ -443,6 +456,64 @@
 .msg-selection-bar__supprimer:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+/* ===================== Bandeau de récupération de la clé E2E ===================== */
+.msg-cle-bandeau {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--msg-green-light);
+  border-top: 1px solid var(--msg-border);
+  border-bottom: 1px solid var(--msg-border);
+}
+
+.msg-cle-bandeau__texte {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--msg-green);
+}
+
+.msg-cle-bandeau__champ {
+  display: flex;
+  gap: 8px;
+}
+
+.msg-cle-bandeau__champ input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--msg-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: var(--msg-card);
+  color: var(--msg-text);
+}
+
+.msg-cle-bandeau__champ button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  background: var(--msg-green);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.msg-cle-bandeau__champ button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.msg-cle-bandeau__erreur {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--msg-danger);
 }
 
 /* ===================== Fiche produit partagée dans un message ===================== */
@@ -641,13 +712,42 @@
     grid-template-columns: 1fr;
   }
 
-  .msg-sidebar {
+  .msg-chat {
     display: none;
+  }
+
+  .msg-layout--conversation-active .msg-sidebar {
+    display: none;
+  }
+
+  .msg-layout--conversation-active .msg-chat {
+    display: flex;
+  }
+
+  .msg-chat__retour {
+    display: inline-flex;
   }
 
   .msg-bulle {
     max-width: 80%;
   }
+}
+.msg-chat__retour {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--msg-text);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.msg-chat__retour:hover {
+  background: var(--msg-green-light);
 }
 
 /* ── MODE SOMBRE ── */

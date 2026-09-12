@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Loader2, Check, XCircle } from "lucide-react";
 import "../assets/CSS/Authentification.css";
 import "../assets/CSS/DevenirVendeur.css";
 import { AuthentificationApi } from "../api/auth";
@@ -9,10 +10,12 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import departementsData from "../assets/Departements/haiti_departements.json";
 import CaptureSelfie from "../components/CaptureSelfie.jsx";
+import CaptureDocument from "../components/CaptureDocument.jsx";
 import MapSelectionGPS from "../components/MapSelectionGPS.jsx";
 import { fusionnerLocalisationDetectee, niveauDetecteDepuisLoc } from "../utils/geoLookup.js";
 import { useChatbotStore } from "../components/chatbotStore.js";
 import BoutonRetour from "../components/BoutonRetour.jsx";
+import { soumettreSurEntree } from "../utils/formShortcuts.js";
 
 // clé de traduction du libellé pour chaque type_document (DemandeVerification.TYPE_DOCUMENT côté backend)
 const LABEL_TYPE_DOCUMENT = { passeport: "seller.passport", permis: "seller.driverLicense", cin: "seller.nationalId" };
@@ -25,7 +28,6 @@ const FORM_INITIAL = {
     type_document: "",
     numero_piece_saisi: "",
     document_recto: null,
-    document_verso: null,
     certificat_patente: null,
     selfie: null,
     adresse: "",
@@ -66,11 +68,21 @@ function sauvegarderBrouillon(etape, form) {
             form: {
                 type_document: form.type_document,
                 numero_piece_saisi: form.numero_piece_saisi,
-                adresse: form.adresse,
-                departement: form.departement,
-                commune: form.commune,
-                section_communale: form.section_communale,
-                coord: form.coord,
+                // adresse/departement/commune/section_communale/coord ne sont
+                // JAMAIS sauvegardés ici (bug corrigé) : ces champs doivent
+                // toujours venir du compte (voir le useEffect de pré-
+                // remplissage plus bas), jamais d'un brouillon figé — sinon
+                // un brouillon sauvegardé une seule fois avec une valeur
+                // fausse ou vide (ex: la localisation n'était pas encore à
+                // jour sur le compte à ce moment-là) bloque le pré-
+                // remplissage pour toujours, MÊME après correction de la
+                // localisation dans "Modifier le profil" : le prochain
+                // chargement restaure la valeur figée du brouillon AVANT que
+                // l'effet de pré-remplissage ne s'exécute, et
+                // `prev.commune || source.commune` ne remplace jamais une
+                // valeur déjà non vide, même fausse — constaté en conditions
+                // réelles (le département se pré-remplissait, mais plus
+                // jamais la commune/section une fois le brouillon "pollué").
             },
         }));
     } catch {
@@ -80,33 +92,6 @@ function sauvegarderBrouillon(etape, form) {
 
 function effacerBrouillon() {
     try { localStorage.removeItem(CLE_BROUILLON); } catch { /* non bloquant */ }
-}
-
-// champ fichier réutilisable (recto / verso / certificat de patente) — même
-// balisage que le champ "document" du formulaire d'origine
-function ChampFichier({ id, label, hint, accept, value, onChange, error, placeholder }) {
-    return (
-        <div className="rk-field">
-            <label className="rk-label">
-                {label}<span style={{ color: "#e24b4a" }}>*</span>
-            </label>
-            <div className="dv-file-wrap">
-                <label className={`dv-file-label ${value ? "has-file" : ""}`} htmlFor={id}>
-                    <span className="dv-file-icon">{value ? "✓" : "📎"}</span>
-                    {value ? value.name : placeholder}
-                </label>
-                <input
-                    id={id}
-                    type="file"
-                    className="dv-file-input"
-                    accept={accept}
-                    onChange={(e) => onChange(e.target.files?.[0] || null)}
-                />
-            </div>
-            {hint && <span className="rk-hint">{hint}</span>}
-            {error && <p className="rk-error">✗ {error}</p>}
-        </div>
-    );
 }
 
 // barre de progression du wizard
@@ -143,7 +128,7 @@ function EcranStatut({ verification, onRetry, navigate, t }) {
             )}
             {statut === "verifie" && (
                 <>
-                    <div className="dv-status-icon dv-status-success">✓</div>
+                    <div className="dv-status-icon dv-status-success"><Check size={20}/></div>
                     <h2 className="dv-status-title">{t("seller.statusVerifiedTitle")}</h2>
                     <p className="dv-status-text">{t("seller.statusVerifiedText")}</p>
                     {verification.contrat_pdf && (
@@ -168,7 +153,7 @@ function EcranStatut({ verification, onRetry, navigate, t }) {
             )}
             {statut === "echoue" && (
                 <>
-                    <div className="dv-status-icon dv-status-failed">✗</div>
+                    <div className="dv-status-icon dv-status-failed"><XCircle size={20}/></div>
                     <h2 className="dv-status-title">{t("seller.statusFailedTitle")}</h2>
                     <p className="dv-status-text">{verification.motif_echec}</p>
                     <button type="button" className="rk-btn" onClick={onRetry}>
@@ -192,9 +177,17 @@ export default function DevenirVendeur() {
     const profilLoading = useProfilStore((s) => s.loading);
     const verificationEvent = useGlobalStore((s) => s.verificationEvent);
 
+    // sert de garde à la restauration du brouillon ci-dessous : pour un compte
+    // entreprise, form.departement/commune ne sont pré-remplis (voir l'effet
+    // suivant) qu'une fois `entreprise` chargé — sans attendre explicitement
+    // cette résolution, une restauration lancée AVANT elle (chargerEntreprise
+    // plus lente qu'afficherProfil) jugeait l'étape 4 invalide à tort et
+    // réinitialisait tout le wizard à l'étape 1
+    const [entrepriseChargee, setEntrepriseChargee] = useState(false);
+
     useEffect(() => {
         afficherProfil().catch(() => { });
-        chargerEntreprise().catch(() => { });
+        chargerEntreprise().catch(() => { }).finally(() => setEntrepriseChargee(true));
     }, [afficherProfil, chargerEntreprise]);
 
     // est_entreprise vient du backend (Registration/profil/) : calculé via
@@ -243,7 +236,17 @@ export default function DevenirVendeur() {
                 if (annule) return;
                 const brouillon = chargerBrouillon();
                 if (brouillon) {
-                    setForm(prev => ({ ...prev, ...brouillon.form }));
+                    // whitelist explicite (pas ...brouillon.form) : immunise
+                    // aussi contre un brouillon déjà présent dans le
+                    // navigateur d'un utilisateur AVANT ce correctif, qui
+                    // contiendrait encore d'anciens champs de localisation
+                    // figés — jamais réappliqués, toujours reconstruits à
+                    // partir du compte (voir sauvegarderBrouillon ci-dessus)
+                    setForm(prev => ({
+                        ...prev,
+                        type_document: brouillon.form?.type_document ?? prev.type_document,
+                        numero_piece_saisi: brouillon.form?.numero_piece_saisi ?? prev.numero_piece_saisi,
+                    }));
                     setDraftEtape(brouillon.etape || 1);
                 }
                 setVue("wizard");
@@ -316,7 +319,6 @@ export default function DevenirVendeur() {
             if (!f.numero_piece_saisi?.trim()) return false;
             if (isEntreprise) return !!f.certificat_patente;
             if (!f.document_recto) return false;
-            if (f.type_document === "cin" && !f.document_verso) return false;
             return true;
         }
         if (n === 3) return isEntreprise || !!f.selfie;
@@ -336,6 +338,10 @@ export default function DevenirVendeur() {
     // jamais à un rechargement, voir chargerBrouillon plus haut)
     useEffect(() => {
         if (draftAppliedRef.current || draftEtape == null || !profil) return;
+        // compte entreprise : attendre que chargerEntreprise() ait résolu
+        // (voir entrepriseChargee ci-dessus) avant de juger l'étape 4 valide
+        // ou non, sinon form.departement/commune peuvent encore être vides
+        if (isEntreprise && !entrepriseChargee) return;
         draftAppliedRef.current = true;
 
         let etapeAtteinte = 1;
@@ -346,7 +352,7 @@ export default function DevenirVendeur() {
         setEtape(etapeAtteinte);
         if (etapeAtteinte > 1) setDraftApplied(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [draftEtape, profil, isEntreprise]);
+    }, [draftEtape, profil, isEntreprise, entrepriseChargee]);
 
     // sauvegarde continue du brouillon (hors fichiers, non sérialisables —
     // voir sauvegarderBrouillon, qui n'extrait que le sous-ensemble sérialisable)
@@ -362,7 +368,6 @@ export default function DevenirVendeur() {
             const next = { ...prev, [name]: value };
             if (name === "departement") { next.commune = ""; next.section_communale = ""; }
             if (name === "commune") { next.section_communale = ""; }
-            if (name === "type_document" && value !== "cin") { next.document_verso = null; }
             return next;
         });
         setFieldErrors(prev => { const n = { ...prev }; delete n[name]; return n; });
@@ -385,7 +390,6 @@ export default function DevenirVendeur() {
                 if (!form.certificat_patente) errors.certificat_patente = t("seller.validationPatente");
             } else {
                 if (!form.document_recto) errors.document_recto = t("seller.validationRecto");
-                if (form.type_document === "cin" && !form.document_verso) errors.document_verso = t("seller.validationVerso");
             }
         }
         if (n === 3 && !estEtapeValide(3)) {
@@ -412,7 +416,6 @@ export default function DevenirVendeur() {
         } else {
             formData.append("type_document", form.type_document);
             formData.append("document_recto", form.document_recto);
-            if (form.type_document === "cin") formData.append("document_verso", form.document_verso);
             formData.append("selfie", form.selfie);
         }
         return formData;
@@ -461,6 +464,11 @@ export default function DevenirVendeur() {
         if (etape === 5) { handleSubmit(); return; }
         setEtape(STEPS[stepIdx + 1]);
     };
+
+    // Entrée = étape suivante (ou soumission finale à l'étape 5) — même
+    // validation que le clic sur "Suivant" (voir goNext), voir aussi
+    // ../utils/formShortcuts.js pour la même logique dans Authentification.jsx
+    const gererEntreeWizard = soumettreSurEntree(goNext);
 
     const goBack = () => {
         setServerError(null);
@@ -525,7 +533,7 @@ export default function DevenirVendeur() {
                 )}
 
                 {vue === "wizard" && (
-                    <div className="rk-card">
+                    <div className="rk-card" onKeyDown={gererEntreeWizard}>
 
                         <Stepper
                             index={stepIdx}
@@ -541,7 +549,7 @@ export default function DevenirVendeur() {
 
                         {draftApplied && (
                             <p className="rk-success" style={{ fontSize: 12 }}>
-                                ✓ {t("seller.draftRestored")}
+                                <Check size={20}/> {t("seller.draftRestored")}
                             </p>
                         )}
 
@@ -590,7 +598,7 @@ export default function DevenirVendeur() {
                                                 <option value="cin">{t("seller.nationalId")}</option>
                                             </select>
                                         </div>
-                                        {fieldErrors.type_document && <p className="rk-error">✗ {fieldErrors.type_document}</p>}
+                                        {fieldErrors.type_document && <p className="rk-error"><XCircle size={20}/> {fieldErrors.type_document}</p>}
                                     </div>
                                 )}
                             </>
@@ -615,42 +623,30 @@ export default function DevenirVendeur() {
                                         maxLength={100}
                                     />
                                     <span className="rk-hint">{t("seller.numeroPieceHint")}</span>
-                                    {fieldErrors.numero_piece_saisi && <p className="rk-error">✗ {fieldErrors.numero_piece_saisi}</p>}
+                                    {fieldErrors.numero_piece_saisi && <p className="rk-error"><XCircle size={20}/> {fieldErrors.numero_piece_saisi}</p>}
                                 </div>
 
                                 {isEntreprise ? (
-                                    <ChampFichier
-                                        id="dv-patente-input"
-                                        label={t("seller.uploadPatente")}
-                                        hint={t("seller.patenteHint")}
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        value={form.certificat_patente}
-                                        onChange={(file) => handleFile("certificat_patente", file)}
-                                        error={fieldErrors.certificat_patente}
-                                        placeholder={t("seller.fileChoose")}
-                                    />
+                                    <>
+                                        <p className="dv-section-label">{t("seller.patenteHint")}</p>
+                                        <CaptureDocument
+                                            label={t("seller.uploadPatente")}
+                                            value={form.certificat_patente}
+                                            onChange={(file) => handleFile("certificat_patente", file)}
+                                            ratioLibre
+                                            acceptPdf
+                                        />
+                                        {fieldErrors.certificat_patente && <p className="rk-error"><XCircle size={20}/> {fieldErrors.certificat_patente}</p>}
+                                    </>
                                 ) : (
                                     <>
-                                        <ChampFichier
-                                            id="dv-recto-input"
+                                        <p className="dv-section-label">{t("seller.documentCaptureHint")}</p>
+                                        <CaptureDocument
                                             label={t("seller.uploadRecto")}
-                                            accept=".jpg,.jpeg,.png"
                                             value={form.document_recto}
                                             onChange={(file) => handleFile("document_recto", file)}
-                                            error={fieldErrors.document_recto}
-                                            placeholder={t("seller.fileChoose")}
                                         />
-                                        {form.type_document === "cin" && (
-                                            <ChampFichier
-                                                id="dv-verso-input"
-                                                label={t("seller.uploadVerso")}
-                                                accept=".jpg,.jpeg,.png"
-                                                value={form.document_verso}
-                                                onChange={(file) => handleFile("document_verso", file)}
-                                                error={fieldErrors.document_verso}
-                                                placeholder={t("seller.fileChoose")}
-                                            />
-                                        )}
+                                        {fieldErrors.document_recto && <p className="rk-error"><XCircle size={20}/> {fieldErrors.document_recto}</p>}
                                     </>
                                 )}
                             </>
@@ -662,7 +658,7 @@ export default function DevenirVendeur() {
                                 <p className="dv-section-label">{t("seller.step3Title")}</p>
                                 <p style={{ fontSize: 13, color: "#888", marginBottom: "1rem" }}>{t("seller.step3Subtitle")}</p>
                                 <CaptureSelfie value={form.selfie} onChange={(file) => handleFile("selfie", file)} />
-                                {fieldErrors.selfie && <p className="rk-error">✗ {fieldErrors.selfie}</p>}
+                                {fieldErrors.selfie && <p className="rk-error"><XCircle size={20}/> {fieldErrors.selfie}</p>}
                             </>
                         )}
 
@@ -685,7 +681,7 @@ export default function DevenirVendeur() {
                                     }}
                                     onAdresseDetectee={(texte) => setForm(prev => ({ ...prev, adresse: prev.adresse || texte }))}
                                 />
-                                {fieldErrors.coord && <p className="rk-error">✗ {fieldErrors.coord}</p>}
+                                {fieldErrors.coord && <p className="rk-error"><XCircle size={20}/> {fieldErrors.coord}</p>}
                                 {localisationNiveauDetecte === "aucun" && (
                                     <p className="rk-hint">{t("seller.locationDetectNone")}</p>
                                 )}
@@ -714,7 +710,7 @@ export default function DevenirVendeur() {
                                             ))}
                                         </select>
                                     </div>
-                                    {fieldErrors.departement && <p className="rk-error">✗ {fieldErrors.departement}</p>}
+                                    {fieldErrors.departement && <p className="rk-error"><XCircle size={20}/> {fieldErrors.departement}</p>}
                                 </div>
 
                                 <div className="rk-field">
@@ -732,7 +728,7 @@ export default function DevenirVendeur() {
                                             ))}
                                         </select>
                                     </div>
-                                    {fieldErrors.commune && <p className="rk-error">✗ {fieldErrors.commune}</p>}
+                                    {fieldErrors.commune && <p className="rk-error"><XCircle size={20}/> {fieldErrors.commune}</p>}
                                 </div>
 
                                 <div className="rk-field">
@@ -750,7 +746,7 @@ export default function DevenirVendeur() {
                                             ))}
                                         </select>
                                     </div>
-                                    {fieldErrors.section_communale && <p className="rk-error">✗ {fieldErrors.section_communale}</p>}
+                                    {fieldErrors.section_communale && <p className="rk-error"><XCircle size={20}/> {fieldErrors.section_communale}</p>}
                                 </div>
 
                                 <div className="rk-field">
@@ -786,12 +782,6 @@ export default function DevenirVendeur() {
                                             <span className="dv-recap-label">{t("seller.recapRecto")}</span>
                                             <span className="dv-recap-value">{form.document_recto?.name}</span>
                                         </div>
-                                        {form.type_document === "cin" && (
-                                            <div className="dv-recap-row">
-                                                <span className="dv-recap-label">{t("seller.recapVerso")}</span>
-                                                <span className="dv-recap-value">{form.document_verso?.name}</span>
-                                            </div>
-                                        )}
                                         <div className="dv-recap-row">
                                             <span className="dv-recap-label">{t("seller.recapSelfie")}</span>
                                             {selfiePreviewUrl && <img src={selfiePreviewUrl} alt={t("common.selfieAlt")} className="dv-recap-selfie" />}
@@ -865,7 +855,7 @@ export default function DevenirVendeur() {
                                 padding: "10px 14px", fontSize: "13px", color: "#c0392b",
                                 marginBottom: "1rem", display: "flex", alignItems: "center", gap: "8px",
                             }}>
-                                ✗ {serverError}
+                                <XCircle size={20}/> {serverError}
                             </div>
                         )}
 
@@ -876,6 +866,7 @@ export default function DevenirVendeur() {
                                 </button>
                             )}
                             <button type="button" className="rk-btn" onClick={goNext} disabled={submitLoading}>
+                                {etape === 5 && submitLoading && <Loader2 size={16} className="dv-btn-spinner" />}
                                 {etape === 5 ? (submitLoading ? t("seller.saving") : t("seller.submit")) : t("seller.continue")}
                             </button>
                         </div>

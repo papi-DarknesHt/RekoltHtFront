@@ -104,7 +104,7 @@ export default function ContacterNous() {
               />
             </div>
 
-            {erreur && <p className="cn-alert cn-alert--error">✗ {erreur}</p>}
+            {erreur && <p className="cn-alert cn-alert--error"><XCircle size={20}/> {erreur}</p>}
 
             <button type="submit" className="cn-btn" disabled={envoiEnCours}>
               <Send size={16} />

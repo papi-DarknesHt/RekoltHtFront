@@ -1,20 +1,8 @@
-/* =============================================================
-   RekoltHT — Tableau de bord admin
-   Fichier autonome : ne dépend d'aucune variable/classe définie dans un
-   autre fichier CSS de page (voir --admin-* ci-dessous, propres à ce
-   fichier — même principe d'isolation que TableauDeBordVendeur.css/Aide.css,
-   pour qu'aucune des deux pages ne puisse casser l'autre en modifiant son
-   propre CSS). Structure inspirée du thème d'admin "Gentelella" (sidebar
-   sombre fixe + topbar + cartes) : voir admin-shell/admin-sidebar/admin-topbar
-   ci-dessous. Le chrome des graphiques (admin-chart-card, admin-charts-grid)
-   reste dans Charts.css : bibliothèque de composants partagée à part entière,
-   pas le CSS d'une page précise.
-   ============================================================= */
-
 .admin-shell {
   --admin-terracotta: #c1693f;
   --admin-terracotta-dark: #a85a35;
   --admin-green: #2f4a3c;
+  --admin-caution: #c8a830;
   --admin-green-light: #e3f3e8;
   --admin-bg: #f6f4f1;
   --admin-card: #ffffff;
@@ -38,7 +26,7 @@
   box-sizing: border-box;
 }
 
-/* ===================== Sidebar (toujours sombre, comme Gentelella) ===================== */
+/* ===================== Sidebar ===================== */
 
 .admin-sidebar {
   position: fixed;
@@ -319,6 +307,27 @@
   flex-shrink: 0;
 }
 
+.admin-topbar__actions .lang-btn {
+  background: transparent;
+  border: none;
+  color: var(--admin-text-muted);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+}
+
+.admin-topbar__actions .lang-btn:hover {
+  background: rgba(128, 128, 128, 0.14);
+  color: var(--admin-text);
+}
+
+.admin-topbar__actions .lang-btn svg:last-child {
+  display: none;
+  /* chevron — superflu dans ce format icône ronde compacte */
+}
+
 .admin-topbar__icon-btn {
   position: relative;
   display: flex;
@@ -496,12 +505,35 @@
   flex-shrink: 0;
 }
 
-.admin-stat-card__icon--vert       { background: var(--admin-green-light);      color: var(--admin-green); }
-.admin-stat-card__icon--or         { background: rgba(200, 168, 48, 0.16);   color: #a3841f; }
-.admin-stat-card__icon--rouge      { background: rgba(192, 57, 43, 0.12);    color: var(--admin-danger); }
-.admin-stat-card__icon--ardoise    { background: rgba(58, 79, 99, 0.14);     color: var(--couleurComp, #3A4F63); }
-.admin-stat-card__icon--terracotta { background: rgba(193, 105, 63, 0.14);   color: var(--admin-terracotta); }
-.admin-stat-card__icon--foret      { background: rgba(26, 61, 26, 0.12);     color: var(--green, #1a3d1a); }
+.admin-stat-card__icon--vert {
+  background: var(--admin-green-light);
+  color: var(--admin-green);
+}
+
+.admin-stat-card__icon--or {
+  background: rgba(200, 168, 48, 0.16);
+  color: #a3841f;
+}
+
+.admin-stat-card__icon--rouge {
+  background: rgba(192, 57, 43, 0.12);
+  color: var(--admin-danger);
+}
+
+.admin-stat-card__icon--ardoise {
+  background: rgba(58, 79, 99, 0.14);
+  color: var(--couleurComp, #3A4F63);
+}
+
+.admin-stat-card__icon--terracotta {
+  background: rgba(193, 105, 63, 0.14);
+  color: var(--admin-terracotta);
+}
+
+.admin-stat-card__icon--foret {
+  background: rgba(26, 61, 26, 0.12);
+  color: var(--green, #1a3d1a);
+}
 
 .admin-stat-card__value {
   font-size: 1.6rem;
@@ -522,8 +554,6 @@
   font-weight: 600;
 }
 
-/* bandeau "action automatique" — remplace visuellement les N signalements
-   ayant déclenché le seuil par une seule explication au-dessus du dernier */
 .admin-auto-banner {
   margin: 0 0 10px;
   padding: 8px 12px;
@@ -537,6 +567,16 @@
 .admin-badge--blocked {
   background: var(--admin-danger);
   color: #fff;
+}
+
+.admin-tag--entreprise {
+  background: rgba(47, 74, 60, 0.12);
+  color: var(--admin-green);
+}
+
+.admin-tag--individuel {
+  background: rgba(20, 20, 20, 0.06);
+  color: var(--admin-text-light);
 }
 
 .admin-btn--danger {
@@ -611,6 +651,41 @@
   resize: vertical;
 }
 
+.admin-support-item__sous-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-support-item__sous-item {
+  padding: 10px 14px;
+  background: var(--admin-bg);
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.85rem;
+}
+
+.admin-support-item__sous-item .admin-support-item__contenu {
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: var(--admin-card);
+}
+
+.admin-support-item__explication {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: var(--admin-radius-sm);
+  background: var(--rk-green-light, #e3f3e8);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+[data-theme="dark"] .admin-support-item__explication {
+  background: rgba(63, 122, 90, 0.15);
+}
+
 /* ===================== Formulaire catégorie ===================== */
 
 .admin-card-header {
@@ -649,9 +724,7 @@
   color: var(--admin-danger);
 }
 
-/* ===================== Contenu de page (en-tête, cartes, listes, boutons) =====================
-   Équivalents autonomes des classes .profil-* de ProfilAcheteur.css — copiés
-   ici pour que ce fichier n'ait plus aucune dépendance envers une autre page. */
+/* ===================== Contenu de page (en-tête, cartes, listes, boutons) ===================== */
 
 .admin-page-header {
   display: flex;
@@ -700,6 +773,125 @@
   letter-spacing: 0.04em;
 }
 
+/* barre de progression d'un envoi de sauvegarde vers Google Drive */
+.admin-progress-wrap {
+  margin-top: 14px;
+}
+
+.admin-progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.admin-progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--admin-border);
+  overflow: hidden;
+}
+
+.admin-progress-fill {
+  height: 100%;
+  background: var(--admin-green);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* section repliable */
+.admin-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.admin-card__header .admin-card__title {
+  margin: 0;
+}
+
+.admin-card__toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--admin-green-light);
+  color: var(--admin-green);
+  border: none;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.admin-card__toggle-chevron {
+  transition: transform 0.15s ease;
+}
+
+.admin-card__toggle-chevron--ouvert {
+  transform: rotate(180deg);
+}
+
+/* barre de filtres (intervalle de date, statut, recherche nom/prénom pour
+   les comptes ; disponibilité/nom pour les produits) */
+.admin-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 14px;
+  margin-bottom: 18px;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+}
+
+.admin-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-filter-field label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--admin-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.admin-filter-field input,
+.admin-filter-field select {
+  padding: 7px 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.85rem;
+  background: var(--admin-card);
+  color: var(--admin-text);
+  min-width: 150px;
+}
+
+.admin-filter-bar__reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--admin-text-light);
+  height: 34px;
+}
+
 .admin-tag {
   display: inline-block;
   background: var(--admin-green-light);
@@ -728,11 +920,6 @@
   opacity: 0.9;
 }
 
-/* modal auto-suffisant (voir formulaire "Créer un compte ADM") — n'utilise
-   que les variables --admin-* déjà définies sur .admin-shell ci-dessus,
-   contrairement à pd-modal/pd-modal-overlay (DetailProduit.css) dont les
-   variables --pd-* ne sont pas chargées sur cette page et laissaient le
-   fond de la carte transparent */
 .admin-modal-overlay {
   position: fixed;
   inset: 0;
@@ -784,6 +971,19 @@
 .admin-action-btn--secondary {
   background: var(--admin-green);
   color: #fff;
+}
+
+.admin-action-btn--danger {
+  background: var(--admin-danger);
+  color: #fff;
+}
+
+.admin-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .admin-icon-btn {

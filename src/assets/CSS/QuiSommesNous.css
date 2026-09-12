@@ -1,9 +1,3 @@
-/* =============================================================
-   RekoltHT — Qui sommes-nous (public)
-   Fichier autonome : ne dépend d'aucune variable/classe définie ailleurs.
-   Toutes les classes sont préfixées "qs-".
-   ============================================================= */
-
 .qs-page {
   --qs-terracotta: #c1693f;
   --qs-terracotta-dark: #a85a35;

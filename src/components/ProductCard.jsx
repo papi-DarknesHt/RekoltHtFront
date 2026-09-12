@@ -3,8 +3,9 @@ import { MapPin, MessageCircle, ArrowUpRight, Store, Phone } from "lucide-react"
 import "../assets/CSS/ProductCard.css";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
 import { construireLienWhatsApp, construireMessageWhatsApp, normaliserNumeroWhatsApp } from "../utils/whatsapp.js";
+import { symboleDevise } from "../utils/symboleDevise.js";
 import StarRating from "./StarRating.jsx";
-import logoSite from "../assets/Images/Asset5.svg";
+import logoSite from "../assets/Images/Asset 2.png";
 
 // glyphe générique "contact via messagerie téléphonique" (pas le logo
 // WhatsApp officiel) — couleur de marque reconnaissable, sans reproduire
@@ -58,7 +59,7 @@ export default function ProductCard({ produit, onDetails, onContact, onWhatsapp,
         {prix != null && (
           <span className="produit-prix-badge">
             {prix}
-            <small>{devise ? ` ${devise}` : t("home.priceSuffix")}</small>
+            <small>{devise ? ` ${symboleDevise(devise)}` : t("home.priceSuffix")}</small>
           </span>
         )}
       </div>

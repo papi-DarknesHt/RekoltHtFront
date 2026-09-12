@@ -8,6 +8,8 @@ import StarRating from "../components/StarRating.jsx";
 import BoutonRetour from "../components/BoutonRetour.jsx";
 import logoSite from "../assets/Images/Asset5.svg";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
+import { nomLocalise } from "../utils/nomLocalise.js";
+import { symboleDevise } from "../utils/symboleDevise.js";
 import { useGlobalStore } from "../api/globalStore.js";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { ProduitsApi } from "../api/produits";
@@ -41,7 +43,7 @@ function versProduitAffiche(p, texteNonPrecise, texteHaiti) {
 
 export default function DetailProduit() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
 
@@ -83,7 +85,7 @@ export default function DetailProduit() {
   const [avisErreur, setAvisErreur] = useState(null);
   const [suppressionAvisEnCoursId, setSuppressionAvisEnCoursId] = useState(null);
 
-  useEffect(() => {
+  const chargerDetailProduit = () => {
     if (!id) {
       // clé de traduction stockée telle quelle, résolue au rendu (voir
       // t(erreur) plus bas) — évite de dépendre de `t` dans cet effet
@@ -122,7 +124,18 @@ export default function DetailProduit() {
         setAccesRestreint(err.code === "COMPTE_BLOQUE");
       })
       .finally(() => setChargement(false));
-  }, [id]);
+  };
+  useEffect(chargerDetailProduit, [id]);
+
+  // rattrapage après une coupure WebSocket (voir reconnectedAt,
+  // api/globalStore.js) : un changement diffusé pendant la coupure
+  // (produit modifié/rendu indisponible, nouvel avis...) serait sinon perdu
+  const reconnectedAt = useGlobalStore((s) => s.reconnectedAt);
+  useEffect(() => {
+    if (!reconnectedAt) return;
+    chargerDetailProduit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reconnectedAt]);
 
   // réactivité temps réel (voir Produits/signals.py côté backend) : si ce
   // produit est modifié/rendu indisponible/supprimé par son vendeur pendant
@@ -319,7 +332,7 @@ export default function DetailProduit() {
               </div>
 
               <div className="pd-info">
-                {produit.sous_categorie && <span className="pd-badge">{produit.sous_categorie.nom}</span>}
+                {produit.sous_categorie && <span className="pd-badge">{nomLocalise(produit.sous_categorie, lang)}</span>}
                 <h1 className="pd-title">{produit.nom}</h1>
 
                 {produit.nombre_avis > 0 && (
@@ -334,7 +347,7 @@ export default function DetailProduit() {
                 <p className="pd-price">
                   {produit.prix != null ? (
                     <>
-                      {produit.prix} <small>{produit.unitePrix}{produit.unite_De_Mesure ? ` / ${produit.unite_De_Mesure}` : ""}</small>
+                      {produit.prix} <small>{symboleDevise(produit.unitePrix)}{produit.unite_De_Mesure ? ` / ${produit.unite_De_Mesure}` : ""}</small>
                     </>
                   ) : (
                     t("productDetail.priceOnRequest")
@@ -457,7 +470,7 @@ export default function DetailProduit() {
                         onChange={(e) => setAvisForm((f) => ({ ...f, commentaire: e.target.value }))}
                         placeholder={t("productDetail.reviewCommentPlaceholder")}
                       />
-                      {avisErreur && <p className="rk-error">✗ {avisErreur}</p>}
+                      {avisErreur && <p className="rk-error"><XCircle size={20}/> {avisErreur}</p>}
                       <button type="submit" className="rk-btn" disabled={avisEnCours} style={{ maxWidth: "220px" }}>
                         {avisEnCours ? t("seller.saving") : t("productDetail.reviewSubmit")}
                       </button>
@@ -592,7 +605,7 @@ export default function DetailProduit() {
                     placeholder={t("productDetail.reportReasonPlaceholder")}
                   />
                 </div>
-                {signalementErreur && <p className="rk-error">✗ {signalementErreur}</p>}
+                {signalementErreur && <p className="rk-error"><XCircle size={20}/> {signalementErreur}</p>}
                 <button type="submit" className="rk-btn" disabled={signalementEnCours}>
                   {signalementEnCours ? t("seller.saving") : t("productDetail.reportSubmit")}
                 </button>

@@ -67,7 +67,7 @@ export default function ForcerChangementMotDePasse() {
                         <label className="rk-label">{t("profile.confirmNewPassword")}</label>
                         <input type="password" className="rk-input" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} required minLength={8} />
                     </div>
-                    {erreur && <p className="rk-error">✗ {erreur}</p>}
+                    {erreur && <p className="rk-error"><XCircle size={20}/> {erreur}</p>}
                     <div className="confirm-modal__actions">
                         <button type="button" className="confirm-modal__btn confirm-modal__btn--secondary" onClick={deconnexion}>
                             {t("nav.logout")}

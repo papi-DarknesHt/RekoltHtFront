@@ -7,6 +7,7 @@ import NavBar from "../components/NavBar.jsx";
 import BoutonRetour from "../components/BoutonRetour.jsx";
 import Footer from "../components/Footer.jsx";
 import { useTranslation } from "../assets/Translate/i18n.jsx";
+import { nomLocalise } from "../utils/nomLocalise.js";
 import { useGlobalStore } from "../api/globalStore.js";
 import { applyListEvent } from "../api/applyListEvent.js";
 import { ProduitsApi } from "../api/produits";
@@ -46,7 +47,7 @@ function _trouverReferenceJSON(nomSousCategorie) {
 
 export default function AjouterProduit() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const categorieEvent = useGlobalStore((s) => s.categorieEvent);
   const sousCategorieEvent = useGlobalStore((s) => s.sousCategorieEvent);
 
@@ -305,7 +306,7 @@ export default function AjouterProduit() {
                             onChange={() => toggleSelectionCategorie(c.id)}
                           />
                           <span className="ap-category-chip__icon"><Tag size={16} /></span>
-                          <span className="ap-category-chip__label">{c.nom}</span>
+                          <span className="ap-category-chip__label">{nomLocalise(c, lang)}</span>
                           {selectionnee && <CheckCircle2 size={18} className="ap-category-chip__check" />}
                         </label>
                       </li>
@@ -346,29 +347,29 @@ export default function AjouterProduit() {
                       >
                         <option value="">{t("product.selectSubCategory")}</option>
                         {sousCategoriesDisponibles.map((sc) => (
-                          <option key={sc.id} value={sc.id}>{sc.nom}</option>
+                          <option key={sc.id} value={sc.id}>{nomLocalise(sc, lang)}</option>
                         ))}
                       </select>
                     </label>
 
                     <label className="ap-field">
                       {t("product.name")} *
-                      {suggestionsNom.length > 0 ? (
-                        <select
-                          className="ap-input"
-                          value={form.nom}
-                          onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
-                        >
-                          <option value="">{t("product.selectName")}</option>
-                          {suggestionsNom.map((nom) => <option key={nom} value={nom}>{nom}</option>)}
-                        </select>
-                      ) : (
-                        <input
-                          type="text"
-                          className="ap-input"
-                          value={form.nom}
-                          onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
-                        />
+                      {/* la liste du référentiel n'est qu'une PROPOSITION (voir
+                          <datalist>) — le vendeur doit pouvoir saisir librement
+                          un nom qui n'y figure pas, tant qu'il reste dans la
+                          sous-catégorie choisie ; un <select> forçait
+                          auparavant un choix strict parmi cette liste */}
+                      <input
+                        type="text"
+                        className="ap-input"
+                        list={suggestionsNom.length > 0 ? "suggestions-nom-produit" : undefined}
+                        value={form.nom}
+                        onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
+                      />
+                      {suggestionsNom.length > 0 && (
+                        <datalist id="suggestions-nom-produit">
+                          {suggestionsNom.map((nom) => <option key={nom} value={nom} />)}
+                        </datalist>
                       )}
                     </label>
                   </div>

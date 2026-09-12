@@ -1,9 +1,3 @@
-/* =============================================================
-   RekoltHT — Politique d'utilisation (public)
-   Fichier autonome : ne dépend d'aucune variable/classe définie ailleurs.
-   Toutes les classes sont préfixées "pu-".
-   ============================================================= */
-
 .pu-page {
   --pu-terracotta: #c1693f;
   --pu-green: #2f4a3c;

@@ -1,12 +1,3 @@
-/* =============================================================
-   RekoltHT — Graphiques du tableau de bord admin (diagramme circulaire
-   comptes par type, histogrammes produits par catégorie / les plus
-   consultés). Ink/gridlines/surface réutilisent les tokens --rk-*
-   (ProfilAcheteur.css) déjà très proches des recommandations "chart
-   chrome" — seules les couleurs catégorielles (séries) sont nouvelles :
-   palette validée CVD (voir dataviz skill, palette.md), slots 1-3,
-   ordre fixe jamais permuté.
-   ============================================================= */
 
 :root {
   --chart-series-1: #2a78d6; /* bleu — slot 1 */
@@ -190,6 +181,27 @@
   color: var(--chart-ink);
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* ===================== Diagramme de fréquence (barres verticales) ===================== */
+
+.rk-vbar__svg {
+  display: block;
+}
+
+.rk-vbar__barre {
+  transition: opacity 0.12s ease;
+}
+
+.rk-vbar__hitzone {
+  fill: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+.rk-vbar__hitzone:hover ~ .rk-vbar__barre,
+.rk-vbar__hitzone:focus-visible ~ .rk-vbar__barre {
+  opacity: 0.85;
 }
 
 /* ===================== Graphique en ligne ===================== */

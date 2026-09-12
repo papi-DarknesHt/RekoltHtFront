@@ -34,6 +34,7 @@ import { useTranslation } from "../assets/Translate/i18n.jsx";
 import departementsData from "../assets/Departements/haiti_departements.json";
 import { fusionnerLocalisationDetectee, niveauDetecteDepuisLoc } from "../utils/geoLookup.js";
 import { useConfirmStore } from "../api/confirmStore.js";
+import { soumettreSurEntree } from "../utils/formShortcuts.js";
 
 
 
@@ -172,12 +173,24 @@ export default function ModifierProfil() {
 
   const handleChange = (field) => (event) => {
     const valeur = filtrerSaisie(field, event.target.value);
-    setForm((prev) => ({ ...prev, [field]: valeur }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: valeur };
+      // changer le département invalide la commune/section déjà choisies
+      // (même règle qu'Authentification.jsx/DevenirVendeur.jsx) — sans ça,
+      // une paire département/commune géographiquement incohérente pouvait
+      // être sauvegardée
+      if (field === "departement") { next.commune = ""; next.section_communale = ""; }
+      return next;
+    });
   };
 
   const handleEntrepriseChange = (field) => (event) => {
     const valeur = filtrerSaisie(field, event.target.value);
-    setEntrepriseForm((prev) => ({ ...prev, [field]: valeur }));
+    setEntrepriseForm((prev) => {
+      const next = { ...prev, [field]: valeur };
+      if (field === "departement") { next.commune = ""; next.section_communale = ""; }
+      return next;
+    });
   };
 
   const handlePasswordChange = (field) => (event) => {
@@ -299,7 +312,11 @@ export default function ModifierProfil() {
         setMessage({ type: "error", text: t("profile.invalidEmail") });
         return;
       }
-      if (!form.telephone.trim() || !isValidTelephone(form.telephone)) {
+      // le téléphone n'est pas obligatoire (contrairement à l'inscription,
+      // Registration/Authentification.jsx) : un compte déjà créé n'a pas
+      // besoin de continuer à en fournir un pour rester joignable (email
+      // suffit) — seul le FORMAT reste vérifié s'il en saisit un
+      if (form.telephone.trim() && !isValidTelephone(form.telephone)) {
         setMessage({ type: "error", text: t("profile.invalidPhone") });
         return;
       }
@@ -329,7 +346,7 @@ export default function ModifierProfil() {
           nom: form.nom,
           prenom: form.prenom,
           email: form.email,
-          telephone: formatTelephone(form.telephone),
+          telephone: form.telephone.trim() ? formatTelephone(form.telephone) : "",
         });
 
         await modifierProfil({
@@ -377,6 +394,14 @@ export default function ModifierProfil() {
   // photo/logo affiché(e) : aperçu local en priorité, sinon celui déjà enregistré
   const photoAffichee = photoPreview || (isEntreprise ? entreprise?.logo : profil?.photo_profil) || null;
 
+  // Entrée = valider le formulaire de l'onglet actif (voir ../utils/formShortcuts.js
+  // et la même logique dans Registration/Authentification.jsx) — pas de vraie
+  // balise <form> ici non plus, juste un bouton type="button" + onClick
+  const gererEntreeProfil = soumettreSurEntree(() => {
+    if (tab === "securite") handleChangePassword();
+    else handleSave();
+  });
+
   return (
     <div className="edit-page">
       {/* ===== Barre de navigation ===== */}
@@ -401,7 +426,7 @@ export default function ModifierProfil() {
         </aside>
 
         {/* ===== Contenu principal ===== */}
-        <main className="edit-main">
+        <main className="edit-main" onKeyDown={gererEntreeProfil}>
           <BoutonRetour />
           <div className="edit-header">
             <div>
@@ -513,7 +538,11 @@ export default function ModifierProfil() {
                           className="edit-input"
                           value={entrepriseForm.secteur}
                           onChange={handleEntrepriseChange("secteur")}
+                          disabled={entrepriseVerifiee}
                         />
+                        {entrepriseVerifiee && (
+                          <p className="edit-field-hint">{t("profile.companySectorLocked")}</p>
+                        )}
                       </div>
 
                       <div className="edit-field">
@@ -549,9 +578,13 @@ export default function ModifierProfil() {
                               type="email"
                               className="edit-input"
                               value={entrepriseForm.email}
-                              onChange={handleEntrepriseChange("email")}
+                              disabled
+                              readOnly
+                              title={t("profile.emailLockedHint")}
                             />
+                            <Lock size={14} className="edit-input-icon edit-input-icon--right" />
                           </div>
+                          <p className="edit-field__hint">{t("profile.emailLockedHint")}</p>
                         </div>
 
                         <div className="edit-field">
@@ -709,14 +742,19 @@ export default function ModifierProfil() {
                               type="email"
                               className="edit-input"
                               value={form.email}
-                              onChange={handleChange("email")}
+                              disabled
+                              readOnly
+                              title={t("profile.emailLockedHint")}
                             />
+                            <Lock size={14} className="edit-input-icon edit-input-icon--right" />
                           </div>
+                          <p className="edit-field__hint">{t("profile.emailLockedHint")}</p>
                         </div>
 
                         <div className="edit-field">
                           <label className="edit-label" htmlFor="phone">
                             {t("profile.phoneNumber")}
+                            <span className="edit-label__optional">{t("profile.optional")}</span>
                           </label>
                           <div className="edit-input-with-icon">
                             <Phone size={16} className="edit-input-icon" />
@@ -724,6 +762,10 @@ export default function ModifierProfil() {
                               id="phone"
                               type="tel"
                               className="edit-input"
+                              placeholder={t("auth.phonePlaceholder")}
+                              inputMode="tel"
+                              maxLength={16}
+                              autoComplete="tel"
                               value={form.telephone}
                               onChange={handleChange("telephone")}
                             />

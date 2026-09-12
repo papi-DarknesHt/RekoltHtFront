@@ -14,12 +14,14 @@ import {
     Sun,
     Moon,
     ShieldAlert,
+    Store,
 } from "lucide-react";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { useProfilStore } from "../Profil/ProfilStore";
 import { useGlobalStore } from "../api/globalStore.js";
 import { useMessagerieBadgeStore } from "../api/messagerieBadgeStore.js";
 import { useThemeStore } from "../api/themeStore.js";
+import { useNotifPushStore } from "../api/notifPushStore.js";
 import logo from "../assets/Images/Asset5.svg";
 import "../assets/CSS/NavBar.css";
 
@@ -35,6 +37,11 @@ export default function Navbar() {
     const afficherProfil = useProfilStore((s) => s.afficherProfil);
     const isAdmin = profil?.role === "admin";
     const isVendeur = profil?.role === "vendeur";
+    // un acheteur (ni vendeur, ni admin) peut demander à devenir vendeur —
+    // le lien reste affiché même en cours de vérification/après un échec :
+    // DevenirVendeur.jsx détecte lui-même une demande déjà en cours et
+    // affiche directement l'écran de statut (voir vue === "statut")
+    const peutDevenirVendeur = isConnecte && !isVendeur && !isAdmin;
     // compte bloqué par un admin (voir Utilisateur.bloquer, Registration/models.py)
     // — accès restreint mais navigable, voir la bannière plus bas et
     // Messagerie/views.py::demarrerConversation/envoyerMessage,
@@ -60,6 +67,15 @@ export default function Navbar() {
         if (isConnecte && messageEvent) rafraichirNonLus();
     }, [messageEvent, isConnecte, rafraichirNonLus]);
 
+    // rattrapage après une coupure WebSocket (voir reconnectedAt,
+    // api/globalStore.js) : un message reçu PENDANT la coupure ne
+    // déclencherait autrement jamais rafraichirNonLus() (NavBar ne remonte
+    // pas tant que l'utilisateur reste sur la même page)
+    const reconnectedAt = useGlobalStore((s) => s.reconnectedAt);
+    useEffect(() => {
+        if (isConnecte && reconnectedAt) rafraichirNonLus();
+    }, [reconnectedAt, isConnecte, rafraichirNonLus]);
+
     // pastille "demandes vendeur" (admin uniquement) — un vendeur qui envoie
     // un message via "Contacter un admin" (voir Support/ContacterAdmin.jsx)
     // doit déclencher une notification visible de n'importe quelle page,
@@ -76,7 +92,35 @@ export default function Navbar() {
         if (isConnecte && isAdmin && messageAdminEvent) rafraichirSupport();
     }, [messageAdminEvent, isConnecte, isAdmin, rafraichirSupport]);
 
+    useEffect(() => {
+        if (isConnecte && isAdmin && reconnectedAt) rafraichirSupport();
+    }, [reconnectedAt, isConnecte, isAdmin, rafraichirSupport]);
+
     const totalNotifications = nonLus + (isAdmin ? messagesSupportEnAttente : 0);
+
+    // commutateur "notifications navigateur", accessible en permanence dans
+    // ce menu (demande explicite : "donner à l'utilisateur de l'activer et
+    // de le désactiver quand il veut", pas seulement via la modale de
+    // première demande — voir NotificationsPermission.jsx). Notification.permission
+    // ("default"/"granted"/"denied") est mémorisé par le NAVIGATEUR, jamais
+    // révocable en JS — recalculé au montage, mis à jour manuellement après
+    // un clic "Activer" ci-dessous ; notifsActivees (voir notifPushStore.js)
+    // est LUI un simple drapeau applicatif que l'utilisateur peut basculer
+    // librement dans un sens comme dans l'autre, une fois la permission déjà accordée.
+    const notifNavigateurSupporte = typeof window !== "undefined" && "Notification" in window;
+    const [permissionNotif, setPermissionNotif] = useState(() => (notifNavigateurSupporte ? Notification.permission : "unsupported"));
+    const notifsActivees = useNotifPushStore((s) => s.activees);
+    const definirNotifsActivees = useNotifPushStore((s) => s.definir);
+
+    const activerNotifsNavigateur = async () => {
+        try {
+            const resultat = await Notification.requestPermission();
+            setPermissionNotif(resultat);
+            if (resultat === "granted") definirNotifsActivees(true);
+        } catch {
+            // API refusée/indisponible — rien de plus à faire
+        }
+    };
 
     // S'assure que le logo de l'entreprise et la photo de profil sont à jour
     // même si la session était déjà ouverte avant le rechargement de la page
@@ -166,8 +210,8 @@ export default function Navbar() {
                 {/* Liens de navigation — desktop */}
                 <ul className="nav-links">
                     <li><Link to="/">{t("nav.home")}</Link></li>
-                    <li><a href="/produits">{t("nav.products")}</a></li>
-                    <li><a href="/aide">{t("nav.help")}</a></li>
+                    <li><Link to="/produits">{t("nav.products")}</Link></li>
+                    <li><Link to="/aide">{t("nav.help")}</Link></li>
                     {isConnecte && isVendeur && (
                         <li><Link to="/produits/tableau-de-bord">{t("nav.vendorDashboard")}</Link></li>
                     )}
@@ -231,6 +275,34 @@ export default function Navbar() {
                                         {totalNotifications === 0 && (
                                             <p className="nav-notif-vide">{t("nav.noNotifications")}</p>
                                         )}
+                                        {notifNavigateurSupporte && (
+                                            <div className="nav-notif-footer">
+                                                <span className="nav-notif-footer__label">
+                                                    <Bell size={14} />
+                                                    {t("notifPush.toggleLabel")}
+                                                </span>
+                                                {permissionNotif === "granted" && (
+                                                    <button
+                                                        type="button"
+                                                        className={`nav-notif-toggle ${notifsActivees ? "nav-notif-toggle--on" : ""}`}
+                                                        role="switch"
+                                                        aria-checked={notifsActivees}
+                                                        aria-label={t("notifPush.toggleLabel")}
+                                                        onClick={() => definirNotifsActivees(!notifsActivees)}
+                                                    >
+                                                        <span className="nav-notif-toggle__thumb" />
+                                                    </button>
+                                                )}
+                                                {permissionNotif === "default" && (
+                                                    <button type="button" className="nav-notif-footer__link" onClick={activerNotifsNavigateur}>
+                                                        {t("notifPush.enable")}
+                                                    </button>
+                                                )}
+                                                {permissionNotif === "denied" && (
+                                                    <span className="nav-notif-footer__blocked">{t("notifPush.blockedByBrowser")}</span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -282,6 +354,15 @@ export default function Navbar() {
                                             <User size={16} />
                                             {t("nav.myProfile")}
                                         </button>
+                                        {peutDevenirVendeur && (
+                                            <button
+                                                className="dropdown-item"
+                                                onClick={() => { navigate("/Devenir_Vendeur"); setMenuOpen(false); }}
+                                            >
+                                                <Store size={16} />
+                                                {t("nav.becomeSeller")}
+                                            </button>
+                                        )}
                                         <div className="divider" />
                                         <button
                                             className="dropdown-item logout"
@@ -328,8 +409,8 @@ export default function Navbar() {
                 <div className="nav-mobile-panel">
                     <ul className="nav-mobile-links">
                         <li><Link to="/" onClick={closeMobile}>{t("nav.home")}</Link></li>
-                        <li><a href="#" onClick={closeMobile}>{t("nav.products")}</a></li>
-                        <li><a href="#" onClick={closeMobile}>{t("nav.help")}</a></li>
+                        <li><Link to="/produits" onClick={closeMobile}>{t("nav.products")}</Link></li>
+                        <li><Link to="/aide" onClick={closeMobile}>{t("nav.help")}</Link></li>
                         {isConnecte && (
                             <li><Link to="/messages" onClick={closeMobile}>{t("nav.messages")}</Link></li>
                         )}
@@ -375,6 +456,15 @@ export default function Navbar() {
                                     <User size={16} />
                                     {t("nav.myProfile")}
                                 </button>
+                                {peutDevenirVendeur && (
+                                    <button
+                                        className="nav-mobile-link-btn"
+                                        onClick={() => { navigate("/Devenir_Vendeur"); closeMobile(); }}
+                                    >
+                                        <Store size={16} />
+                                        {t("nav.becomeSeller")}
+                                    </button>
+                                )}
                                 <button
                                     className="nav-mobile-link-btn logout"
                                     onClick={handleDeconnexion}

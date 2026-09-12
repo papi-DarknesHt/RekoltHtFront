@@ -2,7 +2,27 @@ import { create } from "zustand";
 
 export const useGlobalStore = create((set) => ({
   connected: false,
-  setConnected: (v) => set({ connected: v }),
+  // horodatage de la dernière reconnexion RÉUSSIE après une coupure (pas du
+  // tout premier montage) — voir useGlobalSocket.js. Un composant qui affiche
+  // des données temps réel (ex: Messagerie.jsx) s'y abonne pour refaire un
+  // GET de secours après une coupure : pendant que le socket est down (veille
+  // de l'appareil, wifi qui saute, cold-start Render...), tout évènement
+  // diffusé par le backend est perdu — dispatch() ne fait que remplacer le
+  // "dernier évènement", il ne rejoue jamais ceux manqués. Sans ce correctif,
+  // il fallait recharger la page à la main pour revoir l'état à jour (bug
+  // signalé explicitement).
+  reconnectedAt: 0,
+  // interne : distingue le tout premier "open" (déjà couvert par le fetch
+  // initial de chaque composant au montage, pas besoin de le redéclencher)
+  // d'une VRAIE reconnexion après coupure
+  _dejaConnecteUneFois: false,
+  setConnected: (v) =>
+    set((state) => {
+      if (v && state._dejaConnecteUneFois) {
+        return { connected: true, reconnectedAt: Date.now() };
+      }
+      return { connected: v, _dejaConnecteUneFois: state._dejaConnecteUneFois || v };
+    }),
 
   // dernier évènement "verification.updated" reçu (KYC vendeur, voir
   // Registration/signals.py côté backend) — DevenirVendeur.jsx s'y abonne
@@ -86,6 +106,49 @@ export const useGlobalStore = create((set) => ({
   // diffusion au groupe "admins" que signalementEvent ci-dessus.
   signalementAvisEvent: null,
 
+  // dernier évènement de demande administrative reçu (voir
+  // Registration/signals.py::broadcast_demande_administrative côté backend) —
+  // { type: "demande_administrative.created"|"demande_administrative.traitee",
+  // data }. "created" diffusé au groupe "admins" (AdminDashboard.jsx, file
+  // "Demandes administratives en attente"), "traitee" à la fois à "admins"
+  // (retire la demande de la file des autres admins, payload {id} seulement)
+  // et au demandeur lui-même via son groupe personnel "user_<id>" (payload
+  // complet — Support/DemandeAdministrative.jsx, page "Mes demandes").
+  demandeAdministrativeEvent: null,
+
+  // dernier évènement entreprise reçu (voir Registration/signals.py::
+  // broadcast_entreprise côté backend, groupe "admins" uniquement) — { type:
+  // "entreprise.created"|"entreprise.updated", data }. ProfilAcheteur.jsx
+  // (onglet admin "Entreprises") s'y abonne pour patcher sa liste sans
+  // rechargement de page. Distinct de utilisateurEvent (broadcast_utilisateur
+  // couvre aussi Entreprise, mais avec les champs génériques Utilisateur, pas
+  // nom_Entreprise/secteur/logo/statut_verification).
+  entrepriseEvent: null,
+
+  // dernier évènement de coordonnées GPS d'entreprise reçu (voir
+  // Registration/signals.py::broadcast_entreprise, groupe "global" — payload
+  // volontairement réduit, contrairement à entrepriseEvent ci-dessus qui ne
+  // reçoit rien côté visiteur non-admin) — { vendeur_id, latitude, longitude,
+  // recu }. MapHaiti.jsx s'y abonne pour refléter un changement de position
+  // sans rechargement manuel de la page d'accueil.
+  entrepriseLocalisationEvent: null,
+
+  // dernier évènement de demande KYC en revue manuelle reçu (voir
+  // Registration/signals.py::broadcast_verification côté backend) — { type:
+  // "verification.revue_manuelle.created"|"verification.revue_manuelle.traitee",
+  // data }, même diffusion au groupe "admins" que signalementEvent ci-dessus.
+  verificationManuelleEvent: null,
+
+  // dernier évènement de progression d'une sauvegarde Google Drive reçu (voir
+  // Sauvegarde/services/export_service.py::executer_sauvegarde côté backend,
+  // diffusé au groupe "admins") — { type: "sauvegarde.progression"|
+  // "sauvegarde.terminee", data }. "progression" contient pourcentage/
+  // minutes_restantes/octets_envoyes/octets_total, "terminee" seulement le
+  // statut final (succes|echec) — AdminDashboard.jsx s'y abonne pour afficher
+  // une barre de progression pendant l'envoi (l'écriture locale est quasi
+  // instantanée, seul Google Drive justifie ce suivi).
+  sauvegardeEvent: null,
+
   dispatch: ({ type, data }) => {
     set((state) => {
       switch (type) {
@@ -136,6 +199,20 @@ export const useGlobalStore = create((set) => ({
         case "signalement_avis.created":
         case "signalement_avis.traite":
           return { ...state, signalementAvisEvent: { type, data, recu: Date.now() } };
+        case "demande_administrative.created":
+        case "demande_administrative.traitee":
+          return { ...state, demandeAdministrativeEvent: { type, data, recu: Date.now() } };
+        case "entreprise.created":
+        case "entreprise.updated":
+          return { ...state, entrepriseEvent: { type, data, recu: Date.now() } };
+        case "entreprise.localisation_maj":
+          return { ...state, entrepriseLocalisationEvent: { type, data, recu: Date.now() } };
+        case "verification.revue_manuelle.created":
+        case "verification.revue_manuelle.traitee":
+          return { ...state, verificationManuelleEvent: { type, data, recu: Date.now() } };
+        case "sauvegarde.progression":
+        case "sauvegarde.terminee":
+          return { ...state, sauvegardeEvent: { type, data, recu: Date.now() } };
         default: return state;
       }
     });

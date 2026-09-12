@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { AuthentificationApi } from "../api/auth";
 import { useProfilStore } from "../Profil/ProfilStore";
-import { useE2eStore } from "../api/e2eStore";
 
 // Nettoie les valeurs corrompues du localStorage au démarrage
 ["profil", "utilisateur", "entreprise"].forEach((key) => {
@@ -18,17 +17,36 @@ export const useAuthStore = create((set, get) => ({
     isConnected: !!AuthentificationApi.isConnected(),
     loading: false,
     error: null,
-    // inscription — enregistre l'utilisateur et met à jour le store
+    // inscription — étape 1 seulement : envoie l'email d'activation, ne
+    // connecte PAS (voir Registration/views.py::sinscrire) — le compte n'existe
+    // pas encore tant que confirmerInscription() n'a pas été appelée (lien
+    // cliqué, voir ActiverCompte.jsx)
     inscription: async (data) => {
         set({ loading: true, error: null });
         try {
             const res = await AuthentificationApi.inscription(data);
+            return res;
+        } catch (error) {
+            set({ error: error.message });
+            throw error;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    // inscription — étape 2 : valide le token du lien d'activation, connecte
+    // enfin le compte (même effet que l'ancienne inscription()/creerEntreprise()
+    // directe) — couvre aussi bien un compte individuel qu'une entreprise
+    // (voir Registration/views.py::confirmerInscription) : res.entreprise
+    // n'est présent que dans ce second cas.
+    confirmerInscription: async (token) => {
+        set({ loading: true, error: null });
+        try {
+            const res = await AuthentificationApi.confirmerInscription(token);
             localStorage.setItem("token", res.token);
             localStorage.setItem("utilisateur", JSON.stringify(res.utilisateur));
-            set({ utilisateur: res.utilisateur, isConnected: true });
-            // met en place la messagerie chiffrée pendant que le mot de passe est
-            // encore en mémoire (voir e2eStore.js::garantirCleE2E) — jamais persisté
-            useE2eStore.getState().garantirCleE2E(data.mot_de_passe).catch(() => {});
+            if (res.entreprise) localStorage.setItem("entreprise", JSON.stringify(res.entreprise));
+            set({ utilisateur: res.utilisateur, isConnected: true, ...(res.entreprise ? { entreprise: res.entreprise } : {}) });
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -46,11 +64,6 @@ export const useAuthStore = create((set, get) => ({
             get().chargerEntreprise();
             // charge le profil (dont la photo) immédiatement après la connexion
             useProfilStore.getState().afficherProfil().catch(() => {});
-            // restaure/configure la messagerie chiffrée pendant que le mot de
-            // passe est encore en mémoire (voir e2eStore.js::garantirCleE2E) —
-            // c'est ce qui permet de retrouver sa clé sur un nouvel appareil
-            // sans rien avoir à saisir de plus ; jamais persisté au-delà de cet appel
-            useE2eStore.getState().garantirCleE2E(data.mot_de_passe).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -71,6 +84,12 @@ export const useAuthStore = create((set, get) => ({
             localStorage.removeItem("token");
             localStorage.removeItem("utilisateur");
             localStorage.removeItem("entreprise");
+            // "profil" (rôle, photo, ...) restait en localStorage/ProfilStore
+            // après déconnexion : sur un poste partagé, le prochain compte
+            // connecté voyait brièvement — ou indéfiniment si son propre
+            // afficherProfil() échouait — le profil de l'utilisateur précédent
+            localStorage.removeItem("profil");
+            useProfilStore.setState({ profil: null });
             set({ utilisateur: null, entreprise: null, isConnected: false, loading: false });
         }
     },
@@ -88,11 +107,6 @@ export const useAuthStore = create((set, get) => ({
             get().chargerEntreprise();
             // charge le profil (dont la photo) immédiatement après la connexion
             useProfilStore.getState().afficherProfil().catch(() => {});
-            // un compte Google n'a pas de mot de passe : on utilise le "sub"
-            // Google (identifiant stable, jamais affiché publiquement,
-            // renvoyé une seule fois par le backend) comme secret de
-            // dérivation de la sauvegarde E2E — voir e2eStore.js::garantirCleE2E
-            useE2eStore.getState().garantirCleE2E(res.google_sub).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -111,8 +125,6 @@ export const useAuthStore = create((set, get) => ({
             localStorage.setItem("utilisateur", JSON.stringify(res.utilisateur));
             // set({ utilisateur: res.utilisateur,profil: res.profil, isConnected: true });
             set({ utilisateur: res.utilisateur, isConnected: true });
-            // voir googleConnexion ci-dessus : secret de dérivation de la sauvegarde E2E
-            useE2eStore.getState().garantirCleE2E(res.google_sub).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -143,12 +155,7 @@ export const useAuthStore = create((set, get) => ({
     modifierMotDePasse: async (data) => {
         set({ loading: true, error: null });
         try {
-            // l'ancien ET le nouveau mot de passe sont connus ici (contrairement
-            // à la réinitialisation par code) : on peut ré-envelopper la clé E2E
-            // déjà active sous le nouveau mot de passe dans la même requête,
-            // pour ne jamais perdre l'accès à l'historique des messages
-            const cleRenveloppee = await useE2eStore.getState().reChiffrerPourNouveauMotDePasse(data.nouveau_mot_de_passe);
-            const res = await AuthentificationApi.modifierMotDePasse({ ...data, ...cleRenveloppee });
+            const res = await AuthentificationApi.modifierMotDePasse(data);
             return res;
         } catch (error) {
             set({ error: error.message });
@@ -158,21 +165,16 @@ export const useAuthStore = create((set, get) => ({
         }
     },
 
-    // inscription autonome d'un compte entreprise (onglet "Antrepriz") — l'entreprise
-    // possède son propre email/mot de passe, comme n'importe quel compte, et est
-    // propriétaire d'elle-même (proprietaire_id === utilisateur.id === entreprise.id).
-    // Connecte directement le compte, comme inscription().
+    // inscription autonome d'un compte entreprise (onglet "Antrepriz") — étape
+    // 1 seulement : envoie l'email d'activation, ne connecte PAS encore (voir
+    // Registration/views.py::creerEntreprise) — le compte n'existe pas encore
+    // tant que confirmerInscription() n'a pas été appelée (lien cliqué, voir
+    // ActiverCompte.jsx), même exigence explicite que pour un compte
+    // individuel : le mail de l'entreprise doit être opérationnel.
     creerEntreprise: async (data) => {
         set({ loading: true, error: null });
         try {
             const res = await AuthentificationApi.creerEntreprise(data);
-            localStorage.setItem("token", res.token);
-            localStorage.setItem("utilisateur", JSON.stringify(res.utilisateur));
-            localStorage.setItem("entreprise", JSON.stringify(res.entreprise));
-            set({ utilisateur: res.utilisateur, entreprise: res.entreprise, isConnected: true });
-            // met en place la messagerie chiffrée pendant que le mot de passe est
-            // encore en mémoire (voir e2eStore.js::garantirCleE2E) — jamais persisté
-            useE2eStore.getState().garantirCleE2E(data.mot_de_passe).catch(() => {});
             return res;
         } catch (error) {
             set({ error: error.message });

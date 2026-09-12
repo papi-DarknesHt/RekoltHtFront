@@ -7,23 +7,29 @@ import { useChatbotStore } from "./chatbotStore.js";
 import { useAuthStore } from "../Registration/AuthentificationStore";
 import { useProfilStore } from "../Profil/ProfilStore.js";
 import { MessagerieApi } from "../api/messagerie";
-import { useE2eStore } from "../api/e2eStore.js";
-import { chiffrerEnEnveloppe } from "../utils/e2eCrypto.js";
 import { SECTIONS_AIDE, SECTIONS_A_PROPOS, SECTIONS_CONDITIONS } from "../assets/Translate/faqSections.js";
-import { trouverReponseFaq } from "../utils/faqMatcher.js";
 
 // Assistant flottant, monté une seule fois globalement (voir App.jsx) pour
 // être disponible sur toutes les pages. Deux rôles :
 // 1. Conseil contextuel pendant le wizard DevenirVendeur.jsx (comportement
 //    d'origine, voir chatbotStore.js) — affiché comme premier message du bot
 //    à l'ouverture, si un contexte est actif.
-// 2. Petit agent de FAQ : la question tapée par l'utilisateur est recoupée
-//    avec le contenu des pages Aide, Qui sommes-nous et Politique
-//    d'utilisation (aide.sections.*/about.*/terms.*, voir faqSections.js
-//    et utils/faqMatcher.js — recoupement de mots-clés, pas un vrai NLP). Si
-//    aucune réponse ne ressort, propose de transmettre la question à un admin
-//    (voir Messagerie/views.py::contacterAdmin, ouvert à tout compte
-//    acheteur/vendeur connecté, pas seulement vendeur).
+// 2. Assistant conversationnel : chaque question tapée est envoyée à un vrai
+//    modèle de langage (Claude, voir Messagerie/services/chatbot_ia_service.py
+//    et Messagerie/views.py::chatbotRepondre) accompagnée de tout le contenu
+//    du Centre d'aide/À propos/Conditions (aide.sections.*/about.*/terms.*,
+//    voir faqSections.js — même source que les pages publiques, jamais
+//    dupliquée) : l'IA s'appuie STRICTEMENT sur cette documentation, tolère
+//    les fautes de frappe/formulations vagues, pose une question de
+//    clarification plutôt que de deviner sur un mot-clé trop large (ex.
+//    "vendeur" tout seul), et signale elle-même quand une question sort de ce
+//    périmètre (`hors_sujet`, voir soumettreQuestion) — remplace l'ancien
+//    recoupement de mots-clés (utils/faqMatcher.js, retiré, jugé pas assez
+//    intelligent — demande explicite). Si vraiment hors sujet, ou si
+//    l'assistant IA est indisponible (panne, clé non configurée...), propose
+//    de transmettre la question à un admin (voir Messagerie/views.py::
+//    contacterAdmin, ouvert à tout compte acheteur/vendeur connecté, pas
+//    seulement vendeur).
 const CLES_TIP_ETAPE = {
     1: "seller.chatbotTipStep1",
     2: "seller.chatbotTipStep2",
@@ -39,6 +45,11 @@ const CLES_TIP_STATUT = {
     echoue: "seller.chatbotTipStatusFailed",
 };
 
+// nombre max de tours (messages moi+bot confondus) transmis comme historique
+// de conversation à l'IA pour la continuité — au-delà, coupé (l'IA n'a de
+// toute façon besoin que des derniers échanges pour suivre le fil)
+const MAX_TOURS_HISTORIQUE = 12;
+
 let prochainId = 1;
 
 export default function ChatbotVendeur() {
@@ -48,29 +59,26 @@ export default function ChatbotVendeur() {
     const [messages, setMessages] = useState([]);
     const [saisie, setSaisie] = useState("");
     const [questionEnAttente, setQuestionEnAttente] = useState(null);
+    // requête en cours vers l'assistant IA (distinct de envoiEnCours, qui ne
+    // concerne que l'envoi d'un message à un admin, voir accepterEscalade)
+    const [attenteReponseIA, setAttenteReponseIA] = useState(false);
     const [envoiEnCours, setEnvoiEnCours] = useState(false);
     const zoneMessagesRef = useRef(null);
 
     const etape = useChatbotStore((s) => s.etape);
     const statut = useChatbotStore((s) => s.statut);
     const isConnected = useAuthStore((s) => s.isConnected);
-    const utilisateur = useAuthStore((s) => s.utilisateur);
     const profil = useProfilStore((s) => s.profil);
     const isAdmin = profil?.role === "admin";
 
-    // chiffrement de bout en bout de l'escalade vers le support (voir
-    // Support/ContacterAdmin.jsx pour le même principe détaillé)
-    const garantirCleE2E = useE2eStore((s) => s.garantirCleE2E);
-    const clePubliqueJwk = useE2eStore((s) => s.clePubliqueJwk);
-    const obtenirClesAdmins = useE2eStore((s) => s.obtenirClesAdmins);
-
     const cleTipContexte = statut ? CLES_TIP_STATUT[statut] : CLES_TIP_ETAPE[etape];
 
-    // liste plate des questions/réponses de la FAQ dans la langue courante —
-    // reconstruite si la langue change (t change de référence, voir i18n.jsx).
-    // Combine les trois sources : Aide (déjà en questions/réponses), Qui
-    // sommes-nous et Politique d'utilisation (prose, une question dédiée au
-    // chatbot a été écrite pour chaque section — voir faqSections.js)
+    // liste plate des questions/réponses de la documentation dans la langue
+    // courante — reconstruite si la langue change (t change de référence,
+    // voir i18n.jsx). Combine les trois sources : Aide (déjà en
+    // questions/réponses), Qui sommes-nous et Politique d'utilisation (prose,
+    // une question dédiée au chatbot a été écrite pour chaque section — voir
+    // faqSections.js)
     const faq = useMemo(() => {
         const liste = [];
         for (const section of SECTIONS_AIDE) {
@@ -86,6 +94,13 @@ export default function ChatbotVendeur() {
         }
         return liste;
     }, [t]);
+
+    // documentation assemblée en un seul bloc de texte, envoyée à chaque
+    // question comme contexte pour l'IA (voir MessagerieApi.demanderReponseChatbotIA)
+    const contexte = useMemo(
+        () => faq.map((item) => `Q: ${item.question}\nR: ${item.reponse}`).join("\n\n"),
+        [faq],
+    );
 
     const ajouterMessage = (type, texte) => {
         setMessages((liste) => [...liste, { id: prochainId++, type, texte }]);
@@ -104,31 +119,53 @@ export default function ChatbotVendeur() {
         if (zoneMessagesRef.current) {
             zoneMessagesRef.current.scrollTop = zoneMessagesRef.current.scrollHeight;
         }
-    }, [messages, questionEnAttente]);
+    }, [messages, questionEnAttente, attenteReponseIA]);
 
-    const soumettreQuestion = (e) => {
-        e.preventDefault();
-        const question = saisie.trim();
-        if (!question) return;
-        setSaisie("");
-        ajouterMessage("moi", question);
-        setQuestionEnAttente(null);
-
-        const trouvee = trouverReponseFaq(question, faq);
-        if (trouvee) {
-            ajouterMessage("bot", trouvee.reponse);
-            return;
-        }
-
+    // dégrade vers le flux d'escalade existant (proposer de contacter un
+    // admin) — appelé aussi bien quand l'IA elle-même signale hors_sujet que
+    // quand l'appel à l'IA échoue complètement (panne, clé non configurée...)
+    const proposerEscalade = (question) => {
         if (isAdmin) {
             // un admin n'a pas d'autre admin "générique" à contacter depuis ce
             // widget — pas de proposition d'escalade dans ce cas
             ajouterMessage("bot", t("chatbot.noAnswerAdmin"));
             return;
         }
-
-        ajouterMessage("bot", t("chatbot.noAnswer"));
         setQuestionEnAttente(question);
+    };
+
+    const soumettreQuestion = async (e) => {
+        e.preventDefault();
+        const question = saisie.trim();
+        if (!question || attenteReponseIA) return;
+        setSaisie("");
+        ajouterMessage("moi", question);
+        setQuestionEnAttente(null);
+
+        // historique AVANT l'ajout du message ci-dessus (closure sur l'état au
+        // moment de l'appel) — donne à l'IA le fil de la conversation sans le
+        // dupliquer avec la question posée séparément (voir chatbot_ia_service.py)
+        const historique = messages
+            .filter((m) => m.type === "moi" || m.type === "bot")
+            .slice(-MAX_TOURS_HISTORIQUE)
+            .map((m) => ({ role: m.type === "moi" ? "user" : "assistant", contenu: m.texte }));
+
+        setAttenteReponseIA(true);
+        try {
+            const resultat = await MessagerieApi.demanderReponseChatbotIA(question, contexte, historique);
+            ajouterMessage("bot", resultat.reponse);
+            if (resultat.hors_sujet) {
+                proposerEscalade(question);
+            }
+        } catch {
+            // assistant IA indisponible (panne réseau, clé non configurée côté
+            // serveur, quota API...) — même dégradation que "hors sujet" : on ne
+            // laisse jamais l'utilisateur sans réponse ni recours
+            ajouterMessage("bot", isAdmin ? t("chatbot.noAnswerAdmin") : t("chatbot.noAnswer"));
+            proposerEscalade(question);
+        } finally {
+            setAttenteReponseIA(false);
+        }
     };
 
     // n'est appelé que lorsque isConnected est vrai (voir le rendu des
@@ -139,11 +176,9 @@ export default function ChatbotVendeur() {
         setQuestionEnAttente(null);
         setEnvoiEnCours(true);
         try {
-            const clePrivee = await garantirCleE2E();
-            const admins = await obtenirClesAdmins();
-            const destinataires = [...admins, { utilisateur_id: utilisateur.id, cle_publique: clePubliqueJwk }];
-            const { contenu, iv, cles } = await chiffrerEnEnveloppe(clePrivee, question, destinataires);
-            await MessagerieApi.contacterAdmin(contenu, iv, cles);
+            // chiffré côté serveur ("coffre support") — aucun chiffrement
+            // client requis, voir Messagerie/services/support_chiffrement_service.py
+            await MessagerieApi.contacterAdmin(question);
             ajouterMessage("bot", t("chatbot.escalateSent"));
         } catch (err) {
             ajouterMessage("bot", err.message);
@@ -172,6 +207,7 @@ export default function ChatbotVendeur() {
                         {messages.map((m) => (
                             <p key={m.id} className={`cv-message cv-message--${m.type}`}>{m.texte}</p>
                         ))}
+                        {attenteReponseIA && <p className="cv-message cv-message--bot cv-message--attente">{t("chatbot.thinking")}</p>}
                         {envoiEnCours && <p className="cv-message cv-message--bot cv-message--attente">{t("profile.loading")}</p>}
                     </div>
 
@@ -204,8 +240,9 @@ export default function ChatbotVendeur() {
                             value={saisie}
                             onChange={(e) => setSaisie(e.target.value)}
                             placeholder={t("chatbot.inputPlaceholder")}
+                            disabled={attenteReponseIA}
                         />
-                        <button type="submit" className="cv-send" aria-label={t("chatbot.send")} disabled={!saisie.trim()}>
+                        <button type="submit" className="cv-send" aria-label={t("chatbot.send")} disabled={!saisie.trim() || attenteReponseIA}>
                             <Send size={15} />
                         </button>
                     </form>

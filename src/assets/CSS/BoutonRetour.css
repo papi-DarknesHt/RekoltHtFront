@@ -1,6 +1,4 @@
-/* Bouton "Retour" générique — voir components/BoutonRetour.jsx. Styles avec
-   les variables globales (src/index.css), donc cohérent quel que soit le
-   fond de la page qui l'utilise, et déjà compatible mode sombre. */
+
 .bouton-retour {
   display: inline-flex;
   align-items: center;

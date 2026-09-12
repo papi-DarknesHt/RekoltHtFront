@@ -589,16 +589,17 @@
   .rk-card {
     padding: 2rem 1.8rem;
   }
+
+  .rk-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .red{
   color: red;
 }
 
-/* ── MODE SOMBRE ──────────────────────────────────────────────────────────
-   .rk-* est le système de formulaire partagé par la quasi-totalité des
-   pages (profil, produits, KYC, support...) : ces surcharges s'appliquent
-   donc bien au-delà de la page de connexion elle-même. */
+/* --------------- MODE SOMBRE ----------------------- */
 [data-theme="dark"] .rk-root {
   background: var(--rk-bg, #14181a);
 }
@@ -685,4 +686,125 @@
 
 [data-theme="dark"] .rk-pw-toggle:hover {
   color: var(--rk-text, #eceae4);
+}
+
+/* ── MODAL "VÉRIFIEZ VOTRE BOÎTE MAIL" ──────────────── */
+.rk-activation-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 38, 34, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 2000;
+  animation: rk-activation-fade-in 0.15s ease;
+}
+
+@keyframes rk-activation-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.rk-activation-modal {
+  background: var(--rk-card, #fff);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(43, 38, 34, 0.25);
+  padding: 26px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+
+.rk-activation-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  background: var(--rk-green-light, #e3f3e8);
+  color: var(--rk-green, #2f4a3c);
+}
+
+.rk-activation-modal__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--rk-text, #2b2622);
+  margin: 0 0 8px;
+}
+
+.rk-activation-modal__body {
+  font-size: 0.9rem;
+  color: var(--rk-text-light, #6f675f);
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.rk-activation-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.rk-activation-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: inherit;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.rk-activation-modal__btn--secondary {
+  background: transparent;
+  color: var(--rk-text-light, #6f675f);
+  border: 1.5px solid var(--rk-border, #e7e2dc);
+}
+
+.rk-activation-modal__btn--secondary:hover {
+  background: var(--rk-bg, #f6f4f1);
+}
+
+.rk-activation-modal__btn--primary {
+  background: var(--rk-green, #2f4a3c);
+  color: #fff;
+}
+
+.rk-activation-modal__btn--primary:hover {
+  opacity: 0.9;
+}
+
+.rk-activation-modal__btn--primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 480px) {
+  .rk-activation-modal__actions {
+    flex-direction: column-reverse;
+  }
+}
+
+[data-theme="dark"] .rk-activation-modal {
+  background: var(--rk-card, #1f2422);
+}
+
+[data-theme="dark"] .rk-activation-modal__title {
+  color: var(--rk-text, #eceae4);
+}
+
+[data-theme="dark"] .rk-activation-modal__body {
+  color: var(--rk-text-muted, #a8a49b);
+}
+
+[data-theme="dark"] .rk-activation-modal__btn--secondary {
+  border-color: var(--rk-border, #343b36);
+  color: var(--rk-text-light, #8d8a82);
 }
